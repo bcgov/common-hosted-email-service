@@ -4,6 +4,8 @@
   "description": "Testing out nodemailer in a NodeJS API",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "serve": "nodemon index.js",
     "test": "test"
   },
   "repository": {
@@ -11,5 +13,10 @@
     "url": "https://github.com/loneil"
   },
   "author": "Lucas O'Neil",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemailer": "^6.3.0",
+    "nodemon": "^1.19.1"
+  }
 }
