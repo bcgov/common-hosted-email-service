@@ -12,45 +12,66 @@ app.get('/', (req, res) => {
 app.post('/message', async (req, res, next) => {
   try {
 
-    console.log("GET");
+    console.log("POSTED message");
 
-    // Generate test SMTP service account from ethereal.email
-    // Only needed if you don't have a real mail account for testing
-    let testAccount = await nodemailer.createTestAccount();
-    console.log(testAccount.user);
-    console.log(testAccount.pass);
-    console.log(testAccount.smtp.host);
-    console.log(testAccount.smtp.port);
-    console.log(testAccount.smtp.secure);
+    const recips = req.body.recipients.join(", ");
+    const sender = '"Common Service Showcase 🦜" <NR.CommonServiceShowcase@gov.bc.ca>';
 
-    // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
+    if (req.body.devMode) {
+      // Generate test SMTP service account from ethereal.email
+      // Only needed if you don't have a real mail account for testing
+      let testAccount = await nodemailer.createTestAccount();
+      console.log(testAccount.user);
+      console.log(testAccount.pass);
+      console.log(testAccount.smtp.host);
+      console.log(testAccount.smtp.port);
+      console.log(testAccount.smtp.secure);
 
-    const recips = req.body.recipients.join(", ")
-    console.log(recips);
-    // send mail with defined transport object
-    let info = await transporter.sendMail({
-      from: '"Common Service Showcase 🦜" <NR.CommonServiceShowcase@gov.bc.ca>', // sender address
-      to: recips, // list of receivers
-      subject: req.body.subject, // Subject line
-      text: req.body.text, // plain text body
-      html: req.body.html
-      //html: "<b>Hello world?</b>" // html body
-    });
+      // create reusable transporter object using the default SMTP transport
+      let transporter = nodemailer.createTransport({
+        host: testAccount.smtp.host,
+        port: testAccount.smtp.port,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+        // host: "apps.smtp.gov.bc.ca"
+      });
 
-    console.log("Message sent: %s", info.messageId);
-    // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+      // send mail with defined transport object
+      let info = await transporter.sendMail({
+        from: sender, // sender address
+        to: recips, // list of receivers
+        subject: req.body.subject, // Subject line
+        text: req.body.text, // plain text body
+        html: req.body.html
+      });
 
-    // Preview only available when sending through an Ethereal account
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-    // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+      console.log("Message sent: %s", info.messageId);
+      // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+      // Preview only available when sending through an Ethereal account
+      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+      // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+    } else {
+      // Use the bc gov smtp server
+      let transporter = nodemailer.createTransport({
+        host: "apps.smtp.gov.bc.ca",
+        port: 25
+      });
+
+      // send mail with defined transport object
+      let info = await transporter.sendMail({
+        from: sender, // sender address
+        to: recips, // list of receivers
+        subject: req.body.subject, // Subject line
+        text: req.body.text, // plain text body
+        html: req.body.html
+      });
+
+      console.log(info);
+
+    }
 
   } catch (error) {
     console.log(error)
