@@ -57,7 +57,11 @@ app.post('/message', async (req, res, next) => {
       // Use the bc gov smtp server
       let transporter = nodemailer.createTransport({
         host: "apps.smtp.gov.bc.ca",
-        port: 25
+        port: 25,
+        tls: {
+          // do not fail on invalid certs
+          rejectUnauthorized: false
+        }
       });
 
       // send mail with defined transport object
