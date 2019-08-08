@@ -70,7 +70,8 @@ app.post('/message', async (req, res, next) => {
         to: recips, // list of receivers
         subject: req.body.subject, // Subject line
         text: req.body.text, // plain text body
-        html: req.body.html
+        html: req.body.html,
+        attachments: req.body.attachments
       });
 
       console.log(info);
