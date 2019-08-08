@@ -35,7 +35,6 @@ app.post('/message', async (req, res, next) => {
           user: testAccount.user,
           pass: testAccount.pass
         }
-        // host: "apps.smtp.gov.bc.ca"
       });
 
       // send mail with defined transport object
@@ -53,6 +52,7 @@ app.post('/message', async (req, res, next) => {
       // Preview only available when sending through an Ethereal account
       console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
       // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+      res.send(nodemailer.getTestMessageUrl(info));
     } else {
       // Use the bc gov smtp server
       let transporter = nodemailer.createTransport({
@@ -74,11 +74,11 @@ app.post('/message', async (req, res, next) => {
       });
 
       console.log(info);
-
+      res.send(info);
     }
 
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 })
 
