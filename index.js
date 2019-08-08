@@ -1,5 +1,6 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
+const SMTPConnection = require("nodemailer/lib/smtp-connection");
 
 const app = express();
 app.use(express.json());
@@ -7,6 +8,23 @@ app.use(express.json());
 // Top level
 app.get('/', (req, res) => {
   res.send('ok')
+})
+
+//  Health Check
+app.get('/healthCheck', async (req, res) => {
+  let connection = new SMTPConnection({
+    host: "apps.smtp.gov.bc.ca",
+    port: 25,
+    tls: {
+      // do not fail on invalid certs
+      rejectUnauthorized: false
+    }
+  });
+  connection.connect(() => {
+    res.send({
+      "apps.smtp.gov.bc.ca": true
+    });
+  });
 })
 
 app.post('/message', async (req, res, next) => {
@@ -71,7 +89,13 @@ app.post('/message', async (req, res, next) => {
         subject: req.body.subject, // Subject line
         text: req.body.text, // plain text body
         html: req.body.html,
-        attachments: req.body.attachments
+        attachments: req.body.attachments,
+        dsn: {
+          id: 'some random message specific id',
+          return: 'headers',
+          notify: 'success',
+          recipient: 'NR.CommonServiceShowcase@gov.bc.ca'
+        }
       });
 
       console.log(info);
