@@ -29,7 +29,8 @@
     "eslint": "^6.1.0",
     "jest": "^24.8.0",
     "jest-sonar-reporter": "^2.0.0",
-    "nodemon": "^1.19.1"
+    "nodemon": "^1.19.1",
+    "supertest": "^4.0.2"
   },
   "eslintConfig": {
     "root": true,

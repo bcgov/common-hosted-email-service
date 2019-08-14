@@ -3,9 +3,9 @@ const express = require('express');
 const log = require('npmlog');
 const morgan = require('morgan');
 const nodemailer = require('nodemailer');
-const SMTPConnection = require('nodemailer/lib/smtp-connection');
 
 const utils = require('./src/components/utils');
+const v1Router = require('./src/routes/v1');
 
 const apiRouter = express.Router();
 const state = {
@@ -47,23 +47,6 @@ apiRouter.get('/', (_req, res) => {
       ]
     });
   }
-});
-
-//  Health Check
-apiRouter.get('/healthCheck', async (req, res) => {
-  let connection = new SMTPConnection({
-    host: 'apps.smtp.gov.bc.ca',
-    port: 25,
-    tls: {
-      // do not fail on invalid certs
-      rejectUnauthorized: false
-    }
-  });
-  connection.connect(() => {
-    res.send({
-      'apps.smtp.gov.bc.ca': true
-    });
-  });
 });
 
 apiRouter.post('/message', async (req, res) => {
@@ -164,6 +147,9 @@ apiRouter.get('/', (_req, res) => {
 
 // Root level Router
 app.use(/(\/api)?/, apiRouter);
+
+// v1 Router
+apiRouter.use('/v1', v1Router);
 
 // Handle 500
 app.use((err, _req, res, next) => {

@@ -1,0 +1,111 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: NodeMailer PoC API
+  description: >-
+    Testing out nodemailer in a NodeJS API
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+  contact:
+    name: NR Common Service Showcase
+    email: NR.CommonServiceShowcase@gov.bc.ca
+servers:
+  - url: /api/v1
+    description: This Server
+security:
+  - bearerAuth: []
+  - OpenID: []
+paths:
+  /checks/status:
+    get:
+      summary: Returns status of correspondent APIs
+      operationId: checkStatus
+      tags:
+        - Checks
+      responses:
+        '200':
+          description: Responds if the correspondent API endpoint(s) are healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndpointList'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    OpenID:
+      type: openIdConnect
+      openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
+  schemas:
+    EndpointStatus:
+      type: object
+      required:
+        - name
+        - endpoint
+        - healthCheck
+        - authenticated
+        - authorized
+      properties:
+        name:
+          type: string
+          description: The name of the endpoint
+          example: 'WebADE API'
+        endpoint:
+          type: string
+          description: Base endpoint URL
+          example: 'https://example.com/v1/'
+        healthCheck:
+          type: boolean
+          description: Is the endpoint reachable
+        authenticated:
+          type: boolean
+          description: Are credentials valid to access endpoint
+        authorized:
+          type: boolean
+          description: Do the credentials have the right permissions
+    EndpointList:
+      type: object
+      required:
+        - endpoints
+      properties:
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/EndpointStatus'
+          description: A list of Endpoint Statuses
+    Error:
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: contains a message about the failure
+          example: Something errored
+    Success:
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: 'Contains message about the success, normally "Written successfully"'
+          example: Written successfully
+  responses:
+    Forbidden:
+      description: Lack required role to perform action
+    NotFound:
+      description: Not found
+    UnauthorizedError:
+      description: Access token is missing or invalid
