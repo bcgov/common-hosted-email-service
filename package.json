@@ -6,8 +6,8 @@
   "author": "NR Common Service Showcase <NR.CommonServiceShowcase@gov.bc.ca>",
   "scripts": {
     "build": "echo Nothing to build",
-    "serve": "nodemon index.js",
-    "start": "node index.js",
+    "serve": "nodemon ./bin/www",
+    "start": "node ./bin/www",
     "lint": "node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
     "lint:fix": "node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
     "test": "node_modules/.bin/jest --verbose",
@@ -19,8 +19,11 @@
   },
   "homepage": "https://github.com/loneil/nodemailer-poc",
   "dependencies": {
+    "config": "^3.2.2",
     "express": "^4.17.1",
-    "nodemailer": "^6.3.0"
+    "morgan": "^1.9.1",
+    "nodemailer": "^6.3.0",
+    "npmlog": "^4.1.2"
   },
   "devDependencies": {
     "eslint": "^6.1.0",

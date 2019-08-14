@@ -1,17 +1,56 @@
+const config = require('config');
 const express = require('express');
+const log = require('npmlog');
+const morgan = require('morgan');
 const nodemailer = require('nodemailer');
 const SMTPConnection = require('nodemailer/lib/smtp-connection');
 
+const utils = require('./src/components/utils');
+
+const apiRouter = express.Router();
+const state = {
+  isShutdown: false
+};
+
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({
+  extended: false
+}));
 
-// Top level
-app.get('/', (req, res) => {
-  res.send('ok');
+// Logging Setup
+log.level = config.get('server.logLevel');
+log.addLevel('debug', 1500, {
+  fg: 'cyan'
+});
+
+// Print out configuration settings in verbose startup
+log.debug('Config', utils.prettyStringify(config));
+
+// Skip if running tests
+if (process.env.NODE_ENV !== 'test') {
+  // Add Morgan endpoint logging
+  app.use(morgan(config.get('server.morganFormat')));
+}
+
+// GetOK Base API Directory
+apiRouter.get('/', (_req, res) => {
+  if(state.isShutdown) {
+    res.status(500).end('not ok');
+  } else {
+    res.status(200).json({
+      endpoints: [
+        '/api/v1'
+      ],
+      versions: [
+        1
+      ]
+    });
+  }
 });
 
 //  Health Check
-app.get('/healthCheck', async (req, res) => {
+apiRouter.get('/healthCheck', async (req, res) => {
   let connection = new SMTPConnection({
     host: 'apps.smtp.gov.bc.ca',
     port: 25,
@@ -27,7 +66,7 @@ app.get('/healthCheck', async (req, res) => {
   });
 });
 
-app.post('/message', async (req, res) => {
+apiRouter.post('/message', async (req, res) => {
   try {
 
     console.log('POSTED message');
@@ -107,6 +146,25 @@ app.post('/message', async (req, res) => {
   }
 });
 
+// GetOK Base API Directory
+apiRouter.get('/', (_req, res) => {
+  if(state.isShutdown) {
+    res.status(500).end('not ok');
+  } else {
+    res.status(200).json({
+      endpoints: [
+        '/api/v1'
+      ],
+      versions: [
+        1
+      ]
+    });
+  }
+});
+
+// Root level Router
+app.use(/(\/api)?/, apiRouter);
+
 // Handle 500
 app.use((err, _req, res, next) => {
   console.log(err.stack);
@@ -125,6 +183,20 @@ app.use((_req, res) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log('server started on port 3000');
+// Prevent unhandled errors from crashing application
+process.on('unhandledRejection', err => {
+  log.error(err.stack);
 });
+
+// Graceful shutdown support
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+function shutdown() {
+  log.info('Received kill signal. Shutting down...');
+  state.isShutdown = true;
+  // Wait 3 seconds before hard exiting
+  setTimeout(() => process.exit(), 3000);
+}
+
+module.exports = app;
