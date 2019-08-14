@@ -5,11 +5,8 @@ Testing out nodemailer in a NodeJS API
 ## Directory Structure
 
     .github/                   - PR and Issue templates
-    bin/                       - Node.js web server entrypoint
-    config/                    - Application Configuration
+    app/                       - Node.js web application
     openshift/                 - OpenShift-deployment specific files
-    src/                       - Node.js source codebase
-    tests/                     - Node.js test codebase
     CODE-OF-CONDUCT.md         - Code of Conduct
     CONTRIBUTING.md            - Contributing Guidelines
     Jenkinsfile                - Top-level Pipeline
@@ -19,6 +16,7 @@ Testing out nodemailer in a NodeJS API
 
 ## Documentation
 
+* [Application Readme](app/README.md)
 * [Openshift Readme](openshift/README.md)
 * [Devops Tools Setup](https://github.com/bcgov/nr-showcase-devops-tools)
 * [Showcase Team Roadmap](https://github.com/bcgov/nr-get-token/wiki/Product-Roadmap)

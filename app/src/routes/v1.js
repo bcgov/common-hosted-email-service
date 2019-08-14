@@ -2,6 +2,7 @@ const router = require('express').Router();
 const path = require('path');
 
 const checksRouter = require('./v1/checks');
+const messageRouter = require('./v1/message');
 
 // Base v1 Responder
 router.get('/', (_req, res) => {
@@ -25,5 +26,8 @@ router.get('/api-spec.yaml', (_req, res) => {
 
 // Checks
 router.use('/checks', checksRouter);
+
+// Message
+router.use('/message', messageRouter);
 
 module.exports = router;

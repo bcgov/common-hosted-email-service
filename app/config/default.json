@@ -1,6 +1,5 @@
 {
   "server": {
-    "frontend": "http://localhost:3000",
     "logLevel": "debug",
     "morganFormat": "dev",
     "port": "3000"
