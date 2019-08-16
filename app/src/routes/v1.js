@@ -3,6 +3,7 @@ const path = require('path');
 
 const checksRouter = require('./v1/checks');
 const messageRouter = require('./v1/message');
+const mergeRouter = require('./v1/merge');
 
 // Base v1 Responder
 router.get('/', (_req, res) => {
@@ -29,5 +30,8 @@ router.use('/checks', checksRouter);
 
 // Message
 router.use('/message', messageRouter);
+
+// Merge
+router.use('/merge', mergeRouter);
 
 module.exports = router;

@@ -1,9 +1,12 @@
 const log = require('npmlog');
-const message = require('express').Router();
+const merge = require('express').Router();
 const nodemailer = require('nodemailer');
+const nunjucks = require('nunjucks');
+
+const utils = require('../../components/utils');
 
 // pushes a message
-message.post('/message', async (req, res) => {
+merge.post('/merge', async (req, res) => {
   try {
     const recipients = req.body.recipients.join(', ');
     const sender = '"Common Service Showcase 🦜" <NR.CommonServiceShowcase@gov.bc.ca>';
@@ -12,7 +15,7 @@ message.post('/message', async (req, res) => {
       // Generate test SMTP service account from ethereal.email
       // Only needed if you don't have a real mail account for testing
       const testAccount = await nodemailer.createTestAccount();
-      log.debug(testAccount);
+      log.debug(utils.prettyStringify(testAccount));
 
       // create reusable transporter object using the default SMTP transport
       const transporter = nodemailer.createTransport({
@@ -28,9 +31,9 @@ message.post('/message', async (req, res) => {
       const info = await transporter.sendMail({
         from: sender, // sender address
         to: recipients, // list of receivers
-        subject: req.body.subject, // Subject line
-        text: req.body.text, // plain text body
-        html: req.body.html
+        subject: nunjucks.renderString(req.body.subject, req.body.data), // Subject line
+        text: nunjucks.renderString(req.body.text, req.body.data), // plain text body
+        html: nunjucks.renderString(req.body.html, req.body.data)
       });
 
       log.info('Message sent', info.messageId);
@@ -40,38 +43,10 @@ message.post('/message', async (req, res) => {
       log.info('Preview URL', nodemailer.getTestMessageUrl(info));
       // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
       res.status(200).send(nodemailer.getTestMessageUrl(info));
-    } else {
-      // Use the bc gov smtp server
-      const transporter = nodemailer.createTransport({
-        host: 'apps.smtp.gov.bc.ca',
-        port: 25,
-        tls: {
-          rejectUnauthorized: false // do not fail on invalid certs
-        }
-      });
-
-      // send mail with defined transport object
-      const info = await transporter.sendMail({
-        from: sender, // sender address
-        to: recipients, // list of receivers
-        subject: req.body.subject, // Subject line
-        text: req.body.text, // plain text body
-        html: req.body.html,
-        attachments: req.body.attachments,
-        dsn: {
-          id: 'some random message specific id',
-          return: 'headers',
-          notify: 'success',
-          recipient: 'NR.CommonServiceShowcase@gov.bc.ca'
-        }
-      });
-
-      log.debug(info);
-      res.status(200).send(info);
     }
   } catch (error) {
-    log.error(error);
+    log.error(error.message);
   }
 });
 
-module.exports = message;
+module.exports = merge;

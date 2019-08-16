@@ -23,11 +23,12 @@
     "express": "^4.17.1",
     "morgan": "^1.9.1",
     "nodemailer": "^6.3.0",
-    "npmlog": "^4.1.2"
+    "npmlog": "^4.1.2",
+    "nunjucks": "^3.2.0"
   },
   "devDependencies": {
     "eslint": "^6.1.0",
-    "jest": "^24.8.0",
+    "jest": "^24.9.0",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^1.19.1",
     "supertest": "^4.0.2"
