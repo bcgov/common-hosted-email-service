@@ -40,6 +40,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /email/merge:
+    post:
+      summary: Performs a template mail merge and sends the email
+      operationId: emailMerge
+      tags:
+        - Email
+      responses:
+        '200':
+          description: Responds with the correspondence id of the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailMerge'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /email/merge/validate: {}
 components:
   securitySchemes:
     BearerAuth:
@@ -50,6 +74,27 @@ components:
       type: openIdConnect
       openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
   schemas:
+    EmailMerge:
+      type: object
+      required:
+        - recipients
+        - sender
+      properties:
+        context:
+          type: object
+          description: A freeform JSON object of key-value pairs
+        recipients:
+          type: array
+          items:
+            type: string
+            example:
+              - foo@gov.bc.ca
+              - bar@gov.bc.ca
+          description: A list of recipient emails
+        sender:
+          type: string
+          description: The sender email
+          example: example@gov.bc.ca
     EndpointStatus:
       type: object
       required:
