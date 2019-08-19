@@ -2,8 +2,7 @@ openapi: 3.0.0
 info:
   version: 1.0.0
   title: Common Hosted Email Service API
-  description: >-
-    CHES - Powered by NodeMailer (a shared library)
+  description: CHES - Powered by NodeMailer (a shared library)
   license:
     name: Apache 2.0
     url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
@@ -20,7 +19,7 @@ paths:
   /checks/status:
     get:
       summary: Returns status of correspondent APIs
-      operationId: checkStatus
+      operationId: getChecksStatus
       tags:
         - Checks
       responses:
@@ -40,19 +39,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /email/merge:
+  /email:
     post:
-      summary: Performs a template mail merge and sends the email
-      operationId: emailMerge
+      summary: Sends the email
+      operationId: postEmail
       tags:
         - Email
+      parameters:
+        - in: query
+          name: devMode
+          description: Send output to Ethereal for testing if true
+          schema:
+            type: boolean
+      requestBody:
+        description: Fields required to perform a mail merge and send
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
       responses:
         '200':
-          description: Responds with the correspondence id of the message
+          description: Responds with the correspondence id(s)? of the message
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailMerge'
+                $ref: '#/components/schemas/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -63,7 +77,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /email/merge/validate: {}
+  /email/merge:
+    post:
+      summary: Performs a template mail merge and sends the email
+      operationId: postEmailMerge
+      tags:
+        - Email
+      parameters:
+        - in: query
+          name: devMode
+          description: Send output to Ethereal for testing if true
+          schema:
+            type: boolean
+      requestBody:
+        description: Fields required to perform a mail merge and send
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailMergeRequest'
+      responses:
+        '200':
+          description: Responds with the correspondence id(s)? of the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /email/merge/validate:
+    post:
+      summary: Validates a template mail merge and returns the result
+      operationId: postEmailMergeValidate
+      tags:
+        - Email
+      requestBody:
+        description: Fields required to perform a mail merge and send
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailMergeRequest'
+      responses:
+        '200':
+          description: Responds with the result of the validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     BearerAuth:
@@ -72,29 +155,194 @@ components:
       bearerFormat: JWT
     OpenID:
       type: openIdConnect
-      openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
+      openIdConnectUrl: >-
+        https://sso.pathfinder.gov.bc.ca/auth/realms/jbd6rnxw/.well-known/openid-configuration
   schemas:
-    EmailMerge:
+    Attachment:
+      type: object
+      properties:
+        content:
+          type: string
+          description: 'String, Buffer or a Stream contents for the attachment'
+          example: PGI+SGVsbG8gV29ybGRcITwvYj4=
+        contentType:
+          type: string
+          description: >-
+            Optional content type for the attachment, if not set will be derived
+            from the filename property
+        encoding:
+          type: string
+          description: >-
+            If set and content is string, then encodes the content to a Buffer
+            using the specified encoding. Example values: 'base64', 'hex',
+            'binary' etc. Useful if you want to use binary attachments in a JSON
+            formatted email object.
+          enum:
+            - base64
+            - binary
+            - hex
+          example: base64
+        filename:
+          type: string
+          description: >-
+            Filename to be reported as the name of the attached file. Use of
+            unicode is allowed.
+          example: testfile.txt
+    EmailRequest:
       type: object
       required:
-        - recipients
-        - sender
+        - body_type
+        - body
+        - from
+        - to
+        - subject
       properties:
-        context:
-          type: object
-          description: A freeform JSON object of key-value pairs
-        recipients:
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+          description: A list of recipient emails
+        bcc:
           type: array
           items:
             type: string
-            example:
-              - foo@gov.bc.ca
-              - bar@gov.bc.ca
-          description: A list of recipient emails
-        sender:
+          description: >-
+            An array of recipients email addresses that will appear on the BCC:
+            field
+          example:
+            - foo@gov.bc.ca
+        body_type:
           type: string
-          description: The sender email
+          description: 'The email body type (html = content with html, text = plaintext)'
+          enum:
+            - html
+            - text
+          example: html
+        body:
+          type: string
+          description: >-
+            The body of the message as an Unicode string, Buffer, Stream or an
+            attachment-like object
+          example: Hello World content
+        cc:
+          type: array
+          items:
+            type: string
+          description: >-
+            An array of recipients email addresses that will appear on the CC:
+            field
+          example:
+            - bar@gov.bc.ca
+        encoding:
+          type: string
+          description: >-
+            Identifies encoding for text/html strings (defaults to 'utf-8',
+            other values are 'hex' and 'base64')
+          enum:
+            - base64
+            - binary
+            - hex
+          example: base64
+        from:
+          type: string
+          description: >-
+            The email address of the sender. All email addresses can be plain
+            'sender@server.com' or formatted '"Sender Name" sender@server.com'
           example: example@gov.bc.ca
+        priority:
+          type: string
+          description: >-
+            Sets message importance headers, either 'high', 'normal' (default)
+            or 'low'.
+          example: normal
+        to:
+          type: array
+          items:
+            type: string
+          description: >-
+            An array of recipients email addresses that will appear on the To:
+            field
+          example:
+            - baz@gov.bc.ca
+        subject:
+          type: string
+          description: The email subject
+          example: Hello user
+    EmailMergeRequest:
+      type: object
+      required:
+        - body_type
+        - body
+        - from
+        - to
+        - subject
+      properties:
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+        body_type:
+          type: string
+          description: 'The email body type (html = content with html, text = plaintext)'
+          enum:
+            - html
+            - text
+          example: html
+        body:
+          type: string
+          description: >-
+            The body of the message as an Unicode string, Buffer, Stream or an
+            attachment-like object
+          example: '{{ body.greeting }} {{ body.target }} content'
+        contexts:
+          type: array
+          description: An array of context objects
+          items:
+            type: object
+            required:
+              - context
+              - to
+            properties:
+              to:
+                type: string
+                description: >-
+                  An array of recipients email addresses that will appear on the
+                  To: field
+                example: baz@gov.bc.ca
+              context:
+                type: object
+                description: A freeform JSON object of key-value pairs
+                example:
+                  body:
+                    greeting: Hello
+                    target: World
+                  subject: user
+        encoding:
+          type: string
+          description: >-
+            Identifies encoding for text/html strings (defaults to 'utf-8',
+            other values are 'hex' and 'base64')
+          enum:
+            - base64
+            - binary
+            - hex
+          example: base64
+        from:
+          type: string
+          description: >-
+            The email address of the sender. All email addresses can be plain
+            'sender@server.com' or formatted '"Sender Name" sender@server.com'
+          example: example@gov.bc.ca
+        priority:
+          type: string
+          description: >-
+            Sets message importance headers, either 'high', 'normal' (default)
+            or 'low'.
+          example: normal
+        subject:
+          type: string
+          description: The email subject
+          example: 'Hello {{ subject }}'
     EndpointStatus:
       type: object
       required:
@@ -107,7 +355,7 @@ components:
         name:
           type: string
           description: The name of the endpoint
-          example: 'WebADE API'
+          example: WebADE API
         endpoint:
           type: string
           description: Base endpoint URL
@@ -148,6 +396,8 @@ components:
           description: 'Contains message about the success, normally "Written successfully"'
           example: Written successfully
   responses:
+    BadRequest:
+      description: Request is missing content or is malformed
     Forbidden:
       description: Lack required role to perform action
     NotFound:
