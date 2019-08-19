@@ -1,12 +1,12 @@
 const log = require('npmlog');
-const merge = require('express').Router();
+const email = require('express').Router();
 const nodemailer = require('nodemailer');
 const nunjucks = require('nunjucks');
 
 const utils = require('../../components/utils');
 
 // pushes a message
-merge.post('/merge', async (req, res) => {
+email.post('/', async (req, res) => {
   try {
     const recipients = req.body.recipients.join(', ');
     const sender = '"Common Service Showcase 🦜" <NR.CommonServiceShowcase@gov.bc.ca>';
@@ -49,4 +49,12 @@ merge.post('/merge', async (req, res) => {
   }
 });
 
-module.exports = merge;
+email.post('/merge', async (_req, res) => {
+  res.status(501).send('Not Implemented');
+});
+
+email.post('/merge/validate', async (_req, res) => {
+  res.status(501).send('Not Implemented');
+});
+
+module.exports = email;
