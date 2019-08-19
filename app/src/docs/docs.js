@@ -2,7 +2,7 @@ const docs = {
   getDocHTML: version => `<!DOCTYPE html>
   <html>
     <head>
-      <title>NodeMailer PoC API - Documentation ${version}</title>
+      <title>Common Hosted Email Service API - Documentation ${version}</title>
       <!-- needed for adaptive design -->
       <meta charset="utf-8"/>
       <meta name="viewport" content="width=device-width, initial-scale=1">

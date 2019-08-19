@@ -1,10 +1,10 @@
-# NodeMailer Proof of Concept
+# Common Hosted Email Service
 
-Testing out nodemailer in a NodeJS API
+CHES - Powered by NodeMailer (a shared library)
 
 ## Application
 
-The application is a node server which serves the NodeMailer PoC API. It uses the following dependencies from NPM:
+The application is a node server which serves the Common Hosted Email Service API. It uses the following dependencies from NPM:
 
 Authentication & Password Management
 

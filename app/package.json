@@ -1,8 +1,8 @@
 {
-  "name": "nodemailer-poc",
+  "name": "common-hosted-email-service",
   "version": "1.0.0",
   "private": true,
-  "description": "Testing out nodemailer in a NodeJS API",
+  "description": "CHES - Powered by NodeMailer (a shared library)",
   "author": "NR Common Service Showcase <NR.CommonServiceShowcase@gov.bc.ca>",
   "scripts": {
     "build": "echo Nothing to build",
@@ -17,7 +17,7 @@
     "rebuild": "npm run clean && npm run build",
     "reinstall": "npm run purge && npm install"
   },
-  "homepage": "https://github.com/loneil/nodemailer-poc",
+  "homepage": "https://github.com/bcgov/common-hosted-email-service",
   "dependencies": {
     "config": "^3.2.2",
     "express": "^4.17.1",
@@ -105,9 +105,9 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loneil/nodemailer-poc.git"
+    "url": "git+https://github.com/bcgov/common-hosted-email-service.git"
   },
   "bugs": {
-    "url": "https://github.com/loneil/nodemailer-poc/issues"
+    "url": "https://github.com/bcgov/common-hosted-email-service/issues"
   }
 }

@@ -60,12 +60,12 @@ objects:
             value: production
           envFrom:
           - configMapRef:
-              name: nmpoc-sc-config
+              name: ches-server-config
     test: false
     triggers:
     - type: ConfigChange
     - imageChangeParams:
-        # automatic: true
+        automatic: true
         containerNames:
         - "${APP_NAME}-app-${JOB_NAME}"
         from:
@@ -117,7 +117,7 @@ parameters:
   displayName: Job Branch Name
   required: true
 - name: NAMESPACE
-  description: Target namespace reference (i.e. 'k8vopl-dev')
+  description: Target namespace reference (i.e. '9f0fbe-dev')
   displayName: Target Namespace
   required: true
 - name: APP_NAME

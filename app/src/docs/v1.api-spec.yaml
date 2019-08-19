@@ -1,9 +1,9 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: NodeMailer PoC API
+  title: Common Hosted Email Service API
   description: >-
-    Testing out nodemailer in a NodeJS API
+    CHES - Powered by NodeMailer (a shared library)
   license:
     name: Apache 2.0
     url: 'https://www.apache.org/licenses/LICENSE-2.0.html'

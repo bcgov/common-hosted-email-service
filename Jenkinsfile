@@ -31,7 +31,7 @@ pipeline {
     SOURCE_REPO_REF = 'master'
     SOURCE_REPO_URL = "https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
 
-    // HOST_ROUTE is the full domain route endpoint (ie. 'appname-pr-5-k8vopl-dev.pathfinder.gov.bc.ca')
+    // HOST_ROUTE is the full domain route endpoint (ie. 'appname-pr-5-9f0fbe-dev.pathfinder.gov.bc.ca')
     DEV_HOST_ROUTE = "${APP_NAME}-${JOB_NAME}-${DEV_PROJECT}.${APP_DOMAIN}"
     TEST_HOST_ROUTE = "${APP_NAME}-${JOB_NAME}-${TEST_PROJECT}.${APP_DOMAIN}"
     PROD_HOST_ROUTE = "${APP_NAME}-${JOB_NAME}-${PROD_PROJECT}.${APP_DOMAIN}"
@@ -96,7 +96,7 @@ pipeline {
           sonar-scanner \
             -Dsonar.host.url='${SONARQUBE_URL_INT}' \
             -Dsonar.projectKey='${REPO_NAME}-${JOB_NAME}' \
-            -Dsonar.projectName='NodeMailer Proof of Concept (${JOB_NAME.toUpperCase()})'
+            -Dsonar.projectName='Common Hosted Email Service (${JOB_NAME.toUpperCase()})'
           """
         }
       }
@@ -254,7 +254,7 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
       }
 
       echo "Checking for ConfigMaps and Secrets in project ${openshift.project()}..."
-      if(!(openshift.selector('cm', "nmpoc-sc-config").exists())) {
+      if(!(openshift.selector('cm', "ches-sc-config").exists())) {
         echo 'Some ConfigMaps and/or Secrets are missing. Please consult the openshift readme for details.'
         throw e
       }

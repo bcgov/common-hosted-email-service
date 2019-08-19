@@ -1,6 +1,6 @@
-# NodeMailer Proof of Concept [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+# Common Hosted Email Service [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Testing out nodemailer in a NodeJS API
+CHES - Powered by NodeMailer (a shared library)
 
 ## Directory Structure
 
