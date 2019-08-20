@@ -1,4 +1,5 @@
 const checks = require('express').Router();
+const Problem = require('api-problem');
 
 const checkComponent = require('../../components/checks');
 
@@ -11,8 +12,8 @@ checks.get('/status', async (_req, res) => {
       endpoints: statuses
     });
   } else {
-    res.status(500).json({
-      message: 'Unable to get api status list'
+    new Problem(500).send(res, {
+      detail: 'Unable to get api status list'
     });
   }
 });

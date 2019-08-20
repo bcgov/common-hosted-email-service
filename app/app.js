@@ -2,6 +2,7 @@ const config = require('config');
 const express = require('express');
 const log = require('npmlog');
 const morgan = require('morgan');
+const Problem = require('api-problem');
 
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
@@ -34,24 +35,10 @@ if (process.env.NODE_ENV !== 'test') {
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
-  if(state.isShutdown) {
-    res.status(500).end('not ok');
-  } else {
-    res.status(200).json({
-      endpoints: [
-        '/api/v1'
-      ],
-      versions: [
-        1
-      ]
+  if (!state.isShutdown) {
+    new Problem(500).send(res, {
+      detail: 'Server shutting down'
     });
-  }
-});
-
-// GetOK Base API Directory
-apiRouter.get('/', (_req, res) => {
-  if(state.isShutdown) {
-    res.status(500).end('not ok');
   } else {
     res.status(200).json({
       endpoints: [
@@ -71,26 +58,35 @@ app.use(/(\/api)?/, apiRouter);
 apiRouter.use('/v1', v1Router);
 
 // Handle 500
-app.use((err, _req, res, next) => {
-  console.log(err.stack);
-  res.status(500).json({
-    status: 500,
-    message: 'Internal Server Error: ' + err.stack.split('\n', 1)[0]
-  });
-  next();
+app.use((err, _req, res, _next) => {
+  if (err.stack) {
+    log.error(err.stack);
+  }
+
+  if (err instanceof Problem) {
+    err.send(res);
+  } else {
+    const details = {};
+    if (err.message) {
+      details.detail = err.message;
+    } else {
+      details.detail = err;
+    }
+
+    new Problem(500, details).send(res);
+  }
 });
 
 // Handle 404
 app.use((_req, res) => {
-  res.status(404).json({
-    status: 404,
-    message: 'Page Not Found'
-  });
+  new Problem(404).send(res);
 });
 
 // Prevent unhandled errors from crashing application
 process.on('unhandledRejection', err => {
-  log.error(err.stack);
+  if (err.stack) {
+    log.error(err.stack);
+  }
 });
 
 // Graceful shutdown support

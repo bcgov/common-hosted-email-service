@@ -4,7 +4,7 @@ const SMTPConnection = require('nodemailer/lib/smtp-connection');
 
 const checks = {
   getSmtpStatus: async () => {
-    const host = 'apps.smtp.gov.bc.cas';
+    const host = 'apps.smtp.gov.bc.ca';
     const result = {
       authenticated: false,
       authorized: false,
@@ -12,24 +12,24 @@ const checks = {
       healthCheck: false,
       name: 'SMTP Endpoint'
     };
-    const connection = new SMTPConnection({
-      host: host,
-      port: 25,
-      tls: {
-        rejectUnauthorized: false // Do not fail on invalid certs
-      }
-    });
 
     try {
-      connection.connect(() => {
-        result.authenticated = true;
-        result.authorized = true;
-        result.healthCheck = true;
+      const connection = new SMTPConnection({
+        host: host,
+        port: 25,
+        tls: {
+          rejectUnauthorized: false // Do not fail on invalid certs
+        }
       });
-      connection.quit();
+
+      await connection.connect();
+      result.authenticated = true;
+      result.authorized = true;
+      result.healthCheck = true;
+      // connection.quit();
     } catch (error) {
       log.error('getSmtpStatus', error.message);
-      connection.close();
+      // connection.close();
     }
 
     return result;

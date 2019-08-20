@@ -2,6 +2,7 @@ const log = require('npmlog');
 const email = require('express').Router();
 const nodemailer = require('nodemailer');
 const nunjucks = require('nunjucks');
+const Problem = require('api-problem');
 
 const utils = require('../../components/utils');
 
@@ -50,11 +51,11 @@ email.post('/', async (req, res) => {
 });
 
 email.post('/merge', async (_req, res) => {
-  res.status(501).send('Not Implemented');
+  new Problem(501).send(res);
 });
 
-email.post('/merge/validate', async (_req, res) => {
-  res.status(501).send('Not Implemented');
+email.post('/merge/preview', async (_req, res) => {
+  new Problem(501).send(res);
 });
 
 module.exports = email;
