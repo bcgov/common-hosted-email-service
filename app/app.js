@@ -58,7 +58,7 @@ app.use(/(\/api)?/, apiRouter);
 apiRouter.use('/v1', v1Router);
 
 // Handle 500
-app.use((err, _req, res, _next) => {
+app.use((err, _req, res, next) => {
   if (err.stack) {
     log.error(err.stack);
   }
@@ -75,6 +75,8 @@ app.use((err, _req, res, _next) => {
 
     new Problem(500, details).send(res);
   }
+
+  next();
 });
 
 // Handle 404
