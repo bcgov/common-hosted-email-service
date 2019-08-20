@@ -35,7 +35,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
-  if (!state.isShutdown) {
+  if (state.isShutdown) {
     new Problem(500).send(res, {
       detail: 'Server shutting down'
     });

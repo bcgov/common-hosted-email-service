@@ -254,7 +254,7 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
       }
 
       echo "Checking for ConfigMaps and Secrets in project ${openshift.project()}..."
-      if(!(openshift.selector('cm', "ches-sc-config").exists())) {
+      if(!(openshift.selector('cm', "ches-server-config").exists())) {
         echo 'Some ConfigMaps and/or Secrets are missing. Please consult the openshift readme for details.'
         throw e
       }
