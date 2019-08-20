@@ -41,7 +41,7 @@ paths:
                 $ref: '#/components/schemas/Error'
   /email:
     post:
-      summary: Sends the email
+      summary: Email sending
       operationId: postEmail
       tags:
         - Email
@@ -79,7 +79,7 @@ paths:
                 $ref: '#/components/schemas/Error'
   /email/merge:
     post:
-      summary: Performs a template mail merge and sends the email
+      summary: Template mail merge & email sending
       operationId: postEmailMerge
       tags:
         - Email
@@ -115,9 +115,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /email/merge/validate:
+  /email/merge/preview:
     post:
-      summary: Validates a template mail merge and returns the result
+      summary: Template mail merge validation & preview
       operationId: postEmailMergeValidate
       tags:
         - Email
@@ -191,7 +191,7 @@ components:
     EmailRequest:
       type: object
       required:
-        - body_type
+        - bodyType
         - body
         - from
         - to
@@ -211,7 +211,7 @@ components:
             field
           example:
             - foo@gov.bc.ca
-        body_type:
+        bodyType:
           type: string
           description: 'The email body type (html = content with html, text = plaintext)'
           enum:
@@ -254,6 +254,10 @@ components:
           description: >-
             Sets message importance headers, either 'high', 'normal' (default)
             or 'low'.
+          enum:
+            - normal
+            - low
+            - high
           example: normal
         to:
           type: array
@@ -271,7 +275,7 @@ components:
     EmailMergeRequest:
       type: object
       required:
-        - body_type
+        - bodyType
         - body
         - from
         - to
@@ -281,7 +285,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Attachment'
-        body_type:
+        bodyType:
           type: string
           description: 'The email body type (html = content with html, text = plaintext)'
           enum:
@@ -291,9 +295,10 @@ components:
         body:
           type: string
           description: >-
-            The body of the message as an Unicode string, Buffer, Stream or an
-            attachment-like object
-          example: '{{ body.greeting }} {{ body.target }} content'
+            A Nunjucks compatible body template of the message as an Unicode
+            string, Buffer, Stream or an attachment-like object. Refer to
+            https://mozilla.github.io/nunjucks/templating.html for template syntax.
+          example: '{{ something.greeting }} {{ something.target }} content'
         contexts:
           type: array
           description: An array of context objects
@@ -313,10 +318,10 @@ components:
                 type: object
                 description: A freeform JSON object of key-value pairs
                 example:
-                  body:
+                  something:
                     greeting: Hello
                     target: World
-                  subject: user
+                  someone: user
         encoding:
           type: string
           description: >-
@@ -338,11 +343,15 @@ components:
           description: >-
             Sets message importance headers, either 'high', 'normal' (default)
             or 'low'.
+          enum:
+            - normal
+            - low
+            - high
           example: normal
         subject:
           type: string
           description: The email subject
-          example: 'Hello {{ subject }}'
+          example: 'Hello {{ someone }}'
     EndpointStatus:
       type: object
       required:
