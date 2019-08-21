@@ -242,7 +242,8 @@ components:
             - base64
             - binary
             - hex
-          example: base64
+            - utf-8
+          example: utf-8
         from:
           type: string
           description: >-
@@ -331,7 +332,8 @@ components:
             - base64
             - binary
             - hex
-          example: base64
+            - utf-8
+          example: utf-8
         from:
           type: string
           description: >-

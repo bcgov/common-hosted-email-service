@@ -1,10 +1,10 @@
-const checks = require('express').Router();
+const checksRouter = require('express').Router();
 const Problem = require('api-problem');
 
 const checkComponent = require('../../components/checks');
 
 // returns the status of correspondent apis
-checks.get('/status', async (_req, res) => {
+checksRouter.get('/status', async (_req, res) => {
   const statuses = await checkComponent.getStatus();
 
   if (statuses instanceof Array) {
@@ -12,10 +12,10 @@ checks.get('/status', async (_req, res) => {
       endpoints: statuses
     });
   } else {
-    new Problem(500).send(res, {
-      detail: 'Unable to get api status list'
-    });
+    new Problem(500, {
+      detail: 'Unable to get API status list'
+    }).send(res);
   }
 });
 
-module.exports = checks;
+module.exports = checksRouter;

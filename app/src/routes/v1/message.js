@@ -1,9 +1,9 @@
 const log = require('npmlog');
-const message = require('express').Router();
+const messageRouter = require('express').Router();
 const nodemailer = require('nodemailer');
 
 // pushes a message
-message.post('/message', async (req, res) => {
+messageRouter.post('/message', async (req, res) => {
   try {
     const recipients = req.body.recipients.join(', ');
     const sender = '"Common Service Showcase 🦜" <NR.CommonServiceShowcase@gov.bc.ca>';
@@ -74,4 +74,4 @@ message.post('/message', async (req, res) => {
   }
 });
 
-module.exports = message;
+module.exports = messageRouter;

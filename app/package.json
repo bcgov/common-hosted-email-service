@@ -22,13 +22,14 @@
     "api-problem": "^5.1.2",
     "config": "^3.2.2",
     "express": "^4.17.1",
+    "express-validator": "^6.1.1",
     "morgan": "^1.9.1",
     "nodemailer": "^6.3.0",
     "npmlog": "^4.1.2",
     "nunjucks": "^3.2.0"
   },
   "devDependencies": {
-    "eslint": "^6.1.0",
+    "eslint": "^6.2.1",
     "jest": "^24.9.0",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^1.19.1",
