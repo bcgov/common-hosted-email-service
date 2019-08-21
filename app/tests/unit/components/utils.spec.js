@@ -5,6 +5,35 @@ const utils = require('../../../src/components/utils');
 
 log.level = config.get('server.logLevel');
 
+describe('filterUndefinedAndEmpty', () => {
+  const obj = {
+    foo: undefined,
+    bar: [],
+    baz: [
+      'herp'
+    ],
+    derp: 'flerp'
+  };
+
+  it('should drop undefined properties', () => {
+    const result = utils.filterUndefinedAndEmpty(obj);
+
+    expect(result).toBeTruthy();
+    expect(result.foo).toBeUndefined();
+    expect(result.derp).toMatch('flerp');
+    expect(Object.keys(result).length).toEqual(2);
+  });
+
+  it('should drop empty array properties', () => {
+    const result = utils.filterUndefinedAndEmpty(obj);
+
+    expect(result).toBeTruthy();
+    expect(result.bar).toBeUndefined();
+    expect(result.baz.length).toEqual(1);
+    expect(Object.keys(result).length).toEqual(2);
+  });
+});
+
 describe('prettyStringify', () => {
   const obj = {
     foo: 'bar'
