@@ -3,6 +3,7 @@ const log = require('npmlog');
 const SMTPConnection = require('nodemailer/lib/smtp-connection');
 
 const checks = {
+  /** Checks the connectivity of the SMTP host */
   getSmtpStatus: async () => {
     const host = 'apps.smtp.gov.bc.ca';
     const result = {
@@ -35,6 +36,7 @@ const checks = {
     return result;
   },
 
+  /** Returns a list of all endpoint connectivity states */
   getStatus: () => Promise.all([
     checks.getSmtpStatus()
   ])
