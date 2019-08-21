@@ -5,7 +5,7 @@ const SMTPConnection = require('nodemailer/lib/smtp-connection');
 const checks = {
   /** Checks the connectivity of the SMTP host */
   getSmtpStatus: async () => {
-    const host = 'apps.smtp.gov.bc.ca';
+    const host = 'apps.smtp.gov.bc.ca'; // TODO: move this to constants file
     const result = {
       authenticated: false,
       authorized: false,

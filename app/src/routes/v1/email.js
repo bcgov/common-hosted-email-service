@@ -29,7 +29,8 @@ emailRouter.post('/', [
       const result = await emailComponent.sendMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      res.status(200).end();
+      const result = await emailComponent.sendMailSmtp(req.body);
+      res.status(201).json(result);
     }
   } catch (error) {
     new Problem(502, {
