@@ -34,7 +34,7 @@ const checks = {
 
   /** Returns a list of all endpoint connectivity states */
   getStatus: () => Promise.all([
-    checks.getSmtpStatus('apps.smtp.gov.bc.cas') // TODO: move this to constants file
+    checks.getSmtpStatus('apps.smtp.gov.bc.ca') // TODO: move this to constants file
   ])
 };
 

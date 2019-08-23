@@ -33,7 +33,7 @@ emailRouter.post('/', [
       res.status(201).json(result);
     }
   } catch (error) {
-    new Problem(502, {
+    new Problem(500, {
       detail: error.message
     }).send(res);
   }
