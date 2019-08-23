@@ -1,4 +1,11 @@
-# Common Hosted Email Service [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+# Common Hosted Email Service [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) [![Quality Gate](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/gate?key=common-hosted-email-service-master)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
+
+[![Bugs](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/measure?key=common-hosted-email-service-master&metric=bugs)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
+[![Vulnerabilities](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/measure?key=common-hosted-email-service-master&metric=vulnerabilities)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
+[![Code Smells](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/measure?key=common-hosted-email-service-master&metric=code_smells)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
+[![Coverage](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/measure?key=common-hosted-email-service-master&metric=coverage)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
+[![Lines](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/measure?key=common-hosted-email-service-master&metric=lines)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
+[![Duplication](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/api/badges/measure?key=common-hosted-email-service-master&metric=duplicated_lines_density)](https://sonarqube-9f0fbe-tools.pathfinder.gov.bc.ca/dashboard?id=common-hosted-email-service-master)
 
 CHES - Powered by NodeMailer (a shared library)
 

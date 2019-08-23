@@ -13,12 +13,19 @@ Authentication & Password Management
 
 Networking
 
+* `api-problem` - RFC 7807 problem details
 * `express` - Server middleware
+* `express-validator` - Call validation
+* `nodemailer` - SMTP mail library
 
 Logging
 
 * `morgan` - HTTP request logger
 * `npmlog` - General log framework
+
+Templating
+
+* `nunjucks` - Jinja2 style templating language
 
 ### General Code Layout
 
