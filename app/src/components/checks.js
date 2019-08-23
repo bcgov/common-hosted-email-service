@@ -1,11 +1,9 @@
 const log = require('npmlog');
-
-const SMTPConnection = require('nodemailer/lib/smtp-connection');
+const nodemailer = require('nodemailer');
 
 const checks = {
   /** Checks the connectivity of the SMTP host */
-  getSmtpStatus: async () => {
-    const host = 'apps.smtp.gov.bc.ca'; // TODO: move this to constants file
+  getSmtpStatus: async host => {
     const result = {
       authenticated: false,
       authorized: false,
@@ -15,22 +13,20 @@ const checks = {
     };
 
     try {
-      const connection = new SMTPConnection({
+      const transporter = nodemailer.createTransport({
         host: host,
         port: 25,
         tls: {
-          rejectUnauthorized: false // Do not fail on invalid certs
+          rejectUnauthorized: false // do not fail on invalid certs
         }
       });
 
-      await connection.connect();
+      await transporter.verify();
       result.authenticated = true;
       result.authorized = true;
       result.healthCheck = true;
-      // connection.quit();
     } catch (error) {
       log.error('getSmtpStatus', error.message);
-      // connection.close();
     }
 
     return result;
@@ -38,7 +34,7 @@ const checks = {
 
   /** Returns a list of all endpoint connectivity states */
   getStatus: () => Promise.all([
-    checks.getSmtpStatus()
+    checks.getSmtpStatus('apps.smtp.gov.bc.cas') // TODO: move this to constants file
   ])
 };
 
