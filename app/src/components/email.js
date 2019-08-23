@@ -16,6 +16,7 @@ const email = {
     return envelope;
   },
 
+  /** Sends an email message using the transporter */
   sendMail: async (transporter, message) => {
     try {
       const envelope = email.createEnvelope(message);
@@ -23,7 +24,7 @@ const email = {
       // Send mail with defined transport object
       const info = await transporter.sendMail(envelope);
 
-      log.debug(info);
+      log.debug('sendMail', info);
       return info;
     } catch (error) {
       log.error('sendMail', error.message);
@@ -65,6 +66,7 @@ const email = {
     }
   },
 
+  /** Creates an email and sends it to the SMTP server */
   sendMailSmtp: async message => {
     try {
       // Use the BCGov SMTP server

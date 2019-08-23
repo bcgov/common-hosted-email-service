@@ -19,7 +19,7 @@ describe('getSmtpStatus', () => {
 
   it('should connect to SMTP server successfully', async () => {
     nodemailer.createTransport.mockReturnValue({
-      'verify': jest.fn().mockResolvedValue()
+      verify: jest.fn().mockResolvedValue()
     });
 
     const result = await checks.getSmtpStatus(validHost);
