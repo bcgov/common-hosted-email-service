@@ -59,7 +59,7 @@ paths:
             schema:
               $ref: '#/components/schemas/EmailRequest'
       responses:
-        '200':
+        '201':
           description: Responds with the correspondence id(s)? of the message
           content:
             application/json:
@@ -97,7 +97,7 @@ paths:
             schema:
               $ref: '#/components/schemas/EmailMergeRequest'
       responses:
-        '200':
+        '201':
           description: Responds with the correspondence id(s)? of the message
           content:
             application/json:
@@ -242,7 +242,8 @@ components:
             - base64
             - binary
             - hex
-          example: base64
+            - utf-8
+          example: utf-8
         from:
           type: string
           description: >-
@@ -331,7 +332,8 @@ components:
             - base64
             - binary
             - hex
-          example: base64
+            - utf-8
+          example: utf-8
         from:
           type: string
           description: >-

@@ -8,7 +8,8 @@ const emailRouter = require('./v1/email');
 router.get('/', (_req, res) => {
   res.status(200).json({
     endpoints: [
-      '/checks'
+      '/checks',
+      '/email'
     ]
   });
 });

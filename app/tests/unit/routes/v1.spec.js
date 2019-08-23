@@ -10,7 +10,8 @@ describe('/api/v1', () => {
     expect(response.body).toBeTruthy();
     expect(response.body).toEqual({
       endpoints: [
-        '/checks'
+        '/checks',
+        '/email'
       ]
     });
   });
