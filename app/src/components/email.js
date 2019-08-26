@@ -1,10 +1,14 @@
 const log = require('npmlog');
 const nodemailer = require('nodemailer');
+const nunjucks = require('nunjucks');
 
 const utils = require('./utils');
 
 const email = {
-  /** Transforms a message object into a nodemailer envelope */
+  /** Transforms a message object into a nodemailer envelope
+   *  @param {object} message An email message object
+   *  @returns {object} NodeMailer email envelope object
+   */
   createEnvelope: message => {
     const envelope = utils.filterUndefinedAndEmpty(message);
     // Reassign the body field into the type specified by bodyType
@@ -16,7 +20,25 @@ const email = {
     return envelope;
   },
 
-  /** Sends an email message using the transporter */
+  /** Applies the context onto the template based on the template dialect
+   *  @param {string} template A template string
+   *  @param {object} context A key/value object store for template population
+   *  @param {string} [dialect=nunjucks] The dialect the `template` string is formatted in
+   *  @returns {strong} A rendered merge output
+   */
+  renderMerge: (template, context, dialect = 'nunjucks') => {
+    if (dialect === 'nunjucks') {
+      return nunjucks.renderString(template, context);
+    } else {
+      throw new Error(`Dialect ${dialect} not supported`);
+    }
+  },
+
+  /** Sends an email message using the transporter
+   *  @param {object} transporter A nodemailer transport object
+   *  @param {object} message An email message object
+   *  @returns {object} A nodemailer result object
+   */
   sendMail: async (transporter, message) => {
     try {
       const envelope = email.createEnvelope(message);
@@ -32,7 +54,10 @@ const email = {
     }
   },
 
-  /** Creates an email and sends it to the Ethereal fake SMTP server for viewing */
+  /** Creates an email and sends it to the Ethereal fake SMTP server for viewing
+   *  @param {object} message An email message object
+   *  @returns {string} The url of the generated Ethereal email
+   */
   sendMailEthereal: async message => {
     try {
       // Generate test SMTP service account from ethereal.email
@@ -66,7 +91,10 @@ const email = {
     }
   },
 
-  /** Creates an email and sends it to the SMTP server */
+  /** Creates an email and sends it to the SMTP server
+   *  @param {object} message An email message object
+   *  @returns {object} A nodemailer result object
+   */
   sendMailSmtp: async message => {
     try {
       // Use the BCGov SMTP server
