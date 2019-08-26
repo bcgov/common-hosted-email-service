@@ -42,7 +42,14 @@ emailRouter.post('/', [
 emailRouter.post('/merge', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray(),
+  body('contexts').isArray().custom(contextEntry => {
+    contextEntry.forEach(entry => {
+      const params = Object.keys(entry);
+      if (!params.includes('to')) throw new Error('Invalid value `to`');
+      if (!params.includes('context')) throw new Error('Invalid value `context`');
+    });
+    return true;
+  }),
   body('from').isString(),
   body('subject').isString()
 ], async (req, res) => {
@@ -73,7 +80,14 @@ emailRouter.post('/merge', [
 emailRouter.post('/merge/preview', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray(),
+  body('contexts').isArray().custom(contextEntry => {
+    contextEntry.forEach(entry => {
+      const params = Object.keys(entry);
+      if (!params.includes('to')) throw new Error('Invalid value `to`');
+      if (!params.includes('context')) throw new Error('Invalid value `context`');
+    });
+    return true;
+  }),
   body('from').isString(),
   body('subject').isString()
 ], async (req, res) => {
