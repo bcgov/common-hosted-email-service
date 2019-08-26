@@ -20,6 +20,27 @@ const email = {
     return envelope;
   },
 
+  /** Transforms a template into an array of email messages
+   *  @param {object} template A mail merge template
+   *  @returns {object[]} messages An array of message objects
+   */
+  mergeTemplate: template => {
+    // eslint-disable-next-line no-unused-vars
+    const { body, contexts, subject, ...partialTemplate } = template;
+    const messages = [];
+
+    template.contexts.forEach(entry => {
+      const message = Object.assign({
+        body: email.renderMerge(template.body, entry.context),
+        to: entry.to,
+        subject: email.renderMerge(template.subject, entry.context)
+      }, partialTemplate);
+      messages.push(message);
+    });
+
+    return messages;
+  },
+
   /** Applies the context onto the template based on the template dialect
    *  @param {string} template A template string
    *  @param {object} context A key/value object store for template population
