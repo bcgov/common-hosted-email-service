@@ -64,7 +64,7 @@ emailRouter.post('/merge', [
 
   try {
     if (req.query.devMode) {
-      const result = await emailComponent.mergeTemplate(req.body);
+      const result = await emailComponent.mergeMailEthereal(req.body);
       res.status(201).json(result);
     } else {
       const result = await emailComponent.mergeTemplate(req.body);

@@ -20,6 +20,27 @@ const email = {
     return envelope;
   },
 
+  /** Transforms a template into an array of email messages and sends it to
+   *  the Ethereal fake SMTP server for viewing
+   *  @param {object} template A mail merge template
+   *  @returns {string[]} An array of generated Ethereal email urls
+   */
+  mergeMailEthereal: async template => {
+    try {
+      const messages = email.mergeTemplate(template);
+
+      // Send all mail messages with defined transport object
+      const results = await Promise.all(messages.map(message => {
+        return email.sendMailEthereal(message);
+      }));
+
+      return results;
+    } catch (error) {
+      log.error('mergeMailEthereal', error.message);
+      throw error;
+    }
+  },
+
   /** Transforms a template into an array of email messages
    *  @param {object} template A mail merge template
    *  @returns {object[]} messages An array of message objects
