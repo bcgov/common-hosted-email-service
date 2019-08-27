@@ -2,7 +2,7 @@ const request = require('supertest');
 
 const app = require('../../../app');
 
-describe('/api/v1', () => {
+describe('GET /api/v1', () => {
   it('should return all available endpoints', async () => {
     const response = await request(app).get('/api/v1');
 
@@ -17,7 +17,7 @@ describe('/api/v1', () => {
   });
 });
 
-describe('/api/v1/docs', () => {
+describe('GET /api/v1/docs', () => {
   it('should return a redoc html page', async () => {
     const response = await request(app).get('/api/v1/docs');
 
@@ -26,7 +26,7 @@ describe('/api/v1/docs', () => {
   });
 });
 
-describe('/api/v1/api-spec.yaml', () => {
+describe('GET /api/v1/api-spec.yaml', () => {
   it('should return the OpenAPI yaml spec', async () => {
     const response = await request(app).get('/api/v1/api-spec.yaml');
 
