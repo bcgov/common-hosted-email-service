@@ -67,14 +67,13 @@ const email = {
    *  @returns {object[]} messages An array of message objects
    */
   mergeTemplate: template => {
-    // eslint-disable-next-line no-unused-vars
     const { body, contexts, subject, ...partialTemplate } = template;
 
-    return template.contexts.map(entry => {
+    return contexts.map(entry => {
       return Object.assign({
-        body: email.renderMerge(template.body, entry.context),
+        body: email.renderMerge(body, entry.context),
         to: entry.to,
-        subject: email.renderMerge(template.subject, entry.context)
+        subject: email.renderMerge(subject, entry.context)
       }, partialTemplate);
     });
   },
