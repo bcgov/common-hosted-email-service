@@ -42,13 +42,12 @@ emailRouter.post('/', [
 emailRouter.post('/merge', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray().custom(contextEntry => {
-    contextEntry.forEach(entry => {
-      const params = Object.keys(entry);
-      if (!params.includes('to')) throw new Error('Invalid value `to`');
-      if (!params.includes('context')) throw new Error('Invalid value `context`');
+  body('contexts').isArray().custom(contexts => {
+    return contexts.every(entry => {
+      if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
+      if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
+      return true;
     });
-    return true;
   }),
   body('from').isString(),
   body('subject').isString()
@@ -67,7 +66,7 @@ emailRouter.post('/merge', [
       const result = await emailComponent.mergeMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      const result = await emailComponent.mergeTemplate(req.body);
+      const result = await emailComponent.mergeMailSmtp(req.body);
       res.status(201).json(result);
     }
   } catch (error) {
@@ -80,17 +79,16 @@ emailRouter.post('/merge', [
 emailRouter.post('/merge/preview', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray().custom(contextEntry => {
-    contextEntry.forEach(entry => {
-      const params = Object.keys(entry);
-      if (!params.includes('to')) throw new Error('Invalid value `to`');
-      if (!params.includes('context')) throw new Error('Invalid value `context`');
+  body('contexts').isArray().custom(contexts => {
+    return contexts.every(entry => {
+      if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
+      if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
+      return true;
     });
-    return true;
   }),
   body('from').isString(),
   body('subject').isString()
-], async (req, res) => {
+], (req, res) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -101,7 +99,7 @@ emailRouter.post('/merge/preview', [
   }
 
   try {
-    const result = await emailComponent.mergeTemplate(req.body);
+    const result = emailComponent.mergeTemplate(req.body);
     res.status(201).json(result);
   } catch (error) {
     new Problem(500, {
