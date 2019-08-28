@@ -2,7 +2,10 @@ const log = require('npmlog');
 const nodemailer = require('nodemailer');
 
 const checks = {
-  /** Checks the connectivity of the SMTP host */
+  /** Checks the connectivity of the SMTP host
+   *  @param {string} host The SMTP host endpoint
+   *  @returns A result object
+  */
   getSmtpStatus: async host => {
     const result = {
       authenticated: false,
@@ -32,7 +35,9 @@ const checks = {
     return result;
   },
 
-  /** Returns a list of all endpoint connectivity states */
+  /** Returns a list of all endpoint connectivity states
+   * @returns {object[]} An array of result objects
+   */
   getStatus: () => Promise.all([
     checks.getSmtpStatus('apps.smtp.gov.bc.ca') // TODO: move this to constants file
   ])

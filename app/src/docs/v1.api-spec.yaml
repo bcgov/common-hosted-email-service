@@ -188,6 +188,26 @@ components:
             Filename to be reported as the name of the attached file. Use of
             unicode is allowed.
           example: testfile.txt
+    ContextEntry:
+      type: object
+      required:
+        - context
+        - to
+      properties:
+        to:
+          type: string
+          description: >-
+            An array of recipients email addresses that will appear on the
+            To: field
+          example: baz@gov.bc.ca
+        context:
+          type: object
+          description: A freeform JSON object of key-value pairs
+          example:
+            something:
+              greeting: Hello
+              target: World
+            someone: user
     EmailRequest:
       type: object
       required:
@@ -278,8 +298,8 @@ components:
       required:
         - bodyType
         - body
+        - contexts
         - from
-        - to
         - subject
       properties:
         attachments:
@@ -304,25 +324,7 @@ components:
           type: array
           description: An array of context objects
           items:
-            type: object
-            required:
-              - context
-              - to
-            properties:
-              to:
-                type: string
-                description: >-
-                  An array of recipients email addresses that will appear on the
-                  To: field
-                example: baz@gov.bc.ca
-              context:
-                type: object
-                description: A freeform JSON object of key-value pairs
-                example:
-                  something:
-                    greeting: Hello
-                    target: World
-                  someone: user
+            $ref: '#/components/schemas/ContextEntry'
         encoding:
           type: string
           description: >-

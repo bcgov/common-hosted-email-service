@@ -13,7 +13,21 @@ log.addLevel('debug', 1500, {
 jest.mock('nodemailer');
 jest.mock('../../../src/components/utils');
 
-const body = 'body';
+// Constant Fixtures
+const body = 'body {{ foo }}';
+const errorMessage = 'failed';
+const subject = 'subject {{ foo }}';
+const url = 'https://example.com';
+
+// Object Fixtures
+const contextEntry = {
+  'to': [
+    'bar@example.com'
+  ],
+  'context': {
+    'foo': 'test'
+  }
+};
 const envelope = {
   text: body,
   encoding: 'utf-8',
@@ -22,7 +36,11 @@ const envelope = {
   to: [
     'bar@example.com'
   ],
-  subject: 'subject'
+  subject: subject
+};
+const info = {
+  messageId: '<b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>',
+  url: url
 };
 const message = {
   attachments: undefined,
@@ -36,7 +54,20 @@ const message = {
   to: [
     'bar@example.com'
   ],
-  subject: 'subject'
+  subject: subject
+};
+const template = {
+  attachments: undefined,
+  bodyType: 'text',
+  body: body,
+  'contexts': [
+    contextEntry,
+    contextEntry
+  ],
+  encoding: 'utf-8',
+  from: 'foo@example.com',
+  priority: 'normal',
+  subject: subject
 };
 
 describe('createEnvelope', () => {
@@ -51,6 +82,99 @@ describe('createEnvelope', () => {
     expect(result).toBeTruthy();
     expect(result.bodyType).toBeUndefined();
     expect(result.text).toMatch(body);
+  });
+});
+
+describe('mergeMailEthereal', () => {
+  let spy;
+
+  beforeEach(() => {
+    spy = jest.spyOn(email, 'sendMailEthereal');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should yield an array of Ethereal email urls', async () => {
+    spy.mockResolvedValue(url);
+
+    const result = await email.mergeMailEthereal(template);
+    expect(result).toBeTruthy();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(url);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throw an error if any sending failed', async () => {
+    spy.mockResolvedValueOnce(url);
+    spy.mockImplementation(() => {
+      throw new Error(errorMessage);
+    });
+
+    expect(email.mergeMailEthereal(template)).rejects.toThrow(errorMessage);
+  });
+});
+
+describe('mergeMailSmtp', () => {
+  let spy;
+
+  beforeEach(() => {
+    spy = jest.spyOn(email, 'sendMailSmtp');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should yield an array of nodemailer result objects', async () => {
+    spy.mockResolvedValue(info);
+
+    const result = await email.mergeMailSmtp(template);
+    expect(result).toBeTruthy();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(info);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throw an error if any sending failed', async () => {
+    spy.mockResolvedValueOnce(info);
+    spy.mockImplementation(() => {
+      throw new Error(errorMessage);
+    });
+
+    expect(email.mergeMailSmtp(template)).rejects.toThrow(errorMessage);
+  });
+});
+
+describe('mergeTemplate', () => {
+  it('should yield an array of message objects', () => {
+    const result = email.mergeTemplate(template);
+    expect(result).toBeTruthy();
+    expect(result).toHaveLength(2);
+    expect(result[0].body).toMatch('body test');
+    expect(result[0].to).toBeTruthy();
+    expect(result[0].subject).toMatch('subject test');
+  });
+});
+
+describe('renderMerge', () => {
+  const str = 'Hello {{ foo }}';
+  const context = {
+    foo: 'test'
+  };
+
+  it('should yield a rendered merge string', () => {
+    const result = email.renderMerge(str, context);
+    expect(result).toBeTruthy();
+    expect(result).toMatch('Hello test');
+  });
+
+  it('should throw an error on an unrecognized dialect', () => {
+    const dialect = 'badDialect';
+    const result = () => email.renderMerge(str, context, dialect);
+    expect(result).toBeTruthy();
+    expect(result).toThrow(`Dialect ${dialect} not supported`);
   });
 });
 
@@ -77,19 +201,15 @@ describe('sendMail', () => {
   it('should throw an error if sending failed', () => {
     nodemailer.createTransport.mockReturnValue({
       sendMail: jest.fn(() => {
-        throw new Error('failed');
+        throw new Error(errorMessage);
       })
     });
     const transport = nodemailer.createTransport({});
-    expect(email.sendMail(transport, message)).rejects.toThrow();
+    expect(email.sendMail(transport, message)).rejects.toThrow(errorMessage);
   });
 });
 
 describe('sendMailEthereal', () => {
-  const info = {
-    messageId: '<b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>',
-    url: 'example.com'
-  };
   const testAccount = {
     smtp: {
       host: 'host',
@@ -98,6 +218,12 @@ describe('sendMailEthereal', () => {
     user: 'user',
     pass: 'pass'
   };
+
+  beforeEach(() => {
+    nodemailer.createTestAccount.mockResolvedValue(testAccount);
+    nodemailer.createTransport.mockReturnValue({});
+    nodemailer.getTestMessageUrl.mockReturnValue(url);
+  });
 
   afterEach(() => {
     nodemailer.createTestAccount.mockReset();
@@ -108,55 +234,39 @@ describe('sendMailEthereal', () => {
   it('should yield an Ethereal email url', () => {
     email.sendMail = jest.fn().mockResolvedValue(info);
 
-    nodemailer.createTestAccount.mockResolvedValue(testAccount);
-    nodemailer.createTransport.mockReturnValue({});
-    nodemailer.getTestMessageUrl.mockReturnValue();
-
     const result = email.sendMailEthereal(message);
-
     expect(result).toBeTruthy();
   });
 
   it('should throw an error if sending failed', () => {
     email.sendMail = jest.fn(() => {
-      throw new Error('failed');
+      throw new Error(errorMessage);
     });
 
-    nodemailer.createTestAccount.mockResolvedValue(testAccount);
-    nodemailer.createTransport.mockReturnValue({});
-    nodemailer.getTestMessageUrl.mockReturnValue();
-
-    expect(email.sendMailEthereal(message)).rejects.toThrow();
+    expect(email.sendMailEthereal(message)).rejects.toThrow(errorMessage);
   });
 });
 
 describe('sendMailSmtp', () => {
-  const info = {
-    messageId: '<b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>',
-    url: 'example.com'
-  };
-
   afterEach(() => {
     nodemailer.createTransport.mockReset();
   });
 
-  it('should yield an Ethereal email url', () => {
+  it('should yield a nodemailer result object', () => {
     email.sendMail = jest.fn().mockResolvedValue(info);
 
     nodemailer.createTransport.mockReturnValue({});
 
     const result = email.sendMailSmtp(message);
-
     expect(result).toBeTruthy();
   });
 
   it('should throw an error if sending failed', () => {
     email.sendMail = jest.fn(() => {
-      throw new Error('failed');
+      throw new Error(errorMessage);
     });
 
     nodemailer.createTransport.mockReturnValue({});
-
-    expect(email.sendMailSmtp(message)).rejects.toThrow();
+    expect(email.sendMailSmtp(message)).rejects.toThrow(errorMessage);
   });
 });
