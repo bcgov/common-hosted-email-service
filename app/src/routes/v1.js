@@ -1,5 +1,8 @@
+const config = require('config');
 const router = require('express').Router();
 const path = require('path');
+
+const keycloak = require('../components/keycloak');
 
 const checksRouter = require('./v1/checks');
 const emailRouter = require('./v1/email');
@@ -26,9 +29,9 @@ router.get('/api-spec.yaml', (_req, res) => {
 });
 
 // Checks
-router.use('/checks', checksRouter);
+router.use('/checks', keycloak.protect(), checksRouter);
 
 // Email
-router.use('/email', emailRouter);
+router.use('/email', keycloak.protect(`${config.get('keycloak.clientId')}:EMAILER`), emailRouter);
 
 module.exports = router;

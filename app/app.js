@@ -4,6 +4,7 @@ const log = require('npmlog');
 const morgan = require('morgan');
 const Problem = require('api-problem');
 
+const keycloak = require('./src/components/keycloak');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
 
@@ -34,6 +35,9 @@ if (process.env.NODE_ENV !== 'test') {
   // Add Morgan endpoint logging
   app.use(morgan(config.get('server.morganFormat')));
 }
+
+// Use Keycloak OIDC Middleware
+app.use(keycloak.middleware());
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {

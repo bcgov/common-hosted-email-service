@@ -3,7 +3,6 @@
     "clientId": "KC_CLIENTID",
     "clientSecret": "KC_CLIENTSECRET",
     "realm": "KC_REALM",
-    "realmPublicKey": "KC_PUBLICKEY",
     "serverUrl": "KC_SERVERURL"
   },
   "server": {

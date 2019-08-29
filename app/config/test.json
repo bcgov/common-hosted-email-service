@@ -1,8 +1,7 @@
 {
   "keycloak": {
     "clientId": "clientId",
-    "clientSecret": "clientSecret",
-    "realmPublicKey": "realmPublicKey"
+    "clientSecret": "clientSecret"
   },
   "server": {
     "logLevel": "silent"
