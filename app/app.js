@@ -13,7 +13,9 @@ const state = {
 };
 
 const app = express();
-app.use(express.json());
+app.use(express.json({
+  limit: config.get('server.bodyLimit')
+}));
 app.use(express.urlencoded({
   extended: false
 }));

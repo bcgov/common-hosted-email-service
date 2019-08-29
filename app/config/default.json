@@ -1,5 +1,6 @@
 {
   "server": {
+    "bodyLimit": "100mb",
     "logLevel": "debug",
     "morganFormat": "dev",
     "port": "3000"
