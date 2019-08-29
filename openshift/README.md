@@ -16,6 +16,7 @@ In order to prepare an environment, you will need to ensure that all of the foll
 
 ```sh
 oc create -n 9f0fbe-<env> configmap ches-server-config \
+  --from-literal=SERVER_BODYLIMIT=100mb \
   --from-literal=SERVER_LOGLEVEL=info \
   --from-literal=SERVER_MORGANFORMAT=combined \
   --from-literal=SERVER_PORT=3000
