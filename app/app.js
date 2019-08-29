@@ -1,3 +1,4 @@
+const compression = require('compression');
 const config = require('config');
 const express = require('express');
 const log = require('npmlog');
@@ -14,6 +15,7 @@ const state = {
 };
 
 const app = express();
+app.use(compression());
 app.use(express.json({
   limit: config.get('server.bodyLimit')
 }));
