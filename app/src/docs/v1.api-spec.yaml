@@ -195,11 +195,14 @@ components:
         - to
       properties:
         to:
-          type: string
+          type: array
+          items:
+            type: string
           description: >-
-            An array of recipients email addresses that will appear on the
-            To: field
-          example: baz@gov.bc.ca
+            An array of recipients email addresses that will appear on the To:
+            field
+          example:
+            - baz@gov.bc.ca
         context:
           type: object
           description: A freeform JSON object of key-value pairs
@@ -318,7 +321,8 @@ components:
           description: >-
             A Nunjucks compatible body template of the message as an Unicode
             string, Buffer, Stream or an attachment-like object. Refer to
-            https://mozilla.github.io/nunjucks/templating.html for template syntax.
+            https://mozilla.github.io/nunjucks/templating.html for template
+            syntax.
           example: '{{ something.greeting }} {{ something.target }} content'
         contexts:
           type: array
