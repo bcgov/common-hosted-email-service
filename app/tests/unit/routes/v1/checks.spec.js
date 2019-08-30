@@ -4,8 +4,13 @@ const request = require('supertest');
 const router = require('../../../../src/routes/v1/checks');
 const checkComponent = require('../../../../src/components/checks');
 
-const app = express();
+// Simple Express Server
 const basePath = '/api/v1/checks';
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: false
+}));
 app.use(basePath, router);
 
 describe(`GET ${basePath}/status`, () => {

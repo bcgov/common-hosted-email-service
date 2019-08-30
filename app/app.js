@@ -59,11 +59,11 @@ apiRouter.get('/', (_req, res) => {
   }
 });
 
-// Root level Router
-app.use(/(\/api)?/, apiRouter);
-
 // v1 Router
 apiRouter.use('/v1', v1Router);
+
+// Root level Router
+app.use(/(\/api)?/, apiRouter);
 
 // Handle 500
 app.use((err, _req, res, next) => {
