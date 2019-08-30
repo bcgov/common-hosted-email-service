@@ -15,6 +15,14 @@ In order to prepare an environment, you will need to ensure that all of the foll
 *Note: Replace anything in angle brackets with the appropriate value!*
 
 ```sh
+oc create -n 9f0fbe-<env> configmap ches-keycloak-config \
+  --from-literal=KC_REALM=jbd6rnxw \
+  --from-literal=KC_SERVERURL=https://sso-dev.pathfinder.gov.bc.ca/auth
+```
+
+*Note: Change KC_SERVERURL's sso-dev to sso-test or sso depending on the environment!*
+
+```sh
 oc create -n 9f0fbe-<env> configmap ches-server-config \
   --from-literal=SERVER_BODYLIMIT=100mb \
   --from-literal=SERVER_LOGLEVEL=info \
@@ -26,9 +34,14 @@ oc create -n 9f0fbe-<env> configmap ches-server-config \
 
 Replace anything in angle brackets with the appropriate value!
 
-_Note: Publickey must be a PEM-encoded value encapsulated in double quotes in the argument. Newlines should not be re-encoded when using this command. If authentication fails, it's very likely a newline whitespace issue._
+_Note: Publickey if used must be a PEM-encoded value encapsulated in double quotes in the argument. Newlines should not be re-encoded when using this command. If authentication fails, it's very likely a newline whitespace issue._
 
-_As of this time, this deployment does not depend on any secrets._
+```sh
+oc create -n 9f0fbe-<env> secret generic ches-keycloak-secret \
+  --type=kubernetes.io/basic-auth \
+  --from-literal=username=<username> \
+  --from-literal=password=<password>
+```
 
 ## Build Config & Deployment
 
