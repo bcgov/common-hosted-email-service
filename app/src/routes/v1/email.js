@@ -14,7 +14,7 @@ emailRouter.post('/', [
   body('from').isString(),
   body('to').isArray(),
   body('subject').isString()
-], async (req, res) => {
+], async (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -33,9 +33,7 @@ emailRouter.post('/', [
       res.status(201).json(result);
     }
   } catch (error) {
-    new Problem(500, {
-      detail: error.message
-    }).send(res);
+    next(error);
   }
 });
 
@@ -51,7 +49,7 @@ emailRouter.post('/merge', [
   }),
   body('from').isString(),
   body('subject').isString()
-], async (req, res) => {
+], async (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -70,9 +68,7 @@ emailRouter.post('/merge', [
       res.status(201).json(result);
     }
   } catch (error) {
-    new Problem(500, {
-      detail: error.message
-    }).send(res);
+    next(error);
   }
 });
 
@@ -88,7 +84,7 @@ emailRouter.post('/merge/preview', [
   }),
   body('from').isString(),
   body('subject').isString()
-], (req, res) => {
+], (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -102,9 +98,7 @@ emailRouter.post('/merge/preview', [
     const result = emailComponent.mergeTemplate(req.body);
     res.status(201).json(result);
   } catch (error) {
-    new Problem(500, {
-      detail: error.message
-    }).send(res);
+    next(error);
   }
 });
 

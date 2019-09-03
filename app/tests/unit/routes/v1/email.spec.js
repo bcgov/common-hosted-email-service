@@ -69,7 +69,7 @@ describe(`POST ${basePath}`, () => {
     spy.mockRestore();
   });
 
-  it('should yield an error when sending fails', async () => {
+  it('should respond when sending fails', async () => {
     const spy = jest.spyOn(emailComponent, 'sendMailSmtp').mockRejectedValue(new Error(errorMessage));
 
     const response = await request(app).post(`${basePath}`).send({
@@ -82,7 +82,6 @@ describe(`POST ${basePath}`, () => {
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
-    expect(response.body.detail).toMatch(errorMessage);
     expect(spy).toHaveBeenCalled();
 
     spy.mockRestore();
@@ -159,7 +158,7 @@ describe(`POST ${basePath}/merge`, () => {
     spy.mockRestore();
   });
 
-  it('should yield an error when sending fails', async () => {
+  it('should respond when sending fails', async () => {
     const spy = jest.spyOn(emailComponent, 'mergeMailSmtp').mockRejectedValue(new Error(errorMessage));
 
     const response = await request(app).post(`${basePath}/merge`).send({
@@ -172,7 +171,6 @@ describe(`POST ${basePath}/merge`, () => {
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
-    expect(response.body.detail).toMatch(errorMessage);
     expect(spy).toHaveBeenCalled();
 
     spy.mockRestore();
@@ -227,7 +225,7 @@ describe(`POST ${basePath}merge/preview`, () => {
     spy.mockRestore();
   });
 
-  it('should yield an error when sending fails', async () => {
+  it('should respond when sending fails', async () => {
     const spy = jest.spyOn(emailComponent, 'mergeTemplate').mockImplementation(() => {
       throw new Error(errorMessage);
     });
@@ -242,7 +240,6 @@ describe(`POST ${basePath}merge/preview`, () => {
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
-    expect(response.body.detail).toMatch(errorMessage);
     expect(spy).toHaveBeenCalled();
 
     spy.mockRestore();

@@ -43,10 +43,8 @@ app.use(keycloak.middleware());
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
-  if (state.isShutdown) {
-    new Problem(500, {
-      detail: 'Server shutting down'
-    }).send(res);
+  if (!state.isShutdown) {
+    throw new Error('Server shutting down');
   } else {
     res.status(200).json({
       endpoints: [
@@ -66,7 +64,8 @@ apiRouter.use('/v1', v1Router);
 app.use(/(\/api)?/, apiRouter);
 
 // Handle 500
-app.use((err, _req, res, next) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
   if (err.stack) {
     log.error(err.stack);
   }
@@ -74,17 +73,10 @@ app.use((err, _req, res, next) => {
   if (err instanceof Problem) {
     err.send(res);
   } else {
-    const details = {};
-    if (err.message) {
-      details.detail = err.message;
-    } else {
-      details.detail = err;
-    }
-
-    new Problem(500, details).send(res);
+    new Problem(500, {
+      details: (err.message) ? err.message : err
+    }).send(res);
   }
-
-  next();
 });
 
 // Handle 404
@@ -94,7 +86,7 @@ app.use((_req, res) => {
 
 // Prevent unhandled errors from crashing application
 process.on('unhandledRejection', err => {
-  if (err.stack) {
+  if (err && err.stack) {
     log.error(err.stack);
   }
 });
