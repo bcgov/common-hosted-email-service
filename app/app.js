@@ -43,7 +43,7 @@ app.use(keycloak.middleware());
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
-  if (!state.isShutdown) {
+  if (state.isShutdown) {
     throw new Error('Server shutting down');
   } else {
     res.status(200).json({

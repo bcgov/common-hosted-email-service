@@ -2,7 +2,7 @@ const checksRouter = require('express').Router();
 
 const checkComponent = require('../../components/checks');
 
-// returns the status of correspondent apis
+/** Returns the status of correspondent APIs */
 checksRouter.get('/status', async (_req, res, next) => {
   const statuses = await checkComponent.getStatus();
 

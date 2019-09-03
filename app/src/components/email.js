@@ -73,6 +73,7 @@ const email = {
    *  @param {object} context A key/value object store for template population
    *  @param {string} [dialect=nunjucks] The dialect the `template` string is formatted in
    *  @returns {strong} A rendered merge output
+   *  @throws When unsupported `dialect` is used
    */
   renderMerge: (template, context, dialect = 'nunjucks') => {
     if (dialect === 'nunjucks') {
