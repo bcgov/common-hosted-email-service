@@ -7,14 +7,14 @@ const {
 
 const emailComponent = require('../../components/email');
 
-// pushes a message
+/** Email sending endpoint */
 emailRouter.post('/', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
   body('from').isString(),
   body('to').isArray(),
   body('subject').isString()
-], async (req, res) => {
+], async (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -33,25 +33,18 @@ emailRouter.post('/', [
       res.status(201).json(result);
     }
   } catch (error) {
-    new Problem(500, {
-      detail: error.message
-    }).send(res);
+    next(error);
   }
 });
 
+/** Template mail merge & email sending endpoint */
 emailRouter.post('/merge', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray().custom(contexts => {
-    return contexts.every(entry => {
-      if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
-      if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
-      return true;
-    });
-  }),
+  body('contexts').isArray().custom(validateContexts),
   body('from').isString(),
   body('subject').isString()
-], async (req, res) => {
+], async (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -70,25 +63,18 @@ emailRouter.post('/merge', [
       res.status(201).json(result);
     }
   } catch (error) {
-    new Problem(500, {
-      detail: error.message
-    }).send(res);
+    next(error);
   }
 });
 
+/** Template mail merge validation & preview endpoint */
 emailRouter.post('/merge/preview', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray().custom(contexts => {
-    return contexts.every(entry => {
-      if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
-      if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
-      return true;
-    });
-  }),
+  body('contexts').isArray().custom(validateContexts),
   body('from').isString(),
   body('subject').isString()
-], (req, res) => {
+], (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -102,10 +88,21 @@ emailRouter.post('/merge/preview', [
     const result = emailComponent.mergeTemplate(req.body);
     res.status(201).json(result);
   } catch (error) {
-    new Problem(500, {
-      detail: error.message
-    }).send(res);
+    next(error);
   }
 });
+
+/** Returns the structural validity of the contexts object
+ *  @param {object} contexts A contexts object
+ *  @returns {boolean} True if valid, otherwise false
+ *  @throws Reason the `contexts` object is invalid
+ */
+function validateContexts(contexts) {
+  return contexts.every(entry => {
+    if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
+    if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
+    return true;
+  });
+}
 
 module.exports = emailRouter;

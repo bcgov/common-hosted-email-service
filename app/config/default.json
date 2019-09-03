@@ -1,4 +1,8 @@
 {
+  "keycloak": {
+    "realm": "jbd6rnxw",
+    "serverUrl": "https://sso-dev.pathfinder.gov.bc.ca/auth"
+  },
   "server": {
     "bodyLimit": "100mb",
     "logLevel": "debug",

@@ -58,7 +58,19 @@ objects:
           env:
           - name: NODE_ENV
             value: production
+          - name: KC_CLIENTID
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: ches-keycloak-secret
+          - name: KC_CLIENTSECRET
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ches-keycloak-secret
           envFrom:
+          - configMapRef:
+              name: ches-keycloak-config
           - configMapRef:
               name: ches-server-config
     test: false

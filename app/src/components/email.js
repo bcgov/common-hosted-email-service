@@ -26,19 +26,14 @@ const email = {
    *  @returns {string[]} An array of generated Ethereal email urls
    */
   mergeMailEthereal: async template => {
-    try {
-      const messages = email.mergeTemplate(template);
+    const messages = email.mergeTemplate(template);
 
-      // Send all mail messages with defined transport object
-      const results = await Promise.all(messages.map(message => {
-        return email.sendMailEthereal(message);
-      }));
+    // Send all mail messages with defined transport object
+    const results = await Promise.all(messages.map(message => {
+      return email.sendMailEthereal(message);
+    }));
 
-      return results;
-    } catch (error) {
-      log.error('mergeMailEthereal', error.message);
-      throw error;
-    }
+    return results;
   },
 
   /** Transforms a template into an array of email messages
@@ -47,19 +42,14 @@ const email = {
    *  @returns {object[]} An array of nodemailer result objects
    */
   mergeMailSmtp: async template => {
-    try {
-      const messages = email.mergeTemplate(template);
+    const messages = email.mergeTemplate(template);
 
-      // Send all mail messages with defined transport object
-      const results = await Promise.all(messages.map(message => {
-        return email.sendMailSmtp(message);
-      }));
+    // Send all mail messages with defined transport object
+    const results = await Promise.all(messages.map(message => {
+      return email.sendMailSmtp(message);
+    }));
 
-      return results;
-    } catch (error) {
-      log.error('mergeMailSmtp', error.message);
-      throw error;
-    }
+    return results;
   },
 
   /** Transforms a template into an array of email messages
@@ -83,6 +73,7 @@ const email = {
    *  @param {object} context A key/value object store for template population
    *  @param {string} [dialect=nunjucks] The dialect the `template` string is formatted in
    *  @returns {strong} A rendered merge output
+   *  @throws When unsupported `dialect` is used
    */
   renderMerge: (template, context, dialect = 'nunjucks') => {
     if (dialect === 'nunjucks') {
@@ -117,36 +108,31 @@ const email = {
    *  @returns {string} The url of the generated Ethereal email
    */
   sendMailEthereal: async message => {
-    try {
-      // Generate test SMTP service account from ethereal.email
-      // Only needed if you don't have a real mail account for testing
-      const testAccount = await nodemailer.createTestAccount();
-      log.debug(utils.prettyStringify(testAccount));
+    // Generate test SMTP service account from ethereal.email
+    // Only needed if you don't have a real mail account for testing
+    const testAccount = await nodemailer.createTestAccount();
+    log.debug(utils.prettyStringify(testAccount));
 
-      // Create reusable transporter object using the default SMTP transport
-      const transporter = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
-        }
-      });
+    // Create reusable transporter object using the default SMTP transport
+    const transporter = nodemailer.createTransport({
+      host: testAccount.smtp.host,
+      port: testAccount.smtp.port,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
 
-      // Send mail with defined transport object
-      const info = await email.sendMail(transporter, message);
+    // Send mail with defined transport object
+    const info = await email.sendMail(transporter, message);
 
-      // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-      log.info('Message sent', info.messageId);
+    // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+    log.info('Message sent', info.messageId);
 
-      // Preview only available when sending through an Ethereal account
-      const testMessageUrl = nodemailer.getTestMessageUrl(info);
-      log.info('Preview URL', testMessageUrl);
-      return testMessageUrl;
-    } catch (error) {
-      log.error('sendMailEthereal', error.message);
-      throw error;
-    }
+    // Preview only available when sending through an Ethereal account
+    const testMessageUrl = nodemailer.getTestMessageUrl(info);
+    log.info('Preview URL', testMessageUrl);
+    return testMessageUrl;
   },
 
   /** Creates an email and sends it to the SMTP server
@@ -154,22 +140,17 @@ const email = {
    *  @returns {object} A nodemailer result object
    */
   sendMailSmtp: async message => {
-    try {
-      // Use the BCGov SMTP server
-      const transporter = nodemailer.createTransport({
-        host: 'apps.smtp.gov.bc.ca', // TODO: move this to constants file
-        port: 25,
-        tls: {
-          rejectUnauthorized: false // do not fail on invalid certs
-        }
-      });
+    // Use the BCGov SMTP server
+    const transporter = nodemailer.createTransport({
+      host: 'apps.smtp.gov.bc.ca', // TODO: move this to constants file
+      port: 25,
+      tls: {
+        rejectUnauthorized: false // do not fail on invalid certs
+      }
+    });
 
-      // Send mail with defined transport object
-      return await email.sendMail(transporter, message);
-    } catch (error) {
-      log.error('sendMailSmtp', error.message);
-      throw error;
-    }
+    // Send mail with defined transport object
+    return await email.sendMail(transporter, message);
   }
 };
 

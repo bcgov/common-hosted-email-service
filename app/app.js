@@ -1,9 +1,11 @@
+const compression = require('compression');
 const config = require('config');
 const express = require('express');
 const log = require('npmlog');
 const morgan = require('morgan');
 const Problem = require('api-problem');
 
+const keycloak = require('./src/components/keycloak');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
 
@@ -13,6 +15,7 @@ const state = {
 };
 
 const app = express();
+app.use(compression());
 app.use(express.json({
   limit: config.get('server.bodyLimit')
 }));
@@ -35,12 +38,13 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan(config.get('server.morganFormat')));
 }
 
+// Use Keycloak OIDC Middleware
+app.use(keycloak.middleware());
+
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
   if (state.isShutdown) {
-    new Problem(500, {
-      detail: 'Server shutting down'
-    }).send(res);
+    throw new Error('Server shutting down');
   } else {
     res.status(200).json({
       endpoints: [
@@ -53,14 +57,15 @@ apiRouter.get('/', (_req, res) => {
   }
 });
 
-// Root level Router
-app.use(/(\/api)?/, apiRouter);
-
 // v1 Router
 apiRouter.use('/v1', v1Router);
 
+// Root level Router
+app.use(/(\/api)?/, apiRouter);
+
 // Handle 500
-app.use((err, _req, res, next) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
   if (err.stack) {
     log.error(err.stack);
   }
@@ -68,17 +73,10 @@ app.use((err, _req, res, next) => {
   if (err instanceof Problem) {
     err.send(res);
   } else {
-    const details = {};
-    if (err.message) {
-      details.detail = err.message;
-    } else {
-      details.detail = err;
-    }
-
-    new Problem(500, details).send(res);
+    new Problem(500, {
+      details: (err.message) ? err.message : err
+    }).send(res);
   }
-
-  next();
 });
 
 // Handle 404
@@ -88,7 +86,7 @@ app.use((_req, res) => {
 
 // Prevent unhandled errors from crashing application
 process.on('unhandledRejection', err => {
-  if (err.stack) {
+  if (err && err.stack) {
     log.error(err.stack);
   }
 });
