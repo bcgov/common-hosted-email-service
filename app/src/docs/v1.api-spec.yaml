@@ -13,7 +13,6 @@ servers:
   - url: /api/v1
     description: This Server
 security:
-  - bearerAuth: []
   - OpenID: []
 paths:
   /checks/status:
@@ -45,6 +44,9 @@ paths:
       operationId: postEmail
       tags:
         - Email
+      security:
+        - OpenID:
+            - EMAILER
       parameters:
         - in: query
           name: devMode
@@ -83,6 +85,9 @@ paths:
       operationId: postEmailMerge
       tags:
         - Email
+      security:
+        - OpenID:
+            - EMAILER
       parameters:
         - in: query
           name: devMode
@@ -121,6 +126,9 @@ paths:
       operationId: postEmailMergeValidate
       tags:
         - Email
+      security:
+        - OpenID:
+            - EMAILER
       requestBody:
         description: Fields required to perform a mail merge and send
         required: true
