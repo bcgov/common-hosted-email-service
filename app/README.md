@@ -109,7 +109,7 @@ The standard `/email` endpoint is relatively straightforward due to effectively 
 
 In order to provide unique templating results to multiple email destinations, we have the concept of a Context. A **Context** is a freeform JSON object which consists of key-value pairs. Its sole purpose is to provide a key-value mapping repository between an inline templated variable on a template string and what is the intended output after the values are replaced.
 
-The email merge API has a One to Many relationship between a template string and a context. While there can be many contexts that exist, the API expects to only have one template string. This relationship is moodeled this way because typically users will want to have a standard template for batch emails, but will want to replace certain parts of text with their own variable content based on whom it is getting issued to.
+The email merge API has a One to Many relationship between a template string and a context. While there can be many contexts that exist, the API expects to only have one template string. This relationship is modeled this way because typically users will want to have a standard template for batch emails, but will want to replace certain parts of text with their own variable content based on whom it is getting issued to.
 
 In order for a template to be successfully populated, it requires a context object which *should* contain the variables which will be replaced. For the most part, Nunjucks is intended to behave as a glorified string-replacement engine. In the event the Context object has extra variables that are not used by a Template, nothing happens. You can expect to see blank spots where the templated value should be at.
 
