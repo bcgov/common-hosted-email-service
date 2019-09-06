@@ -60,6 +60,11 @@ For more details, please consult the config library [documentation](https://gith
 
 | Environment Variable | Description |
 | --- | --- |
+| `KC_CLIENTID` | Keycloak Client username |
+| `KC_CLIENTSECRET` | Keycloak Client password |
+| `KC_REALM` | Associated Keycloak realm |
+| `KC_SERVERURL` | Base authentication url for Keycloak |
+| `SERVER_BODYLIMIT` | Maximum body length the API will accept |
 | `SERVER_LOGLEVEL` | Server log verbosity. Options: `silly`, `verbose`, `debug`, `info`, `warn`, `error` |
 | `SERVER_MORGANFORMAT` | Morgan format style. Options: `dev`, `combined` |
 | `SERVER_PORT` | Port server is listening to |
@@ -90,4 +95,106 @@ npm run test
 
 ``` sh
 npm run lint
+```
+
+## API Usage
+
+This API is defined and described in OpenAPI 3.0 specification. When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). Otherwise, the general API can usually be found under the `/api/v1/docs` path.
+
+### General Design
+
+The standard `/email` endpoint is relatively straightforward due to effectively being a passthrough to NodeMailer. However, the merging endpoints `/email/merge` and `/email/merge/preview` are a bit more involved.
+
+#### Concepts
+
+In order to provide unique templating results to multiple email destinations, we have the concept of a Context. A **Context** is a freeform JSON object which consists of key-value pairs. Its sole purpose is to provide a key-value mapping repository between an inline templated variable on a template string and what is the intended output after the values are replaced.
+
+The email merge API has a One to Many relationship between a template string and a context. While there can be many contexts that exist, the API expects to only have one template string. This relationship is modeled this way because typically users will want to have a standard template for batch emails, but will want to replace certain parts of text with their own variable content based on whom it is getting issued to.
+
+In order for a template to be successfully populated, it requires a context object which *should* contain the variables which will be replaced. For the most part, Nunjucks is intended to behave as a glorified string-replacement engine. In the event the Context object has extra variables that are not used by a Template, nothing happens. You can expect to see blank spots where the templated value should be at.
+
+### Templating
+
+We currently leverage the Nunjucks library for templated variable replacement. Its syntax is similar to the well-used [Jinja2](https://jinja.palletsprojects.com) library from Python. We will outline the most common use cases and examples for the templating engine below. For full details on templating, refer to the Nunjucks documentation at <https://mozilla.github.io/nunjucks/templating.html>.
+
+#### [Variable Substitution](https://mozilla.github.io/nunjucks/templating.html#variables)
+
+In general, the Nunjucks templating engine allows variables to be in-line displayed through the use of double curly braces. Suppose you wanted a variable `foo` to be displayed. You can do so by adding the following into a template:
+
+``` sh
+{{ foo }}
+```
+
+Nunjucks also supports complex nested objects in the Context as well. You can lookup properties that have dots in them just like you would in Javascript. Suppose for example you have the following context object and template string:
+
+Context
+
+``` json
+{
+  "something": {
+    "greeting": "Hello",
+    "target": "World"
+  },
+  "someone": "user"
+}
+```
+
+Template String
+
+``` sh
+"{{ something.greeting }} {{ someone }} content {{ target }}"
+```
+
+You can expect the template engine to yield the following:
+
+``` sh
+"Hello user content World"
+```
+
+Finally, if a value resolves to either `undefined` or `null`, nothing is rendered. Suppose you have the following context object and template string:
+
+Context
+
+``` json
+{
+  "void": "abyss"
+}
+```
+
+Template String
+
+``` sh
+"{{ verb }} into the {{ void }} and the {{ void }} will {{ verb }} back at you."
+```
+
+You can expect the template engine to yield the following:
+
+``` sh
+" into the abyss and the abyss will  back at you."
+```
+
+#### [Filtering](https://mozilla.github.io/nunjucks/templating.html#filters)
+
+You also have the ability to do simple transformations onto variables before they are rendered. These filters may be invoked by the use of a pipe operator (`|`). These filters may be able to take parameters, and can be chained. For a more comprehensive list of potential filters, check <https://mozilla.github.io/nunjucks/templating.html#builtin-filters>.
+
+Suppose you have the following context object and template string:
+
+Context
+
+``` json
+{
+  "foo": "bar"
+}
+```
+
+Template String
+
+``` sh
+"{{ foo | upper }} everything"
+```
+
+You can expect the template engine to yield the following:
+
+``` sh
+"BAR everything"
 ```

@@ -23,7 +23,7 @@
     "compression": "^1.7.4",
     "config": "^3.2.2",
     "express": "^4.17.1",
-    "express-validator": "^6.1.1",
+    "express-validator": "^6.2.0",
     "keycloak-connect": "^7.0.0",
     "morgan": "^1.9.1",
     "nodemailer": "^6.3.0",
@@ -31,10 +31,10 @@
     "nunjucks": "^3.2.0"
   },
   "devDependencies": {
-    "eslint": "^6.2.2",
+    "eslint": "^6.3.0",
     "jest": "^24.9.0",
     "jest-sonar-reporter": "^2.0.0",
-    "nodemon": "^1.19.1",
+    "nodemon": "^1.19.2",
     "supertest": "^4.0.2"
   },
   "eslintConfig": {
