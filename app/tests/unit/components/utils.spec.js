@@ -63,3 +63,80 @@ describe('toPascalCase', () => {
     expect(result).toMatch(/[A-Z][a-z]+(?:[A-Z][a-z]+)*/);
   });
 });
+
+describe('validateContexts', () => {
+  it('should return true for an array of valid contexts', () => {
+    const validObj = [
+      {
+        to: ['foo@bar.com'],
+        context: { test: '123' }
+      },
+      {
+        to: ['foo@bar.com'],
+        cc: ['baz@bar.com'],
+        bcc: ['1@2.com', '3@4.com'],
+        context: { test: '123' }
+      }];
+    const result = utils.validateContexts(validObj);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should throw if to is missing in a context', () => {
+    // For this one have a valid context first and invalid second, to check the .every is working
+    const invalidObj = [
+      {
+        to: ['foo@bar.com'],
+        context: { test: '123' }
+      },
+      {
+        context: { test: '123' }
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid value `to`');
+  });
+
+  it('should throw if to is not an array in a context', () => {
+    const invalidObj = [
+      {
+        to: 'foo@bar.com',
+        context: { test: '123' }
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid value `to`');
+  });
+
+  it('should throw if cc is not an array in a context', () => {
+    const invalidObj = [
+      {
+        to: ['foo@bar.com'],
+        cc: 'baz@bar.com',
+        bcc: ['fizz@bar.com'],
+        context: { test: '123' }
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid value `cc`');
+  });
+
+  it('should throw if bcc is not an array in a context', () => {
+    const invalidObj = [
+      {
+        to: ['foo@bar.com'],
+        cc: ['fizz@bar.com'],
+        bcc: 'baz@bar.com',
+        context: { test: '123' }
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid value `bcc`');
+  });
+
+  it('should throw if context is not an object in a context', () => {
+    const invalidObj = [
+      {
+        to: ['foo@bar.com'],
+        context: 123
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid value `context`');
+  });
+});

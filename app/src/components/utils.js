@@ -22,7 +22,22 @@ const utils = {
    * @param {string} str A string
    * @returns {string} A string formatted in Pascal Case
    */
-  toPascalCase: str => str.toLowerCase().replace(/\b\w/g, t => t.toUpperCase())
+  toPascalCase: str => str.toLowerCase().replace(/\b\w/g, t => t.toUpperCase()),
+
+  /** Returns a true if the contexts pass validation, otherwise throws an exception with the vailidation error
+   * @param {array} contexts The array of contexts from a mail merge request
+   * @returns {boolean} true if all good
+   * @throws Reason the `contexts` object is invalid
+   */
+  validateContexts: contexts => {
+    return contexts.every(entry => {
+      if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
+      if (entry.bcc && !Array.isArray(entry.bcc)) throw new Error('Invalid value `bcc`');
+      if (entry.cc && !Array.isArray(entry.cc)) throw new Error('Invalid value `cc`');
+      if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
+      return true;
+    });
+  }
 };
 
 module.exports = utils;

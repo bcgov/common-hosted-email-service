@@ -63,6 +63,8 @@ const email = {
       return Object.assign({
         body: email.renderMerge(body, entry.context),
         to: entry.to,
+        cc: entry.cc,
+        bcc: entry.bcc,
         subject: email.renderMerge(subject, entry.context)
       }, partialTemplate);
     });
