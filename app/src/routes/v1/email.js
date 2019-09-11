@@ -42,7 +42,7 @@ emailRouter.post('/', [
 emailRouter.post('/merge', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray().custom(validateContexts),
+  body('contexts').isArray().custom(utils.validateContexts),
   body('from').isString(),
   body('subject').isString()
 ], async (req, res, next) => {
@@ -72,7 +72,7 @@ emailRouter.post('/merge', [
 emailRouter.post('/merge/preview', [
   body('bodyType').isIn(['html', 'text']),
   body('body').isString(),
-  body('contexts').isArray().custom(validateContexts),
+  body('contexts').isArray().custom(utils.validateContexts),
   body('from').isString(),
   body('subject').isString()
 ], (req, res, next) => {
@@ -92,14 +92,5 @@ emailRouter.post('/merge/preview', [
     next(error);
   }
 });
-
-/** Returns the structural validity of the contexts object
- *  @param {object} contexts A contexts object
- *  @returns {boolean} True if valid, otherwise false
- *  @throws Reason the `contexts` object is invalid
- */
-function validateContexts(contexts) {
-  return utils.validateContexts(contexts);
-}
 
 module.exports = emailRouter;
