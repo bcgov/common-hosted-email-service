@@ -211,15 +211,6 @@ components:
             field
           example:
             - baz@gov.bc.ca
-        cc:
-          type: array
-          items:
-            type: string
-          description: >-
-            An array of recipients email addresses that will appear on the cc:
-            field
-          example:
-            - baz@gov.bc.ca
         bcc:
           type: array
           items:
@@ -228,7 +219,16 @@ components:
             An array of recipients email addresses that will appear on the bcc:
             field
           example:
-            - baz@gov.bc.ca
+            - foo@gov.bc.ca
+        cc:
+          type: array
+          items:
+            type: string
+          description: >-
+            An array of recipients email addresses that will appear on the cc:
+            field
+          example:
+            - fizz@gov.bc.ca
         context:
           type: object
           description: A freeform JSON object of key-value pairs
