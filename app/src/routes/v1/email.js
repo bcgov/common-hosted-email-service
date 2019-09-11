@@ -6,6 +6,7 @@ const {
 } = require('express-validator');
 
 const emailComponent = require('../../components/email');
+const utils = require('../../components/utils');
 
 /** Email sending endpoint */
 emailRouter.post('/', [
@@ -98,11 +99,7 @@ emailRouter.post('/merge/preview', [
  *  @throws Reason the `contexts` object is invalid
  */
 function validateContexts(contexts) {
-  return contexts.every(entry => {
-    if (!Array.isArray(entry.to)) throw new Error('Invalid value `to`');
-    if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
-    return true;
-  });
+  return utils.validateContexts(contexts);
 }
 
 module.exports = emailRouter;
