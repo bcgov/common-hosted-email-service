@@ -24,6 +24,13 @@ const contextEntry = {
   'to': [
     'bar@example.com'
   ],
+  'cc': [
+    'baz@example.com'
+  ],
+  'bcc': [
+    'foo@example.com',
+    'fizz@example.com'
+  ],
   'context': {
     'foo': 'test'
   }
