@@ -75,7 +75,7 @@ describe('validateContexts', () => {
         to: ['foo@bar.com'],
         cc: ['baz@bar.com'],
         bcc: ['1@2.com', '3@4.com'],
-        context: { test: '123' }
+        context: { 'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {good: 'good key name'} }
       }];
     const result = utils.validateContexts(validObj);
 
@@ -138,5 +138,31 @@ describe('validateContexts', () => {
       }];
 
     expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid value `context`');
+  });
+
+  it('should throw if context field is not an Alpha Numeric or Underscore', () => {
+    const invalidObj = [
+      {
+        'to': ['foo@bar.com'],
+        'context': {
+          'a1_&': 'bad key'
+        }
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid field name (a1_&) in `context`.  Only alphanumeric characters and underscore allowed.');
+  });
+
+  it('should throw if context subobject field is not an Alpha Numeric of Underscore', () => {
+    const invalidObj = [
+      {
+        'to': ['foo@bar.com'],
+        'context': {
+          'subObject': {
+            'b2_&*(*&(*&)(* )()((* ab_cd_1_2_3': 'bad key'
+          }
+        }
+      }];
+
+    expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid field name (b2_&*(*&(*&)(* )()((* ab_cd_1_2_3) in `context`.  Only alphanumeric characters and underscore allowed.');
   });
 });

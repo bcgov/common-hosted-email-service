@@ -231,7 +231,7 @@ components:
             - fizz@gov.bc.ca
         context:
           type: object
-          description: A freeform JSON object of key-value pairs
+          description: A freeform JSON object of key-value pairs.  All keys must be alphanumeric or underscore.
           example:
             something:
               greeting: Hello
