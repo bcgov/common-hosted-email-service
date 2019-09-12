@@ -113,6 +113,18 @@ The email merge API has a One to Many relationship between a template string and
 
 In order for a template to be successfully populated, it requires a context object which *should* contain the variables which will be replaced. For the most part, Nunjucks is intended to behave as a glorified string-replacement engine. In the event the Context object has extra variables that are not used by a Template, nothing happens. You can expect to see blank spots where the templated value should be at.
 
+**IMPORTANT**: All keys in the Context object (variable names in the template) *MUST* contain only alphanumeric or underscore.
+
+``` json
+{
+  "this_is_fine": {
+    "thisIsGood": "good key/variable",
+    "thisIs_Good_2": "fine key/variable"
+  },
+  "this is $%&*$!": "bad key/variable"
+}
+```
+
 ### Templating
 
 We currently leverage the Nunjucks library for templated variable replacement. Its syntax is similar to the well-used [Jinja2](https://jinja.palletsprojects.com) library from Python. We will outline the most common use cases and examples for the templating engine below. For full details on templating, refer to the Nunjucks documentation at <https://mozilla.github.io/nunjucks/templating.html>.
@@ -198,3 +210,4 @@ You can expect the template engine to yield the following:
 ``` sh
 "BAR everything"
 ```
+****

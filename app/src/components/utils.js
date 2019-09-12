@@ -24,7 +24,7 @@ const utils = {
    */
   toPascalCase: str => str.toLowerCase().replace(/\b\w/g, t => t.toUpperCase()),
 
-  /** Returns a true if the contexts pass validation, otherwise throws an exception with the vailidation error
+  /** Returns a true if the contexts pass validation, otherwise throws an exception with the validation error
    * @param {array} contexts The array of contexts from a mail merge request
    * @returns {boolean} true if all good
    * @throws Reason the `contexts` object is invalid
@@ -35,8 +35,24 @@ const utils = {
       if (entry.bcc && !Array.isArray(entry.bcc)) throw new Error('Invalid value `bcc`');
       if (entry.cc && !Array.isArray(entry.cc)) throw new Error('Invalid value `cc`');
       if (typeof entry.context !== 'object') throw new Error('Invalid value `context`');
+      utils.validateKeys(entry.context);
       return true;
     });
+  },
+
+  /** Returns a true if the object's keys pass validation, otherwise throws an exception with the validation error
+   * @param {object} obj a Javascript object
+   * @returns {boolean} true if all good
+   * @throws Reason the `key` object is invalid
+   */
+  validateKeys: obj => {
+    Object.keys(obj).forEach(k => {
+      if (obj[k] === Object(obj[k]))  {
+        return utils.validateKeys(obj[k]);
+      }
+      if (!/^\w+$/.test(k)) throw new Error(`Invalid field name (${k}) in \`context\`.  Only alphanumeric characters and underscore allowed.`);
+    });
+    return true;
   }
 };
 
