@@ -127,7 +127,7 @@ describe('mergeMailSmtp', () => {
   let spy;
 
   beforeEach(() => {
-    spy = jest.spyOn(email, 'sendMailSmtp');
+    spy = jest.spyOn(email, 'queueMailSmtp');
   });
 
   afterEach(() => {
@@ -140,7 +140,6 @@ describe('mergeMailSmtp', () => {
     const result = await email.mergeMailSmtp(template);
     expect(result).toBeTruthy();
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual(info);
     expect(spy).toHaveBeenCalledTimes(2);
   });
 

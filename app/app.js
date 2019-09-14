@@ -6,6 +6,9 @@ const morgan = require('morgan');
 const Problem = require('api-problem');
 
 const keycloak = require('./src/components/keycloak');
+const {
+  queue
+} = require('./src/components/queue');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
 
@@ -98,6 +101,7 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.isShutdown = true;
+  queue.close();
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
 }

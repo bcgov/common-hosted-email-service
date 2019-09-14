@@ -30,7 +30,7 @@ emailRouter.post('/', [
       const result = await emailComponent.sendMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      const result = await emailComponent.sendMailSmtp(req.body);
+      const result = await emailComponent.queueMailSmtp(req.body);
       res.status(201).json(result);
     }
   } catch (error) {

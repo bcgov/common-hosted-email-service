@@ -4,6 +4,15 @@ const nunjucks = require('nunjucks');
 
 const utils = require('./utils');
 
+let etherealTransporter = undefined;
+const smtpTransporter = nodemailer.createTransport({
+  host: 'apps.smtp.gov.bc.ca', // TODO: move this to constants file
+  port: 25,
+  tls: {
+    rejectUnauthorized: false // do not fail on invalid certs
+  }
+});
+
 const email = {
   /** Transforms a message object into a nodemailer envelope
    *  @param {object} message An email message object
@@ -46,7 +55,7 @@ const email = {
 
     // Send all mail messages with defined transport object
     const results = await Promise.all(messages.map(message => {
-      return email.sendMailSmtp(message);
+      return email.queueMailSmtp(message);
     }));
 
     return results;
@@ -57,7 +66,12 @@ const email = {
    *  @returns {object[]} messages An array of message objects
    */
   mergeTemplate: template => {
-    const { body, contexts, subject, ...partialTemplate } = template;
+    const {
+      body,
+      contexts,
+      subject,
+      ...partialTemplate
+    } = template;
 
     return contexts.map(entry => {
       return Object.assign({
@@ -68,6 +82,18 @@ const email = {
         subject: email.renderMerge(subject, entry.context)
       }, partialTemplate);
     });
+  },
+
+  /** Adds an email message to the queue
+   *  @param {object} message An email message object
+   *  @returns {object} A nodemailer result object
+   */
+  queueMailSmtp: (message, opts = {}) => {
+    const queue = require('./queue');
+    const id = queue.enqueue(message, opts);
+
+    log.info('queueMailSmtp', `Job ${id} enqueued`);
+    return id;
   },
 
   /** Applies the context onto the template based on the template dialect
@@ -110,23 +136,26 @@ const email = {
    *  @returns {string} The url of the generated Ethereal email
    */
   sendMailEthereal: async message => {
-    // Generate test SMTP service account from ethereal.email
-    // Only needed if you don't have a real mail account for testing
-    const testAccount = await nodemailer.createTestAccount();
-    log.debug(utils.prettyStringify(testAccount));
+    if (!etherealTransporter) {
+      // Generate test SMTP service account from ethereal.email
+      // Only needed if you don't have a real mail account for testing
+      const testAccount = await nodemailer.createTestAccount();
+      log.debug(utils.prettyStringify(testAccount));
 
-    // Create reusable transporter object using the default SMTP transport
-    const transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
+      // Create reusable transporter object using the default SMTP transport
+      // eslint-disable-next-line require-atomic-updates
+      etherealTransporter = nodemailer.createTransport({
+        host: testAccount.smtp.host,
+        port: testAccount.smtp.port,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+    }
 
     // Send mail with defined transport object
-    const info = await email.sendMail(transporter, message);
+    const info = await email.sendMail(etherealTransporter, message);
 
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
     log.info('Message sent', info.messageId);
@@ -142,17 +171,8 @@ const email = {
    *  @returns {object} A nodemailer result object
    */
   sendMailSmtp: async message => {
-    // Use the BCGov SMTP server
-    const transporter = nodemailer.createTransport({
-      host: 'apps.smtp.gov.bc.ca', // TODO: move this to constants file
-      port: 25,
-      tls: {
-        rejectUnauthorized: false // do not fail on invalid certs
-      }
-    });
-
     // Send mail with defined transport object
-    return await email.sendMail(transporter, message);
+    return await email.sendMail(smtpTransporter, message);
   }
 };
 
