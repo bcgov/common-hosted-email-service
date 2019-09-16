@@ -19,15 +19,15 @@ const utils = {
   prettyStringify: (obj, indent = 2) => JSON.stringify(obj, null, indent),
 
   /** Returns a string in Pascal Case
-   * @param {string} str A string
-   * @returns {string} A string formatted in Pascal Case
+   *  @param {string} str A string
+   *  @returns {string} A string formatted in Pascal Case
    */
   toPascalCase: str => str.toLowerCase().replace(/\b\w/g, t => t.toUpperCase()),
 
   /** Returns a true if the contexts pass validation, otherwise throws an exception with the validation error
-   * @param {array} contexts The array of contexts from a mail merge request
-   * @returns {boolean} true if all good
-   * @throws Reason the `contexts` object is invalid
+   *  @param {array} contexts The array of contexts from a mail merge request
+   *  @returns {boolean} true if all good
+   *  @throws Reason the `contexts` object is invalid
    */
   validateContexts: contexts => {
     return contexts.every(entry => {
@@ -53,7 +53,14 @@ const utils = {
       if (!/^\w+$/.test(k)) throw new Error(`Invalid field name (${k}) in \`context\`.  Only alphanumeric characters and underscore allowed.`);
     });
     return true;
-  }
+  },
+
+  /** A blocking sleep/wait function
+   *  https://stackoverflow.com/a/39914235
+   *  @param {integer} ms Number of milliseconds to wait
+   *  @returns A promise after `ms` milliseconds
+   */
+  wait: ms => new Promise(r => setTimeout(r, ms))
 };
 
 module.exports = utils;

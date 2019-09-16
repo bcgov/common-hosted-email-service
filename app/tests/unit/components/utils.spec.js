@@ -166,3 +166,11 @@ describe('validateContexts', () => {
     expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid field name (b2_&*(*&(*&)(* )()((* ab_cd_1_2_3) in `context`.  Only alphanumeric characters and underscore allowed.');
   });
 });
+
+describe('wait', () => {
+  it('should return after a period of time', () => {
+    const result = utils.wait(200);
+
+    expect(result).resolves.toBeTruthy();
+  });
+});

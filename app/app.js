@@ -47,11 +47,11 @@ if (process.env.NODE_ENV !== 'test') {
   for (let i = 0; i < 5; i++) {
     if (queue.clients[0].status === 'ready') {
       state.isRedisConnected = true;
+      log.info('Connected to Redis');
       return;
-    } else {
-      // Blocking Sleep Function - https://stackoverflow.com/a/39914235
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
+
+    await utils.wait(1000);
   }
 
   if(!connected) {
