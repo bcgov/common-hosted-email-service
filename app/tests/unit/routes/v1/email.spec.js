@@ -69,8 +69,10 @@ describe(`POST ${basePath}`, () => {
     spy.mockRestore();
   });
 
-  it.skip('should respond when sending fails', async () => {
-    const spy = jest.spyOn(emailComponent, 'sendMailSmtp').mockRejectedValue(new Error(errorMessage));
+  it('should respond when sending fails', async () => {
+    const spy = jest.spyOn(emailComponent, 'queueMailSmtp').mockImplementation(() => {
+      throw new Error(errorMessage);
+    });
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',

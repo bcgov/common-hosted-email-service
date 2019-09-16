@@ -3,6 +3,7 @@ const log = require('npmlog');
 const nodemailer = require('nodemailer');
 
 const email = require('../../../src/components/email');
+const queue = require('../../../src/components/queue');
 const utils = require('../../../src/components/utils');
 
 log.level = config.get('server.logLevel');
@@ -11,6 +12,7 @@ log.addLevel('debug', 1500, {
 });
 
 jest.mock('nodemailer');
+jest.mock('../../../src/components/queue');
 jest.mock('../../../src/components/utils');
 
 // Constant Fixtures
@@ -161,6 +163,27 @@ describe('mergeTemplate', () => {
     expect(result[0].body).toMatch('body test');
     expect(result[0].to).toBeTruthy();
     expect(result[0].subject).toMatch('subject test');
+  });
+});
+
+describe('queueMailSmtp', () => {
+  const id = 'uuidString';
+  let spy;
+
+  beforeEach(() => {
+    spy = jest.spyOn(queue, 'enqueue');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should yield an id for the queue transaction', () => {
+    spy.mockReturnValue(id);
+    const result = email.queueMailSmtp(message);
+    expect(result).toBeTruthy();
+    expect(result).toMatch(id);
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
 
