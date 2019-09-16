@@ -14,6 +14,7 @@ const v1Router = require('./src/routes/v1');
 
 const apiRouter = express.Router();
 const state = {
+  isRedisConnected: false,
   isShutdown: false
 };
 
@@ -41,6 +42,24 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan(config.get('server.morganFormat')));
 }
 
+// Check Redis connection
+(async (connected) => {
+  for (let i = 0; i < 5; i++) {
+    if (queue.clients[0].status === 'ready') {
+      state.isRedisConnected = true;
+      return;
+    } else {
+      // Blocking Sleep Function - https://stackoverflow.com/a/39914235
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  if(!connected) {
+    log.error('Unable to connect to Redis...');
+    shutdown();
+  }
+})(state.isRedisConnected);
+
 // Use Keycloak OIDC Middleware
 app.use(keycloak.middleware());
 
@@ -48,6 +67,8 @@ app.use(keycloak.middleware());
 apiRouter.get('/', (_req, res) => {
   if (state.isShutdown) {
     throw new Error('Server shutting down');
+  } else if (!state.isRedisConnected) {
+    throw new Error('Server not connected to Redis');
   } else {
     res.status(200).json({
       endpoints: [

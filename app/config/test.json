@@ -3,6 +3,10 @@
     "clientId": "clientId",
     "clientSecret": "clientSecret"
   },
+  "redis": {
+    "host": "host",
+    "password": "pass"
+  },
   "server": {
     "logLevel": "silent"
   }

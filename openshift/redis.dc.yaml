@@ -59,6 +59,8 @@ objects:
           - mountPath: "/var/lib/redis/data"
             name: redis-data
           env:
+          - name: REDIS_HOST
+            value: "${APP_NAME}-redis-${JOB_NAME}"
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:

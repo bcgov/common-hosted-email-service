@@ -5,6 +5,10 @@
     "realm": "KC_REALM",
     "serverUrl": "KC_SERVERURL"
   },
+  "redis": {
+    "host": "REDIS_HOST",
+    "password": "REDIS_PASSWORD"
+  },
   "server": {
     "bodyLimit": "SERVER_BODYLIMIT",
     "logLevel": "SERVER_LOGLEVEL",

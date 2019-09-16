@@ -1,10 +1,16 @@
 const Bull = require('bull');
+const config = require('config');
 const log = require('npmlog');
 const uuidv4 = require('uuid/v4');
 
 const email = require('./email');
 
-const chesQueue = new Bull('ches');
+const chesQueue = new Bull('ches', {
+  redis: {
+    host: config.get('redis.host'),
+    password: config.get('redis.password')
+  }
+});
 
 chesQueue.process(async job => {
   log.info('queue', `Job ${job.id} is processing...`);
@@ -27,8 +33,9 @@ chesQueue.on('completed', async job => {
 });
 
 chesQueue.on('error', async job => {
-  log.error('queue', `Job ${job.id} errored`);
-  await job.retry();
+  if (typeof job.id !== 'undefined') {
+    log.error('queue', `Job ${job.id} errored`);
+  }
 });
 
 chesQueue.on('failed', async job => {
