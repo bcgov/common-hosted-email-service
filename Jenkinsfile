@@ -261,6 +261,36 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
         throw new Exception('Missing ConfigMaps and/or Secrets')
       }
 
+      if(openshift.selector('secret', "redis-${JOB_NAME}-secret").exists()) {
+        echo "Redis Secret already exists. Skipping..."
+      } else {
+        echo "Processing Redis Secret..."
+        def dcRedisSecretTemplate = openshift.process('-f',
+          'openshift/redis.secret.yaml',
+          "REPO_NAME=${REPO_NAME}",
+          "JOB_NAME=${JOB_NAME}",
+          "APP_NAME=${APP_NAME}"
+        )
+
+        echo "Creating Redis Secret..."
+        openshift.create(dcRedisSecretTemplate)
+      }
+
+      // Apply Redis Deployment
+      timeout(10) {
+        echo "Processing DeploymentConfig Redis.."
+        def dcRedisTemplate = openshift.process('-f',
+          'openshift/redis.dc.yaml',
+          "REPO_NAME=${REPO_NAME}",
+          "JOB_NAME=${JOB_NAME}",
+          "APP_NAME=${APP_NAME}"
+        )
+
+        echo "Applying Redis Deployment..."
+        def dcRedis = openshift.apply(dcRedisTemplate).narrow('dc')
+        dcRedis.rollout().status('--watch=true')
+      }
+
       createDeploymentStatus(projectEnv, 'PENDING', hostRouteEnv)
 
       // Wait for deployments to roll out
