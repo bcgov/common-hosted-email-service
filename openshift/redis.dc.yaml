@@ -66,6 +66,9 @@ objects:
               secretKeyRef:
                 key: password
                 name: "redis-${JOB_NAME}-secret"
+        volumes:
+        - emptyDir: {}
+          name: redis-data
     test: false
     triggers:
     - imageChangeParams:
@@ -78,9 +81,6 @@ objects:
           namespace: openshift
       type: ImageChange
     - type: ConfigChange
-    volumes:
-    - emptyDir: {}
-      name: redis-data
 - apiVersion: v1
   kind: Service
   metadata:
