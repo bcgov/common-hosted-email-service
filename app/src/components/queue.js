@@ -18,18 +18,23 @@ chesQueue.process(async job => {
   try {
     if (job.data.message) {
       const result = await email.sendMailSmtp(job.data.message);
-      job.log(JSON.stringify(result));
+      await job.log(JSON.stringify(result));
       return result;
     } else {
       throw new Error('Message missing or formatted incorrectly');
     }
   } catch (error) {
-    job.log(error.message);
+    await job.log(error.message);
+    await job.moveToFailed({
+      message: error.message
+    }, true);
+    await job.finished();
   }
 });
 
 chesQueue.on('completed', async job => {
   log.info('queue', `Job ${job.id} completed`);
+  await job.update(null); // Scrub out message information on finish
 });
 
 chesQueue.on('error', async job => {
@@ -40,6 +45,7 @@ chesQueue.on('error', async job => {
 
 chesQueue.on('failed', async job => {
   log.error('queue', `Job ${job.id} failed`);
+  await job.update(null); // Scrub out message information on finish
 });
 
 const queue = {
