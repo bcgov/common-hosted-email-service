@@ -1,6 +1,16 @@
+const express = require('express');
 const request = require('supertest');
 
-const app = require('../../../app');
+const router = require('../../../src/routes/v1');
+
+// Simple Express Server
+const basePath = '/api/v1';
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: false
+}));
+app.use(basePath, router);
 
 describe('GET /api/v1', () => {
   it('should return all available endpoints', async () => {
