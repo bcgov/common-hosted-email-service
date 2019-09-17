@@ -94,7 +94,9 @@ const email = {
     const id = queue.enqueue(message, opts);
 
     log.info('queueMailSmtp', `Job ${id} enqueued`);
-    return id;
+    return {
+      messageId: id
+    };
   },
 
   /** Applies the context onto the template based on the template dialect

@@ -182,7 +182,8 @@ describe('queueMailSmtp', () => {
     spy.mockReturnValue(id);
     const result = email.queueMailSmtp(message);
     expect(result).toBeTruthy();
-    expect(result).toMatch(id);
+    expect(result.messageId).toBeTruthy();
+    expect(result.messageId).toMatch(id);
     expect(spy).toHaveBeenCalledTimes(1);
   });
 });
