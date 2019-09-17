@@ -86,6 +86,7 @@ const email = {
 
   /** Adds an email message to the queue
    *  @param {object} message An email message object
+   *  @param {object} opts Bull job queue options to override default behavior. For more details on this object structure, refer to the JobOpts interface at https://github.com/OptimalBits/bull/blob/master/REFERENCE.md#queueadd.
    *  @returns {object} A nodemailer result object
    */
   queueMailSmtp: (message, opts = {}) => {

@@ -26,7 +26,7 @@ objects:
           deploymentconfig: "${APP_NAME}-redis-${JOB_NAME}"
       spec:
         containers:
-        - image: docker-registry.default.svc:5000/openshift/redis
+        - image: docker-registry.default.svc:5000/openshift/redis:latest
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
@@ -59,13 +59,11 @@ objects:
           - mountPath: "/var/lib/redis/data"
             name: redis-data
           env:
-          - name: REDIS_HOST
-            value: "${APP_NAME}-redis-${JOB_NAME}"
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: password
-                name: "redis-${JOB_NAME}-secret"
+                name: redis-${JOB_NAME}-secret
         volumes:
         - emptyDir: {}
           name: redis-data
@@ -74,7 +72,7 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - redis
+        - "${APP_NAME}-redis-${JOB_NAME}"
         from:
           kind: ImageStreamTag
           name: redis:latest
@@ -87,10 +85,10 @@ objects:
     name: "${APP_NAME}-redis-${JOB_NAME}"
   spec:
     ports:
-      - name: 6379-tcp
-        port: 6379
-        protocol: TCP
-        targetPort: 6379
+    - name: 6379-tcp
+      port: 6379
+      protocol: TCP
+      targetPort: 6379
     selector:
       app: "${APP_NAME}-${JOB_NAME}"
       deploymentconfig: "${APP_NAME}-redis-${JOB_NAME}"
