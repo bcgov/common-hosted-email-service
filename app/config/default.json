@@ -4,6 +4,7 @@
     "serverUrl": "https://sso-dev.pathfinder.gov.bc.ca/auth"
   },
   "server": {
+    "attachmentLimit": "25mb",
     "bodyLimit": "100mb",
     "logLevel": "debug",
     "morganFormat": "dev",

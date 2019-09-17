@@ -1,5 +1,8 @@
+const bytes = require('bytes');
 const config = require('config');
 const log = require('npmlog');
+
+const {smallFile} = require('./base64Files');
 
 const utils = require('../../../src/components/utils');
 
@@ -164,5 +167,87 @@ describe('validateContexts', () => {
       }];
 
     expect(() => utils.validateContexts(invalidObj)).toThrow('Invalid field name (b2_&*(*&(*&)(* )()((* ab_cd_1_2_3) in `context`.  Only alphanumeric characters and underscore allowed.');
+  });
+});
+
+describe('validateContexts', () => {
+  it('should true for when attachments is undefined', () => {
+    const result = utils.validateAttachments(undefined);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should true for a valid attachments', () => {
+    const validObj = {
+      attachments: [{filename: 'filename.pdf', encoding: 'base64', content: smallFile.content, contentType: 'application/pdf' }]
+    };
+    const result = utils.validateAttachments(validObj.attachments);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should throw if attachments is not array', () => {
+    const invalidObj = {
+      attachments: 'this is not good',
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Invalid value `attachments`');
+  });
+
+  it('should throw if attachment is missing filename field', () => {
+    const invalidObj = {
+      attachments: [{encoding: 'base64', content: 'content' }]
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Attachment is malformed.  Expect filename, encoding, and content fields.');
+  });
+
+  it('should throw if attachment is missing encoding field', () => {
+    const invalidObj = {
+      attachments: [{filename: 'filename', content: 'content' }]
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Attachment is malformed.  Expect filename, encoding, and content fields.');
+  });
+
+  it('should throw if attachment is missing content field', () => {
+    const invalidObj = {
+      attachments: [{filename: 'filename', encoding: 'base64' }]
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Attachment is malformed.  Expect filename, encoding, and content fields.');
+  });
+
+  it('should throw if attachment has no filename', () => {
+    const invalidObj = {
+      attachments: [{filename: '', encoding: 'base64', content: 'content' }]
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Attachment `filename` is required');
+  });
+
+  it('should throw if attachment has no content', () => {
+    const invalidObj = {
+      attachments: [{filename: 'filename', encoding: 'base64', content: '' }]
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Attachment `content` is required');
+  });
+
+  it('should throw if attachment has invalid encoding value', () => {
+    const invalidObj = {
+      attachments: [{filename: 'filename', encoding: 'base64x', content: 'content' }]
+    };
+
+    expect(() => utils.validateAttachments(invalidObj.attachments)).toThrow('Invalid value `encoding` for attachment');
+  });
+
+  it('should throw if attachment his too big', () => {
+    const invalidObj = {
+      attachments: [{filename: 'filename.pdf', encoding: 'base64', content: smallFile.content, contentType: 'application/pdf' }]
+    };
+    const attachmentLimit = smallFile.size/2;
+    const msg = `Attachment size (${bytes.format(smallFile.size, 'mb')}) exceeds limit of ${bytes.format(attachmentLimit, 'mb')}.`;
+    expect(() => utils.validateAttachments(invalidObj.attachments, smallFile.size/2)).toThrow(msg);
   });
 });

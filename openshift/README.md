@@ -24,6 +24,7 @@ oc create -n 9f0fbe-<env> configmap ches-keycloak-config \
 
 ```sh
 oc create -n 9f0fbe-<env> configmap ches-server-config \
+  --from-literal=SERVER_ATTACHMENTLIMIT=20mb \
   --from-literal=SERVER_BODYLIMIT=100mb \
   --from-literal=SERVER_LOGLEVEL=info \
   --from-literal=SERVER_MORGANFORMAT=combined \

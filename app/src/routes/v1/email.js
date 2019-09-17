@@ -1,3 +1,4 @@
+const config = require('config');
 const emailRouter = require('express').Router();
 const Problem = require('api-problem');
 const {
@@ -14,7 +15,8 @@ emailRouter.post('/', [
   body('body').isString(),
   body('from').isString(),
   body('to').isArray(),
-  body('subject').isString()
+  body('subject').isString(),
+  body('attachments').custom(value => { return utils.validateAttachments(value, config.get('server.attachmentLimit')); })
 ], async (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
@@ -44,7 +46,8 @@ emailRouter.post('/merge', [
   body('body').isString(),
   body('contexts').isArray().custom(utils.validateContexts),
   body('from').isString(),
-  body('subject').isString()
+  body('subject').isString(),
+  body('attachments').custom(value => { return utils.validateAttachments(value, config.get('server.attachmentLimit')); })
 ], async (req, res, next) => {
   // Validate for Bad Requests
   const errors = validationResult(req);
