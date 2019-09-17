@@ -78,6 +78,9 @@ objects:
           namespace: openshift
       type: ImageChange
     - type: ConfigChange
+    volumes:
+    - emptyDir: {}
+      name: redis-data
 - apiVersion: v1
   kind: Service
   metadata:
