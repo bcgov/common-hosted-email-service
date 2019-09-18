@@ -1,3 +1,4 @@
+---
 openapi: 3.0.0
 info:
   version: 1.0.0
@@ -38,9 +39,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /email/{id}:
+    get:
+      summary: Get the status of a message
+      operationId: getEmail
+      tags:
+        - Email
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - in: path
+          name: id
+          description: Message id to query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Returns the state of the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /email:
     post:
-      summary: Email sending
+      summary: Send an email
       operationId: postEmail
       tags:
         - Email
@@ -62,11 +99,11 @@ paths:
               $ref: '#/components/schemas/EmailRequest'
       responses:
         '201':
-          description: Responds with the correspondence id(s)? of the message
+          description: Returns the message correspondence id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Success'
+                $ref: '#/components/schemas/EmailResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -79,12 +116,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /email/merge:
+  /merge/{id}:
+    get:
+      summary: Get the status of a merge operation??
+      operationId: getMerge
+      tags:
+        - Merge
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - in: path
+          name: id
+          description: Merge id to query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Returns the state of the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /merge:
     post:
       summary: Template mail merge & email sending
-      operationId: postEmailMerge
+      operationId: postMerge
       tags:
-        - Email
+        - Merge
       security:
         - OpenID:
             - EMAILER
@@ -100,14 +173,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailMergeRequest'
+              $ref: '#/components/schemas/MergeRequest'
       responses:
         '201':
-          description: Responds with the correspondence id(s)? of the message
+          description: Returns an array of message correspondence ids
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Success'
+                $ref: '#/components/schemas/MergeResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -120,12 +193,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /email/merge/preview:
+  /preview:
     post:
       summary: Template mail merge validation & preview
-      operationId: postEmailMergeValidate
+      operationId: postPreview
       tags:
-        - Email
+        - Preview
       security:
         - OpenID:
             - EMAILER
@@ -135,7 +208,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailMergeRequest'
+              $ref: '#/components/schemas/MergeRequest'
       responses:
         '200':
           description: Responds with the result of the validation
@@ -237,6 +310,10 @@ components:
               greeting: Hello
               target: World
             someone: user
+    EmailResponse:
+      type: string
+      description: A uuid corresponding to the message
+      example: 00000000-0000-0000-0000-000000000000
     EmailRequest:
       type: object
       required:
@@ -322,7 +399,51 @@ components:
           type: string
           description: The email subject
           example: Hello user
-    EmailMergeRequest:
+    EndpointStatus:
+      type: object
+      required:
+        - name
+        - endpoint
+        - healthCheck
+        - authenticated
+        - authorized
+      properties:
+        name:
+          type: string
+          description: The name of the endpoint
+          example: WebADE API
+        endpoint:
+          type: string
+          description: Base endpoint URL
+          example: 'https://example.com/v1/'
+        healthCheck:
+          type: boolean
+          description: Is the endpoint reachable
+        authenticated:
+          type: boolean
+          description: Are credentials valid to access endpoint
+        authorized:
+          type: boolean
+          description: Do the credentials have the right permissions
+    EndpointList:
+      type: object
+      required:
+        - endpoints
+      properties:
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/EndpointStatus'
+          description: A list of Endpoint Statuses
+    Error:
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: contains a message about the failure
+          example: Something errored
+    MergeRequest:
       type: object
       required:
         - bodyType
@@ -386,50 +507,10 @@ components:
           type: string
           description: The email subject
           example: 'Hello {{ someone }}'
-    EndpointStatus:
-      type: object
-      required:
-        - name
-        - endpoint
-        - healthCheck
-        - authenticated
-        - authorized
-      properties:
-        name:
-          type: string
-          description: The name of the endpoint
-          example: WebADE API
-        endpoint:
-          type: string
-          description: Base endpoint URL
-          example: 'https://example.com/v1/'
-        healthCheck:
-          type: boolean
-          description: Is the endpoint reachable
-        authenticated:
-          type: boolean
-          description: Are credentials valid to access endpoint
-        authorized:
-          type: boolean
-          description: Do the credentials have the right permissions
-    EndpointList:
-      type: object
-      required:
-        - endpoints
-      properties:
-        endpoints:
-          type: array
-          items:
-            $ref: '#/components/schemas/EndpointStatus'
-          description: A list of Endpoint Statuses
-    Error:
-      required:
-        - error
-      properties:
-        error:
-          type: string
-          description: contains a message about the failure
-          example: Something errored
+    MergeResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/EmailResponse'
     Success:
       required:
         - message
