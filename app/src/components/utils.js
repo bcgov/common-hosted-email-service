@@ -65,12 +65,11 @@ const utils = {
       } else {
         attachments.every(item => {
           try {
-          //filename
-            if (item.filename === undefined || item.encoding === undefined || item.content === undefined) throw new Error('Attachment is malformed.  Expect filename, encoding, and content fields.');
-
+            if (item.filename === undefined ||
+              item.encoding === undefined ||
+              item.content === undefined) throw new Error('Attachment is malformed.  Expect filename, encoding, and content fields.');
             if (validator.isEmpty(item.filename)) throw new Error('Attachment `filename` is required');
             if (validator.isEmpty(item.content)) throw new Error('Attachment `content` is required');
-            //encoding
             if (!['base64', 'binary', 'hex'].includes(item.encoding)) throw new Error('Invalid value `encoding` for attachment');
             //content
             // want to ensure this fits within our expected size limits...
