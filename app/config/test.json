@@ -4,7 +4,7 @@
     "clientSecret": "clientSecret"
   },
   "server": {
-    "logLevel": "silent",
-    "attachmentLimit": "1mb"
+    "attachmentLimit": "1mb",
+    "logLevel": "silent"
   }
 }
