@@ -3,6 +3,7 @@ const request = require('supertest');
 
 const router = require('../../../../src/routes/v1/email');
 const emailComponent = require('../../../../src/components/email');
+const queueComponent = require('../../../../src/components/queue');
 
 // Simple Express Server
 const basePath = '/api/v1/email';
@@ -51,8 +52,9 @@ describe(`POST ${basePath}`, () => {
     spy.mockRestore();
   });
 
-  it('should push a message and yield a nodemailer response', async () => {
-    const spy = jest.spyOn(emailComponent, 'queueMailSmtp').mockResolvedValue({});
+  it('should queue a message and yield an uuid correspondence', async () => {
+    const id = 'id';
+    const spy = jest.spyOn(queueComponent, 'enqueue').mockReturnValue(id);
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
@@ -64,13 +66,14 @@ describe(`POST ${basePath}`, () => {
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeTruthy();
+    expect(response.body.messageId).toMatch(id);
     expect(spy).toHaveBeenCalled();
 
     spy.mockRestore();
   });
 
   it('should respond when sending fails', async () => {
-    const spy = jest.spyOn(emailComponent, 'queueMailSmtp').mockImplementation(() => {
+    const spy = jest.spyOn(queueComponent, 'enqueue').mockImplementation(() => {
       throw new Error(errorMessage);
     });
 

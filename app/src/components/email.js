@@ -55,7 +55,7 @@ const email = {
 
     // Send all mail messages with defined transport object
     const results = await Promise.all(messages.map(message => {
-      return email.queueMailSmtp(message);
+      return email.sendMailSmtp(message);
     }));
 
     return results;
@@ -82,21 +82,6 @@ const email = {
         subject: email.renderMerge(subject, entry.context)
       }, partialTemplate);
     });
-  },
-
-  /** Adds an email message to the queue
-   *  @param {object} message An email message object
-   *  @param {object} opts Bull job queue options to override default behavior. For more details on this object structure, refer to the JobOpts interface at https://github.com/OptimalBits/bull/blob/master/REFERENCE.md#queueadd.
-   *  @returns {object} A nodemailer result object
-   */
-  queueMailSmtp: (message, opts = {}) => {
-    const queue = require('./queue');
-    const id = queue.enqueue(message, opts);
-
-    log.info('queueMailSmtp', `Job ${id} enqueued`);
-    return {
-      messageId: id
-    };
   },
 
   /** Applies the context onto the template based on the template dialect

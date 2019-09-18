@@ -6,6 +6,7 @@ const {
 } = require('express-validator');
 
 const emailComponent = require('../../components/email');
+const queueComponent = require('../../components/queue');
 const utils = require('../../components/utils');
 
 /** Email sending endpoint */
@@ -30,8 +31,10 @@ emailRouter.post('/', [
       const result = await emailComponent.sendMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      const result = await emailComponent.queueMailSmtp(req.body);
-      res.status(201).json(result);
+      const result = queueComponent.enqueue(req.body);
+      res.status(201).json({
+        messageId: result
+      });
     }
   } catch (error) {
     next(error);

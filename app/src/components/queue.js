@@ -49,7 +49,12 @@ chesQueue.on('failed', async job => {
 });
 
 const queue = {
-  enqueue: (message, opts) => {
+  /** Adds an email message to the queue
+   *  @param {object} message An email message object
+   *  @param {object} opts Bull job queue options to override default behavior. For more details on this object structure, refer to the JobOpts interface at https://github.com/OptimalBits/bull/blob/master/REFERENCE.md#queueadd.
+   *  @returns {string} A uuid corresponding to the queued message
+   */
+  enqueue: (message, opts = {}) => {
     const id = uuidv4();
     chesQueue.add({
       message: message
@@ -57,6 +62,7 @@ const queue = {
       jobId: id
     }));
 
+    log.info('enqueue', `Job ${id} enqueued`);
     return id;
   },
 
