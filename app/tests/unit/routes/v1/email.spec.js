@@ -5,6 +5,8 @@ const router = require('../../../../src/routes/v1/email');
 const emailComponent = require('../../../../src/components/email');
 const queueComponent = require('../../../../src/components/queue');
 
+jest.mock('bull');
+
 // Simple Express Server
 const basePath = '/api/v1/email';
 const app = express();
@@ -54,7 +56,9 @@ describe(`POST ${basePath}`, () => {
 
   it('should queue a message and yield an uuid correspondence', async () => {
     const id = 'id';
-    const spy = jest.spyOn(queueComponent, 'enqueue').mockReturnValue(id);
+    const spy = jest.spyOn(queueComponent, 'enqueue').mockImplementation(() => {
+      return id;
+    });
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
@@ -182,7 +186,7 @@ describe(`POST ${basePath}/merge`, () => {
   });
 });
 
-describe(`POST ${basePath}merge/preview`, () => {
+describe(`POST ${basePath}/merge/preview`, () => {
   it('should yield a validation error for to field', async () => {
     const response = await request(app).post(`${basePath}/merge/preview`).send({
       contexts: [{

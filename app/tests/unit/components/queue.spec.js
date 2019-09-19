@@ -5,7 +5,7 @@ const queue = require('../../../src/components/queue');
 
 log.level = config.get('server.logLevel');
 
-
+jest.mock('bull');
 
 describe('enqueue', () => {
   let spy;
