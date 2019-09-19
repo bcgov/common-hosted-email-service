@@ -20,7 +20,7 @@
   "homepage": "https://github.com/bcgov/common-hosted-email-service",
   "dependencies": {
     "api-problem": "^6.0.1",
-    "bull": "^3.10.0",
+    "bull": "^3.11.0",
     "compression": "^1.7.4",
     "config": "^3.2.2",
     "express": "^4.17.1",
@@ -33,7 +33,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "eslint": "^6.3.0",
+    "eslint": "^6.4.0",
     "jest": "^24.9.0",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^1.19.2",

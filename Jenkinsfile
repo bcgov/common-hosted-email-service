@@ -80,6 +80,10 @@ pipeline {
                 echo 'Installing NPM Dependencies...'
                 sh 'npm ci'
 
+                echo 'Reporting Outdated and Vulnerable Dependencies...'
+                sh 'npm audit || true'
+                sh 'npm outdated || true'
+
                 echo 'Linting and Testing...'
                 sh 'npm run test'
 
