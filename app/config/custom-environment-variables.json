@@ -6,6 +6,7 @@
     "serverUrl": "KC_SERVERURL"
   },
   "server": {
+    "attachmentLimit": "SERVER_ATTACHMENTLIMIT",
     "bodyLimit": "SERVER_BODYLIMIT",
     "logLevel": "SERVER_LOGLEVEL",
     "morganFormat": "SERVER_MORGANFORMAT",
