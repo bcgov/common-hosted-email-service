@@ -163,6 +163,69 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /status:
+    get:
+      summary: Status of message transactions
+      operationId: GetStatusQuery
+      tags:
+        - Status
+      security:
+        - OpenID:
+            - EMAILER
+      responses:
+        '200':
+          description: Returns the status of message transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusObject'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/status/{msgId}':
+    get:
+      summary: Status of a message
+      operationId: GetStatusMessage
+      tags:
+        - Status
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - in: path
+          name: msgId
+          description: Uuid of the message
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 00000000-0000-0000-0000-000000000000
+      responses:
+        '200':
+          description: Returns the status of the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusObject'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     BearerAuth:
@@ -206,7 +269,7 @@ components:
           example: testfile.txt
     BadRequest:
       allOf:
-        - $ref: '#/components/schemas/Error'
+        - $ref: '#/components/schemas/Problem'
         - type: object
           required:
             - errors
@@ -216,6 +279,12 @@ components:
               description: An array of detected errors
               items:
                 $ref: '#/components/schemas/ValidationError'
+            status:
+              example: 400
+            title:
+              example: Bad Request
+            type:
+              example: 'https://httpstatuses.com/400'
     ContextObject:
       type: object
       required:
@@ -290,28 +359,16 @@ components:
           type: boolean
           description: Do the credentials have the right permissions
     Error:
-      type: object
-      required:
-        - status
-        - title
-        - type
-      properties:
-        details:
-          type: string
-          description: contains a message about the failure
-          example: Error message
-        status:
-          type: integer
-          description: http status code
-          example: 500
-        title:
-          type: string
-          description: http status description
-          example: Internal Server Error
-        type:
-          type: string
-          description: reference for the error
-          example: 'https://httpstatuses.com/500'
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            status:
+              example: 500
+            title:
+              example: Internal Server Error
+            type:
+              example: 'https://httpstatuses.com/500'
     MergeRequest:
       type: object
       required:
@@ -389,6 +446,7 @@ components:
         msgId:
           type: string
           description: A corresponding message uuid
+          format: uuid
           example: 00000000-0000-0000-0000-000000000000
         to:
           type: array
@@ -486,6 +544,39 @@ components:
             field
           example:
             - baz@gov.bc.ca
+    NotFound:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            status:
+              example: 404
+            title:
+              example: Not Found
+            type:
+              example: 'https://httpstatuses.com/404'
+    Problem:
+      type: object
+      required:
+        - status
+        - title
+        - type
+      properties:
+        details:
+          type: string
+          description: contains a message about the failure
+          example: Error message
+        status:
+          type: integer
+          description: http status code
+        title:
+          type: string
+          description: http status description
+        type:
+          type: string
+          description: reference for the error
+    StatusObject:
+      type: object
     TransactionResponse:
       type: object
       required:
@@ -499,6 +590,7 @@ components:
         txId:
           type: string
           description: A corresponding transaction uuid
+          format: uuid
           example: 00000000-0000-0000-0000-000000000000
     ValidationError:
       type: object
@@ -537,5 +629,9 @@ components:
       description: Lack required role to perform action
     NotFound:
       description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFound'
     UnauthorizedError:
       description: Access token is missing or invalid
