@@ -19,12 +19,12 @@ paths:
   /health:
     get:
       summary: Returns status of correspondent APIs
-      operationId: getChecksStatus
+      operationId: getHealth
       tags:
         - Health
       responses:
         '200':
-          description: Returns the healthiness of the correspondent API endpoint(s)
+          description: Returns the healthiness of API endpoint(s) this service depends on
           content:
             application/json:
               schema:
@@ -34,9 +34,9 @@ paths:
                 properties:
                   endpoints:
                     type: array
-                    description: A list of Endpoint Statuses
+                    description: A list of endpoint Health states
                     items:
-                      $ref: '#/components/schemas/EndpointStatus'
+                      $ref: '#/components/schemas/Health'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -271,7 +271,7 @@ components:
       schema:
         type: string
         enum:
-          - delayUntil
+          - delayUTC
           - log
           - result
           - status
@@ -370,10 +370,14 @@ components:
               greeting: Hello
               target: World
             someone: user
-        delay:
+        delayUTC:
           type: integer
-          description: number of milliseconds to delay this message before queueing
-          example: 60000
+          description: Desired UTC time for sending the message
+          example: 1570000000
+        tag:
+          type: string
+          description: A unique string to be associated with the message
+          example: tag
         to:
           type: array
           items:
@@ -383,7 +387,18 @@ components:
             field
           example:
             - baz@gov.bc.ca
-    EndpointStatus:
+    Error:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            status:
+              example: 500
+            title:
+              example: Internal Server Error
+            type:
+              example: 'https://httpstatuses.com/500'
+    Health:
       type: object
       required:
         - name
@@ -409,17 +424,6 @@ components:
         authorized:
           type: boolean
           description: Do the credentials have the right permissions
-    Error:
-      allOf:
-        - $ref: '#/components/schemas/Problem'
-        - type: object
-          properties:
-            status:
-              example: 500
-            title:
-              example: Internal Server Error
-            type:
-              example: 'https://httpstatuses.com/500'
     MergeRequest:
       type: object
       required:
@@ -431,6 +435,7 @@ components:
       properties:
         attachments:
           type: array
+          description: An array of Attachment objects
           items:
             $ref: '#/components/schemas/AttachmentObject'
         bodyType:
@@ -519,7 +524,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AttachmentObject'
-          description: A list of recipient emails
+          description: An array of Attachment objects
         bcc:
           type: array
           items:
@@ -538,9 +543,7 @@ components:
           example: html
         body:
           type: string
-          description: >-
-            The body of the message as an Unicode string, Buffer, Stream or an
-            attachment-like object
+          description: The body of the message as an Unicode string
           example: Hello World content
         cc:
           type: array
@@ -551,10 +554,10 @@ components:
             field
           example:
             - bar@gov.bc.ca
-        delay:
+        delayUTC:
           type: integer
-          description: number of milliseconds to delay the message before queueing
-          example: 60000
+          description: Desired UTC time for sending the message
+          example: 1570000000
         encoding:
           type: string
           description: >-
@@ -586,6 +589,10 @@ components:
           type: string
           description: The email subject
           example: Hello user
+        tag:
+          type: string
+          description: A unique string which is associated with the message
+          example: tag
         to:
           type: array
           items:
@@ -629,9 +636,9 @@ components:
     StatusObject:
       type: object
       properties:
-        delayUntil:
+        delayUTC:
           type: integer
-          description: UTC time to delay queueing the message for sending
+          description: Desired UTC time for sending the message
           example: 1570000000
         log:
           type: array
