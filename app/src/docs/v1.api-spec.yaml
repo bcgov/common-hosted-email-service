@@ -165,7 +165,7 @@ paths:
                 $ref: '#/components/schemas/Error'
   /status:
     get:
-      summary: Status of message transactions
+      summary: Queryable message transaction status
       operationId: GetStatusQuery
       tags:
         - Status
@@ -178,7 +178,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StatusObject'
+                type: array
+                description: A list of message statuses
+                items:
+                  $ref: '#/components/schemas/StatusObject'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -191,7 +194,7 @@ paths:
                 $ref: '#/components/schemas/Error'
   '/status/{msgId}':
     get:
-      summary: Status of a message
+      summary: Status of a single message
       operationId: GetStatusMessage
       tags:
         - Status
@@ -577,6 +580,56 @@ components:
           description: reference for the error
     StatusObject:
       type: object
+      properties:
+        delayUntil:
+          type: integer
+          description: UTC time to delay queueing the message for sending
+          example: 1570000000
+        log:
+          type: array
+          items:
+            type: string
+          description: An array of log strings regarding this message
+          example:
+            - Log message here
+        qId:
+          type: string
+          description: This message instance uuid
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        result:
+          type: object
+          description: A subset of the SMTP server response if message was sent
+          example:
+            messageId: <00000000-0000-0000-0000-000000000000@gov.bc.ca>
+        status:
+          type: string
+          description: The state of this message in the queue
+          enum:
+            - active
+            - completed
+            - delayed
+            - failed
+            - paused
+            - stuck
+            - waiting
+          example: completed
+        tag:
+          type: array
+          items:
+            type: string
+          description: An array of unique strings which describes the message
+          example:
+            - tag
+        timestamp:
+          type: integer
+          description: UTC time the service originally received this message queue request
+          example: 1560000000
+        txId:
+          type: string
+          description: The associated transaction uuid
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
     TransactionResponse:
       type: object
       required:
