@@ -12,42 +12,6 @@ const chesQueue = new Bull('ches', {
   }
 });
 
-chesQueue.process(async job => {
-  log.info('queue', `Job ${job.id} is processing...`);
-
-  try {
-    if (job.data.message) {
-      const result = await email.sendMailSmtp(job.data.message);
-      await job.log(JSON.stringify(result));
-      return result;
-    } else {
-      throw new Error('Message missing or formatted incorrectly');
-    }
-  } catch (error) {
-    await job.log(error.message);
-    await job.moveToFailed({
-      message: error.message
-    }, true);
-    await job.finished();
-  }
-});
-
-chesQueue.on('completed', async job => {
-  log.info('queue', `Job ${job.id} completed`);
-  await job.update(null); // Scrub out message information on finish
-});
-
-chesQueue.on('error', async job => {
-  if (typeof job.id !== 'undefined') {
-    log.error('queue', `Job ${job.id} errored`);
-  }
-});
-
-chesQueue.on('failed', async job => {
-  log.error('queue', `Job ${job.id} failed`);
-  await job.update(null); // Scrub out message information on finish
-});
-
 const queue = {
   /** Adds an email message to the queue
    *  @param {object} message An email message object
@@ -66,7 +30,62 @@ const queue = {
     return id;
   },
 
+  /** Cleanup message data upon job completion
+   *  @param {object} job A Bull Queue Job object
+   */
+  onCompleted: async job => {
+    log.info('queue', `Job ${job.id} completed`);
+    await job.update(null); // Scrub out message information on finish
+  },
+
+  /** Log the job error upon encountering an error
+   *  @param {object} job A Bull Queue Job object
+   */
+  onError: async job => {
+    if (typeof job.id !== 'undefined') {
+      log.error('queue', `Job ${job.id} errored`);
+    }
+  },
+
+  /** Cleanup message data upon job failure
+   *  @param {object} job A Bull Queue Job object
+   */
+  onFailed: async job => {
+    log.error('queue', `Job ${job.id} failed`);
+    await job.update(null); // Scrub out message information on finish
+  },
+
+  /** Execute the message job task
+   *  @param {object} job A Bull Queue Job object
+   */
+  onProcess: async job => {
+    log.info('queue', `Job ${job.id} is processing...`);
+
+    try {
+      if (job.data.message) {
+        const result = await email.sendMailSmtp(job.data.message);
+        await job.log(JSON.stringify(result));
+        return result;
+      } else {
+        throw new Error('Message missing or formatted incorrectly');
+      }
+    } catch (error) {
+      await job.log(error.message);
+      await job.moveToFailed({
+        message: error.message
+      }, true);
+      await job.finished();
+    }
+  },
+
+  /** The Raw Queue Object */
   queue: chesQueue
 };
+
+// Register Queue Events
+chesQueue.process(queue.onProcess);
+chesQueue.on('completed', queue.onCompleted);
+chesQueue.on('error', queue.onError);
+chesQueue.on('failed', queue.onFailed);
 
 module.exports = queue;
