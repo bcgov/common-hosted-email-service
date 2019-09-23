@@ -164,6 +164,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /status:
+    parameters:
+      - $ref: '#/components/parameters/StatusFilter'
     get:
       summary: Queryable message transaction status
       operationId: GetStatusQuery
@@ -172,6 +174,34 @@ paths:
       security:
         - OpenID:
             - EMAILER
+      parameters:
+        - in: query
+          name: tag
+          description: The desired messages with the specified tag association
+          schema:
+            type: string
+          example: tag
+        - in: query
+          name: txId
+          description: The desired messages associated with the transaction uuid
+          schema:
+            type: string
+            format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        - in: query
+          name: status
+          description: Yield messages in the specified status
+          schema:
+            type: string
+            enum:
+              - active
+              - completed
+              - delayed
+              - failed
+              - paused
+              - stuck
+              - waiting
+          example: completed
       responses:
         '200':
           description: Returns the status of message transactions
@@ -193,6 +223,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   '/status/{msgId}':
+    parameters:
+      - in: path
+        name: msgId
+        description: Uuid of the message
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+      - $ref: '#/components/parameters/StatusFilter'
     get:
       summary: Status of a single message
       operationId: GetStatusMessage
@@ -201,15 +241,6 @@ paths:
       security:
         - OpenID:
             - EMAILER
-      parameters:
-        - in: path
-          name: msgId
-          description: Uuid of the message
-          required: true
-          schema:
-            type: string
-            format: uuid
-            example: 00000000-0000-0000-0000-000000000000
       responses:
         '200':
           description: Returns the status of the message
@@ -230,6 +261,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 components:
+  parameters:
+    StatusFilter:
+      in: query
+      name: filter
+      description: >-
+        Filter the response to only yield the specified set of comma separated
+        fields.
+      schema:
+        type: string
+        enum:
+          - delayUntil
+          - log
+          - result
+          - status
+          - tag
+          - timestamp
+      example: 'log,status,timestamp'
   securitySchemes:
     BearerAuth:
       type: http
@@ -592,7 +640,7 @@ components:
           description: An array of log strings regarding this message
           example:
             - Log message here
-        qId:
+        msgId:
           type: string
           description: This message instance uuid
           format: uuid
@@ -615,12 +663,9 @@ components:
             - waiting
           example: completed
         tag:
-          type: array
-          items:
-            type: string
-          description: An array of unique strings which describes the message
-          example:
-            - tag
+          type: string
+          description: A unique string which is associated with the message
+          example: tag
         timestamp:
           type: integer
           description: UTC time the service originally received this message queue request
