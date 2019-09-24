@@ -18,7 +18,7 @@ security:
 paths:
   /health:
     get:
-      summary: Returns status of correspondent APIs
+      summary: (DRAFT) Returns status of correspondent APIs
       operationId: getHealth
       tags:
         - Health
@@ -190,7 +190,7 @@ paths:
           example: 00000000-0000-0000-0000-000000000000
         - in: query
           name: status
-          description: Yield messages in the specified status
+          description: (DRAFT) Yield messages in the specified status
           schema:
             type: string
             enum:
@@ -660,7 +660,7 @@ components:
             messageId: <00000000-0000-0000-0000-000000000000@gov.bc.ca>
         status:
           type: string
-          description: The state of this message in the queue
+          description: (DRAFT) The state of this message in the queue
           enum:
             - active
             - completed
