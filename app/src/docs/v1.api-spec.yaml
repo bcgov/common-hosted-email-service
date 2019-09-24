@@ -83,7 +83,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/UnprocessableEntity'
         default:
           description: Unexpected error
           content:
@@ -126,7 +126,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/UnprocessableEntity'
         default:
           $ref: '#/components/responses/Error'
   /emailMerge/preview:
@@ -162,7 +162,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/UnprocessableEntity'
         default:
           description: Unexpected error
           content:
@@ -327,14 +327,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/Problem'
         - type: object
-          required:
-            - errors
           properties:
-            errors:
-              type: array
-              description: An array of detected errors
-              items:
-                $ref: '#/components/schemas/ValidationError'
             status:
               example: 400
             title:
@@ -474,18 +467,11 @@ components:
             - utf-8
           default: utf-8
           example: utf-8
-        engine:
-          type: string
-          description: Templating engine dialect to use for processing templates.
-          enum:
-            - nunjucks
-          default: nunjucks
-          example: nunjucks
         from:
           type: string
           description: >-
             The email address of the sender. All email addresses can be plain
-            'sender@server.com' or formatted '"Sender Name" sender@server.com'
+            'sender@server.com' or formatted '"Sender Name" <sender@server.com>'
           example: example@gov.bc.ca
         priority:
           type: string
@@ -587,7 +573,7 @@ components:
           type: string
           description: >-
             The email address of the sender. All email addresses can be plain
-            'sender@server.com' or formatted '"Sender Name" sender@server.com'
+            'sender@server.com' or formatted '"Sender Name" <sender@server.com>'
           example: example@gov.bc.ca
         priority:
           type: string
@@ -749,4 +735,8 @@ components:
     UnauthorizedError:
       description: Access token is missing or invalid
     UnprocessableEntity:
-      description: The server was unable to process the contained instructions.  Generally a validation error.
+      description: The server was unable to process the contained instructions.  Generally validation error(s).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
