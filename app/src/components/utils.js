@@ -67,37 +67,41 @@ const utils = {
     if (attachments) {
       if (!Array.isArray(attachments)) {
         throw new Error('Invalid value `attachments`');
-      } else {
-        attachments.every(item => {
-          try {
-            if (item.filename === undefined ||
-              item.encoding === undefined ||
-              item.content === undefined) throw new Error('Attachment is malformed.  Expect filename, encoding, and content fields.');
-            if (validator.isEmpty(item.filename)) throw new Error('Attachment `filename` is required');
-            if (validator.isEmpty(item.content)) throw new Error('Attachment `content` is required');
-            if (!['base64', 'binary', 'hex'].includes(item.encoding)) throw new Error('Invalid value `encoding` for attachment');
-            //content
-            // want to ensure this fits within our expected size limits...
-            // add a little fudge factor here for encoding, otherwise we need to actually write the file out and examine size on disk.
-            const allowedBytes = bytes.parse(attachmentLimit);
-            const acceptableBytes = allowedBytes * 1.05;
-            const attachmentLength = Buffer.byteLength(item.content, item.encoding);
-            if (attachmentLength > acceptableBytes) {
-              throw new Error(`Attachment size (${bytes.format(attachmentLength, 'mb')}) exceeds limit of ${bytes.format(allowedBytes, 'mb')}.`);
-            }
-          } catch (e) {
-            if (item.content && !validator.isLength(item.content, {
-              min: 0,
-              max: 1024
-            })) {
-              item.content = 'Actual Content removed for brevity.';
-            }
-            throw e;
-          }
-          return;
-        });
       }
+
+      return attachments.every(item => {
+        try {
+          // Structure
+          if (item.filename === undefined ||
+            item.encoding === undefined ||
+            item.content === undefined) throw new Error('Attachment is malformed.  Expect filename, encoding, and content fields.');
+          if (validator.isEmpty(item.filename)) throw new Error('Attachment `filename` is required');
+          if (validator.isEmpty(item.content)) throw new Error('Attachment `content` is required');
+          if (!['base64', 'binary', 'hex'].includes(item.encoding)) throw new Error('Invalid value `encoding` for attachment');
+
+          // Content
+          // We want to ensure this fits within our expected size limits...
+          // Add a little fudge factor here for encoding, otherwise we need to actually write the file out and examine size on disk.
+          const allowedBytes = bytes.parse(attachmentLimit);
+          const acceptableBytes = allowedBytes * 1.05;
+          const attachmentLength = Buffer.byteLength(item.content, item.encoding);
+          if (attachmentLength > acceptableBytes) {
+            throw new Error(`Attachment size (${bytes.format(attachmentLength, 'mb')}) exceeds limit of ${bytes.format(allowedBytes, 'mb')}.`);
+          }
+        } catch (e) {
+          if (item.content && !validator.isLength(item.content, {
+            min: 0,
+            max: 1024
+          })) {
+            item.content = 'Actual Content removed for brevity.';
+          }
+          throw e;
+        }
+
+        return true;
+      });
     }
+
     return true; // not mandatory, so ok if doesn't exist.
   },
 
