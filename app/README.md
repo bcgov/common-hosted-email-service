@@ -52,7 +52,7 @@ Configuration management is done using the [config](https://www.npmjs.com/packag
 
 1. Look at [custom-environment-variables.json](/backend/config/custom-environment-variables.json) and ensure you have the environment variables locally set.
 2. Create a `local.json` file in the config folder. This file should never be added to source control.
-3. Consider creating a `local-test.json` file in the config folder if you want to use different configurations while running unit tests.
+3. Consider creating a `local-test.json` file in the config folder if you want to use different configurations while running unit tests. This file will be necessary because `local.json` takes precedence over `test.json`.
 
 For more details, please consult the config library [documentation](https://github.com/lorenwest/node-config/wiki/Configuration-Files).
 
@@ -64,6 +64,9 @@ For more details, please consult the config library [documentation](https://gith
 | `KC_CLIENTSECRET` | Keycloak Client password |
 | `KC_REALM` | Associated Keycloak realm |
 | `KC_SERVERURL` | Base authentication url for Keycloak |
+| `REDIS_HOST` | URL to access Redis |
+| `REDIS_PASSWORD` | The Redis password |
+| `SERVER_ATTACHMENTLIMIT` | Maximum attachment size the API will accept |
 | `SERVER_BODYLIMIT` | Maximum body length the API will accept |
 | `SERVER_LOGLEVEL` | Server log verbosity. Options: `silly`, `verbose`, `debug`, `info`, `warn`, `error` |
 | `SERVER_MORGANFORMAT` | Morgan format style. Options: `dev`, `combined` |
@@ -210,4 +213,3 @@ You can expect the template engine to yield the following:
 ``` sh
 "BAR everything"
 ```
-****
