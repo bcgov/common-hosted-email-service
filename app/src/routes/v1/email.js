@@ -1,32 +1,9 @@
-const config = require('config');
-const emailRouter = require('express').Router();
-const Problem = require('api-problem');
-const {
-  body,
-  validationResult
-} = require('express-validator');
-
 const emailComponent = require('../../components/email');
-const utils = require('../../components/utils');
+const emailRouter = require('express').Router();
+const {validateEmail, validateMerge} = require('../../middleware/validation');
 
 /** Email sending endpoint */
-emailRouter.post('/', [
-  body('bodyType').isIn(['html', 'text']),
-  body('body').isString(),
-  body('from').isString(),
-  body('to').isArray(),
-  body('subject').isString(),
-  body('attachments').custom(value => { return utils.validateAttachments(value, config.get('server.attachmentLimit')); })
-], async (req, res, next) => {
-  // Validate for Bad Requests
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return new Problem(400, {
-      detail: 'Validation failed',
-      errors: errors.array()
-    }).send(res);
-  }
-
+emailRouter.post('/', validateEmail, async (req, res, next) => {
   try {
     if (req.query.devMode) {
       const result = await emailComponent.sendMailEthereal(req.body);
@@ -41,23 +18,7 @@ emailRouter.post('/', [
 });
 
 /** Template mail merge & email sending endpoint */
-emailRouter.post('/merge', [
-  body('bodyType').isIn(['html', 'text']),
-  body('body').isString(),
-  body('contexts').isArray().custom(utils.validateContexts),
-  body('from').isString(),
-  body('subject').isString(),
-  body('attachments').custom(value => { return utils.validateAttachments(value, config.get('server.attachmentLimit')); })
-], async (req, res, next) => {
-  // Validate for Bad Requests
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return new Problem(400, {
-      detail: 'Validation failed',
-      errors: errors.array()
-    }).send(res);
-  }
-
+emailRouter.post('/merge', validateMerge, async (req, res, next) => {
   try {
     if (req.query.devMode) {
       const result = await emailComponent.mergeMailEthereal(req.body);
@@ -72,22 +33,7 @@ emailRouter.post('/merge', [
 });
 
 /** Template mail merge validation & preview endpoint */
-emailRouter.post('/merge/preview', [
-  body('bodyType').isIn(['html', 'text']),
-  body('body').isString(),
-  body('contexts').isArray().custom(utils.validateContexts),
-  body('from').isString(),
-  body('subject').isString()
-], (req, res, next) => {
-  // Validate for Bad Requests
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return new Problem(400, {
-      detail: 'Validation failed',
-      errors: errors.array()
-    }).send(res);
-  }
-
+emailRouter.post('/merge/preview', validateMerge, (req, res, next) => {
   try {
     const result = emailComponent.mergeTemplate(req.body);
     res.status(201).json(result);
