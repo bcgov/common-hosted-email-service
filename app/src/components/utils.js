@@ -44,9 +44,9 @@ const utils = {
   },
 
   /** Returns a true if the object's keys pass validation, otherwise throws an exception with the validation error
-   * @param {object} obj a Javascript object
-   * @returns {boolean} true if all good
-   * @throws Reason the `key` object is invalid
+   *  @param {object} obj a Javascript object
+   *  @returns {boolean} true if all good
+   *  @throws Reason the `key` object is invalid
    */
   validateKeys: obj => {
     Object.keys(obj).forEach(k => {
@@ -59,9 +59,9 @@ const utils = {
   },
 
   /** Inspects an array of attachments for validity, otherwise throws an exception with the validation error
-   * @param {object[]} attachments An array of attachment items
-   * @param {string} attachmentLimit The upper bound filesize an attachment should be
-   * @throws Reason the Attachment is invalid
+   *  @param {object[]} attachments An array of attachment items
+   *  @param {string} attachmentLimit The upper bound filesize an attachment should be
+   *  @throws Reason the Attachment is invalid
    */
   validateAttachments: (attachments, attachmentLimit = '5mb') => {
     if (attachments) {

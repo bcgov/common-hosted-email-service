@@ -40,11 +40,37 @@ The codebase is separated into a few discrete layers:
 In order for the application to run correctly, you will need to ensure that the following have been addressed:
 
 1. All node dependencies have been installed and resolved
-2. Environment configurations have been set up
+2. You have a Redis-compatible memory store available to connect to.
+3. Environment configurations have been set up
 
 ### Install
 
+#### Node Application
+
 As this is a Node application, please ensure that you have all dependencies installed as needed. This can be done by running `npm install`.
+
+#### Redis
+
+In order to run this microservice locally, you must have a Redis 3.2 compatible memory store available to connect to. This can be achieved in many ways depending on your platform, such as through Docker, or installing directly onto your machine. Visit <https://redis.io/download> to get a copy of the binaries if you are on a Unix machine or to acquire the Docker image to run locally.
+
+For Windows users who wish to install Redis directly onto your machine, there is currently no recent Windows binary officially available from Redis Labs. In lieu of that, we can leverage Memurai instead, which is a Redis 5.0 compatible distribution for Windows platforms. You can acquire the binaries for that at <https://www.memurai.com/get-memurai>.
+
+In order to view and manipulate Redis, you can either acquire a Redis compatible CLI, or get a GUI tool. We suggest installing the GUI tool `redis-commander` for managing Redis.
+
+One-off execution:
+
+``` sh
+npx redis-commander -p 8888
+```
+
+Global installation:
+
+``` sh
+npm i redis-commander -g
+redis-commander -p 8888
+```
+
+Visit <http://localhost:8888> for access. Take note of how you access your Redis as you will need that information for later configuration steps.
 
 ### Configuration
 
