@@ -1,3 +1,4 @@
+---
 openapi: 3.0.0
 info:
   version: 1.0.0
@@ -15,19 +16,27 @@ servers:
 security:
   - OpenID: []
 paths:
-  /checks/status:
+  /health:
     get:
-      summary: Returns status of correspondent APIs
-      operationId: getChecksStatus
+      summary: (DRAFT) Returns status of correspondent APIs
+      operationId: getHealth
       tags:
-        - Checks
+        - Health
       responses:
         '200':
-          description: Responds if the correspondent API endpoint(s) are healthy
+          description: Returns the healthiness of API endpoint(s) this service depends on
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EndpointList'
+                type: object
+                required:
+                  - endpoints
+                properties:
+                  endpoints:
+                    type: array
+                    description: A list of endpoint Health states
+                    items:
+                      $ref: '#/components/schemas/Health'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -40,7 +49,7 @@ paths:
                 $ref: '#/components/schemas/Error'
   /email:
     post:
-      summary: Email sending
+      summary: Send an email
       operationId: postEmail
       tags:
         - Email
@@ -59,32 +68,34 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailRequest'
+              $ref: '#/components/schemas/MessageObject'
       responses:
         '201':
-          description: Responds with the correspondence id(s)? of the message
+          description: Returns the message correspondence id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Success'
+                $ref: '#/components/schemas/TransactionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /email/merge:
+  /emailMerge:
     post:
       summary: Template mail merge & email sending
-      operationId: postEmailMerge
+      operationId: postMerge
       tags:
-        - Email
+        - EmailMerge
       security:
         - OpenID:
             - EMAILER
@@ -100,32 +111,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailMergeRequest'
+              $ref: '#/components/schemas/MergeRequest'
       responses:
         '201':
-          description: Responds with the correspondence id(s)? of the message
+          description: Returns an array of message correspondence ids
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Success'
+                $ref: '#/components/schemas/MergeResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /email/merge/preview:
+          $ref: '#/components/responses/Error'
+  /emailMerge/preview:
     post:
       summary: Template mail merge validation & preview
-      operationId: postEmailMergeValidate
+      operationId: postPreview
       tags:
-        - Email
+        - Preview
       security:
         - OpenID:
             - EMAILER
@@ -135,16 +144,80 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailMergeRequest'
+              $ref: '#/components/schemas/MergeRequest'
       responses:
         '200':
           description: Responds with the result of the validation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Success'
+                type: array
+                description: A list of merged message objects
+                items:
+                  $ref: '#/components/schemas/MessageObject'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /status:
+    parameters:
+      - $ref: '#/components/parameters/StatusFilter'
+    get:
+      summary: Queryable message transaction status
+      operationId: GetStatusQuery
+      tags:
+        - Status
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - in: query
+          name: tag
+          description: The desired messages with the specified tag association
+          schema:
+            type: string
+          example: tag
+        - in: query
+          name: txId
+          description: The desired messages associated with the transaction uuid
+          schema:
+            type: string
+            format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        - in: query
+          name: status
+          description: (DRAFT) Yield messages in the specified status
+          schema:
+            type: string
+            enum:
+              - active
+              - completed
+              - delayed
+              - failed
+              - paused
+              - stuck
+              - waiting
+          example: completed
+      responses:
+        '200':
+          description: Returns the status of message transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                description: A list of message statuses
+                items:
+                  $ref: '#/components/schemas/StatusObject'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -155,7 +228,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  '/status/{msgId}':
+    parameters:
+      - in: path
+        name: msgId
+        description: Uuid of the message
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+      - $ref: '#/components/parameters/StatusFilter'
+    get:
+      summary: Status of a single message
+      operationId: GetStatusMessage
+      tags:
+        - Status
+      security:
+        - OpenID:
+            - EMAILER
+      responses:
+        '200':
+          description: Returns the status of the message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusObject'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
+  parameters:
+    StatusFilter:
+      in: query
+      name: filter
+      description: >-
+        Filter the response to only yield the specified set of comma separated
+        fields.
+      schema:
+        type: string
+        enum:
+          - delayTS
+          - result
+          - status
+          - tag
+          - timestamp
+      example: 'status,timestamp'
   securitySchemes:
     BearerAuth:
       type: http
@@ -166,7 +293,7 @@ components:
       openIdConnectUrl: >-
         https://sso.pathfinder.gov.bc.ca/auth/realms/jbd6rnxw/.well-known/openid-configuration
   schemas:
-    Attachment:
+    AttachmentObject:
       type: object
       properties:
         content:
@@ -196,21 +323,30 @@ components:
             Filename to be reported as the name of the attached file. Use of
             unicode is allowed.
           example: testfile.txt
-    ContextEntry:
+    BadRequest:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          required:
+            - errors
+          properties:
+            errors:
+              type: array
+              description: An array of detected errors
+              items:
+                $ref: '#/components/schemas/ValidationError'
+            status:
+              example: 400
+            title:
+              example: Bad Request
+            type:
+              example: 'https://httpstatuses.com/400'
+    ContextObject:
       type: object
       required:
         - context
         - to
       properties:
-        to:
-          type: array
-          items:
-            type: string
-          description: >-
-            An array of recipients email addresses that will appear on the To:
-            field
-          example:
-            - baz@gov.bc.ca
         bcc:
           type: array
           items:
@@ -231,13 +367,164 @@ components:
             - fizz@gov.bc.ca
         context:
           type: object
-          description: A freeform JSON object of key-value pairs.  All keys must be alphanumeric or underscore.
+          description: >-
+            A freeform JSON object of key-value pairs.  All keys must be
+            alphanumeric or underscore.
           example:
             something:
               greeting: Hello
               target: World
             someone: user
-    EmailRequest:
+        delayTS:
+          type: integer
+          description: Desired UTC time for sending the message
+          example: 1570000000
+        tag:
+          type: string
+          description: A unique string to be associated with the message
+          example: tag
+        to:
+          type: array
+          items:
+            type: string
+          description: >-
+            An array of recipients email addresses that will appear on the To:
+            field
+          example:
+            - baz@gov.bc.ca
+    Error:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            status:
+              example: 500
+            title:
+              example: Internal Server Error
+            type:
+              example: 'https://httpstatuses.com/500'
+    Health:
+      type: object
+      required:
+        - name
+        - endpoint
+        - healthCheck
+        - authenticated
+        - authorized
+      properties:
+        name:
+          type: string
+          description: The name of the endpoint
+          example: Example API
+        endpoint:
+          type: string
+          description: Base endpoint URL
+          example: 'https://example.com/v1/'
+        healthCheck:
+          type: boolean
+          description: Is the endpoint reachable
+        authenticated:
+          type: boolean
+          description: Are credentials valid to access endpoint
+        authorized:
+          type: boolean
+          description: Do the credentials have the right permissions
+    MergeRequest:
+      type: object
+      required:
+        - bodyType
+        - body
+        - contexts
+        - from
+        - subject
+      properties:
+        attachments:
+          type: array
+          description: An array of Attachment objects
+          items:
+            $ref: '#/components/schemas/AttachmentObject'
+        bodyType:
+          type: string
+          description: 'The email body type (html = content with html, text = plaintext)'
+          enum:
+            - html
+            - text
+          example: html
+        body:
+          type: string
+          description: >-
+            A body template of the message as an Unicode string. Refer to
+            https://mozilla.github.io/nunjucks/templating.html for template
+            syntax.
+          example: '{{ something.greeting }} {{ something.target }} content'
+        contexts:
+          type: array
+          description: An array of context objects
+          items:
+            $ref: '#/components/schemas/ContextObject'
+        encoding:
+          type: string
+          description: >-
+            Identifies encoding for text/html strings (defaults to 'utf-8',
+            other values are 'hex' and 'base64')
+          enum:
+            - base64
+            - binary
+            - hex
+            - utf-8
+          default: utf-8
+          example: utf-8
+        engine:
+          type: string
+          description: Templating engine dialect to use for processing templates.
+          enum:
+            - nunjucks
+          default: nunjucks
+          example: nunjucks
+        from:
+          type: string
+          description: >-
+            The email address of the sender. All email addresses can be plain
+            'sender@server.com' or formatted '"Sender Name" sender@server.com'
+          example: example@gov.bc.ca
+        priority:
+          type: string
+          description: >-
+            Sets message importance headers, either 'high', 'normal' (default)
+            or 'low'.
+          enum:
+            - normal
+            - low
+            - high
+          default: normal
+          example: normal
+        subject:
+          type: string
+          description: The email subject
+          example: 'Hello {{ someone }}'
+    MergeResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/TransactionResponse'
+    MessageAssociation:
+      type: object
+      required:
+        - msgId
+        - to
+      properties:
+        msgId:
+          type: string
+          description: A corresponding message uuid
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        to:
+          type: array
+          items:
+            type: string
+          description: An array of recipient email addresses that this message will go to
+          example:
+            - baz@gov.bc.ca
+    MessageObject:
       type: object
       required:
         - bodyType
@@ -249,8 +536,8 @@ components:
         attachments:
           type: array
           items:
-            $ref: '#/components/schemas/Attachment'
-          description: A list of recipient emails
+            $ref: '#/components/schemas/AttachmentObject'
+          description: An array of Attachment objects
         bcc:
           type: array
           items:
@@ -269,9 +556,7 @@ components:
           example: html
         body:
           type: string
-          description: >-
-            The body of the message as an Unicode string, Buffer, Stream or an
-            attachment-like object
+          description: The body of the message as an Unicode string
           example: Hello World content
         cc:
           type: array
@@ -282,6 +567,10 @@ components:
             field
           example:
             - bar@gov.bc.ca
+        delayTS:
+          type: integer
+          description: Desired UTC time for sending the message
+          example: 1570000000
         encoding:
           type: string
           description: >-
@@ -292,6 +581,7 @@ components:
             - binary
             - hex
             - utf-8
+          default: utf-8
           example: utf-8
         from:
           type: string
@@ -309,6 +599,14 @@ components:
             - low
             - high
           example: normal
+        subject:
+          type: string
+          description: The email subject
+          example: Hello user
+        tag:
+          type: string
+          description: A unique string which is associated with the message
+          example: tag
         to:
           type: array
           items:
@@ -318,132 +616,137 @@ components:
             field
           example:
             - baz@gov.bc.ca
-        subject:
+    NotFound:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            status:
+              example: 404
+            title:
+              example: Not Found
+            type:
+              example: 'https://httpstatuses.com/404'
+    Problem:
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
           type: string
-          description: The email subject
-          example: Hello user
-    EmailMergeRequest:
+          description: What type of problem, link to explanation of problem
+        title:
+          type: string
+          description: Title of problem, generally the Http Status Code description
+        status:
+          type: string
+          description: The Http Status code
+        detail:
+          type: string
+          description: Short description of why this problem was raised.
+    StatusObject:
+      type: object
+      properties:
+        delayTS:
+          type: integer
+          description: Desired UTC time for sending the message
+          example: 1570000000
+        msgId:
+          type: string
+          description: This message instance uuid
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        result:
+          type: object
+          description: A subset of the SMTP server response if message was sent
+          example:
+            messageId: <00000000-0000-0000-0000-000000000000@gov.bc.ca>
+        status:
+          type: string
+          description: (DRAFT) The state of this message in the queue
+          enum:
+            - active
+            - completed
+            - delayed
+            - failed
+            - paused
+            - stuck
+            - waiting
+          example: completed
+        tag:
+          type: string
+          description: A unique string which is associated with the message
+          example: tag
+        timestamp:
+          type: integer
+          description: UTC time the service originally received this message queue request
+          example: 1560000000
+        txId:
+          type: string
+          description: The associated transaction uuid
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+    TransactionResponse:
       type: object
       required:
-        - bodyType
-        - body
-        - contexts
-        - from
-        - subject
+        - txId
+        - messages
       properties:
-        attachments:
+        messages:
           type: array
           items:
-            $ref: '#/components/schemas/Attachment'
-        bodyType:
+            $ref: '#/components/schemas/MessageAssociation'
+        txId:
           type: string
-          description: 'The email body type (html = content with html, text = plaintext)'
-          enum:
-            - html
-            - text
-          example: html
-        body:
-          type: string
-          description: >-
-            A Nunjucks compatible body template of the message as an Unicode
-            string, Buffer, Stream or an attachment-like object. Refer to
-            https://mozilla.github.io/nunjucks/templating.html for template
-            syntax.
-          example: '{{ something.greeting }} {{ something.target }} content'
-        contexts:
-          type: array
-          description: An array of context objects
-          items:
-            $ref: '#/components/schemas/ContextEntry'
-        encoding:
-          type: string
-          description: >-
-            Identifies encoding for text/html strings (defaults to 'utf-8',
-            other values are 'hex' and 'base64')
-          enum:
-            - base64
-            - binary
-            - hex
-            - utf-8
-          example: utf-8
-        from:
-          type: string
-          description: >-
-            The email address of the sender. All email addresses can be plain
-            'sender@server.com' or formatted '"Sender Name" sender@server.com'
-          example: example@gov.bc.ca
-        priority:
-          type: string
-          description: >-
-            Sets message importance headers, either 'high', 'normal' (default)
-            or 'low'.
-          enum:
-            - normal
-            - low
-            - high
-          example: normal
-        subject:
-          type: string
-          description: The email subject
-          example: 'Hello {{ someone }}'
-    EndpointStatus:
-      type: object
-      required:
-        - name
-        - endpoint
-        - healthCheck
-        - authenticated
-        - authorized
-      properties:
-        name:
-          type: string
-          description: The name of the endpoint
-          example: WebADE API
-        endpoint:
-          type: string
-          description: Base endpoint URL
-          example: 'https://example.com/v1/'
-        healthCheck:
-          type: boolean
-          description: Is the endpoint reachable
-        authenticated:
-          type: boolean
-          description: Are credentials valid to access endpoint
-        authorized:
-          type: boolean
-          description: Do the credentials have the right permissions
-    EndpointList:
-      type: object
-      required:
-        - endpoints
-      properties:
-        endpoints:
-          type: array
-          items:
-            $ref: '#/components/schemas/EndpointStatus'
-          description: A list of Endpoint Statuses
-    Error:
-      required:
-        - error
-      properties:
-        error:
-          type: string
-          description: contains a message about the failure
-          example: Something errored
-    Success:
-      required:
-        - message
-      properties:
-        message:
-          type: string
-          description: 'Contains message about the success, normally "Written successfully"'
-          example: Written successfully
+          description: A corresponding transaction uuid
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          required:
+            - errors
+          properties:
+            errors:
+              type: array
+              items:
+                type: object
+                required:
+                  - message
+                properties:
+                  value:
+                    type: object
+                    description: Contents of the field that was in error.
+                    example: "utf-8x"
+                  message:
+                    type: string
+                    description: The error message for the field.
+                    example: "Invalid value `encoding`."
   responses:
     BadRequest:
       description: Request is missing content or is malformed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequest'
+    Error:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     Forbidden:
       description: Lack required role to perform action
     NotFound:
       description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFound'
     UnauthorizedError:
       description: Access token is missing or invalid
+    UnprocessableEntity:
+      description: The server was unable to process the contained instructions.  Generally a validation error.

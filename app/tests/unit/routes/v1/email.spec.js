@@ -19,15 +19,15 @@ app.use(basePath, router);
 const errorMessage = 'broken';
 const url = 'https://example.com';
 const contexts = [{
-  context: {},
-  to: []
+  context: {good: 'value'},
+  to: ['email@email.org']
 }];
 
 describe(`POST ${basePath}`, () => {
   it('should yield a validation error', async () => {
     const response = await request(app).post(`${basePath}`);
 
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
     expect(response.body.errors).toHaveLength(5);
@@ -40,10 +40,10 @@ describe(`POST ${basePath}`, () => {
       .query('devMode=true')
       .send({
         bodyType: 'text',
-        body: '',
-        from: '',
-        to: [],
-        subject: ''
+        body: 'body',
+        from: 'email@email.com',
+        to: ['email@email.com'],
+        subject: 'subject'
       });
 
     expect(response.statusCode).toBe(201);
@@ -62,10 +62,10 @@ describe(`POST ${basePath}`, () => {
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
-      body: '',
-      from: '',
-      to: [],
-      subject: ''
+      body: 'body',
+      from: 'email@email.com',
+      to: ['email@email.com'],
+      subject: 'subject'
     });
 
     expect(response.statusCode).toBe(201);
@@ -83,10 +83,10 @@ describe(`POST ${basePath}`, () => {
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
-      body: '',
-      from: '',
-      to: [],
-      subject: ''
+      body: 'body',
+      from: 'email@email.com',
+      to: ['email@email.com'],
+      subject: 'subject'
     });
 
     expect(response.statusCode).toBe(500);
@@ -100,29 +100,38 @@ describe(`POST ${basePath}`, () => {
 describe(`POST ${basePath}/merge`, () => {
   it('should yield a validation error for to field', async () => {
     const response = await request(app).post(`${basePath}/merge`).send({
+      bodyType: 'text',
+      body: 'body',
+      from: 'email@email.com',
+      subject: 'subject',
       contexts: [{
-        to: undefined
+        to: undefined,
+        context: {good: 'bad'}
       }],
     });
 
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
-    expect(response.body.errors).toHaveLength(5);
+    expect(response.body.errors).toHaveLength(1);
   });
 
   it('should yield a validation error for context field', async () => {
     const response = await request(app).post(`${basePath}/merge`).send({
+      bodyType: 'text',
+      body: 'body',
+      from: 'email@email.com',
+      subject: 'subject',
       contexts: [{
-        to: [],
+        to: ['email@email.com'],
         context: 'undefined'
       }],
     });
 
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
-    expect(response.body.errors).toHaveLength(5);
+    expect(response.body.errors).toHaveLength(1);
   });
 
   it('should push a message and yield an Ethereal url', async () => {
@@ -132,10 +141,10 @@ describe(`POST ${basePath}/merge`, () => {
       .query('devMode=true')
       .send({
         bodyType: 'text',
-        body: '',
+        body: 'body',
         contexts: contexts,
-        from: '',
-        subject: ''
+        from: 'email@email.com',
+        subject: 'subject'
       });
 
     expect(response.statusCode).toBe(201);
@@ -152,10 +161,10 @@ describe(`POST ${basePath}/merge`, () => {
 
     const response = await request(app).post(`${basePath}/merge`).send({
       bodyType: 'text',
-      body: '',
+      body: 'body',
       contexts: contexts,
-      from: '',
-      subject: ''
+      from: 'email@email.com',
+      subject: 'subject'
     });
 
     expect(response.statusCode).toBe(201);
@@ -172,10 +181,10 @@ describe(`POST ${basePath}/merge`, () => {
 
     const response = await request(app).post(`${basePath}/merge`).send({
       bodyType: 'text',
-      body: '',
+      body: 'body',
       contexts: contexts,
-      from: '',
-      subject: ''
+      from: 'email@email.com',
+      subject: 'subject'
     });
 
     expect(response.statusCode).toBe(500);
@@ -189,29 +198,38 @@ describe(`POST ${basePath}/merge`, () => {
 describe(`POST ${basePath}/merge/preview`, () => {
   it('should yield a validation error for to field', async () => {
     const response = await request(app).post(`${basePath}/merge/preview`).send({
+      bodyType: 'text',
+      body: 'body',
+      from: 'email@email.com',
+      subject: 'subject',
       contexts: [{
-        to: undefined
+        to: undefined,
+        context: {good: 'bad'}
       }],
     });
 
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
-    expect(response.body.errors).toHaveLength(5);
+    expect(response.body.errors).toHaveLength(1);
   });
 
   it('should yield a validation error for context field', async () => {
     const response = await request(app).post(`${basePath}/merge/preview`).send({
+      bodyType: 'text',
+      body: 'body',
+      from: 'email@email.com',
+      subject: 'subject',
       contexts: [{
-        to: [],
+        to: ['email@email.com'],
         context: 'undefined'
       }],
     });
 
-    expect(response.statusCode).toBe(400);
+    expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
-    expect(response.body.errors).toHaveLength(5);
+    expect(response.body.errors).toHaveLength(1);
   });
 
   it('should yield a nodemailer message object', async () => {
@@ -219,10 +237,10 @@ describe(`POST ${basePath}/merge/preview`, () => {
 
     const response = await request(app).post(`${basePath}/merge/preview`).send({
       bodyType: 'text',
-      body: '',
+      body: 'body',
       contexts: contexts,
-      from: '',
-      subject: ''
+      from: 'email@email.com',
+      subject: 'subject'
     });
 
     expect(response.statusCode).toBe(201);
@@ -241,10 +259,10 @@ describe(`POST ${basePath}/merge/preview`, () => {
 
     const response = await request(app).post(`${basePath}/merge/preview`).send({
       bodyType: 'text',
-      body: '',
+      body: 'body',
       contexts: contexts,
-      from: '',
-      subject: ''
+      from: 'email@email.com',
+      subject: 'subject'
     });
 
     expect(response.statusCode).toBe(500);
