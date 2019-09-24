@@ -79,8 +79,7 @@ describe(`POST ${basePath}`, () => {
       to: ['email@email.com'],
       subject: 'subject'
     });
-    console.log('should respond when sending fails');
-    console.log(response);
+
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
     expect(spy).toHaveBeenCalled();

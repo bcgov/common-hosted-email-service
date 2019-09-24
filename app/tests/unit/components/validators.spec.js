@@ -1,4 +1,4 @@
-const { validators, validatorUtils }= require('../../../src/components/validators');
+const { validators, validatorUtils } = require('../../../src/components/validators');
 const {realSmallFile, smallFile} = require('./base64Files');
 
 describe('validatorUtils.isEmail', () => {
@@ -454,6 +454,7 @@ describe('context.cc', () => {
   });
 
 });
+
 describe('context.keys', () => {
 
   it('should return false for undefined', () => {
@@ -495,6 +496,46 @@ describe('context.keys', () => {
   it('should return false for context with bad key/field in sub-object', () => {
     const value = { 'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {'good': 'good key name', 'a1_&': 'bad key'} };
     const result = validators.context.keys(value);
+    expect(result).toBeFalsy();
+  });
+
+});
+
+describe('context.tag', () => {
+
+  it('should return true for string', () => {
+    const value = 'this is a tag';
+    const result = validators.context.tag(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for string object', () => {
+    const value = new String('this is a tag');
+    const result = validators.context.tag(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    const value = undefined;
+    const result = validators.context.tag(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for number', () => {
+    const value = 123;
+    const result = validators.context.tag(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for object', () => {
+    const value = {};
+    const result = validators.context.tag(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for array', () => {
+    const value = [];
+    const result = validators.context.tag(value);
     expect(result).toBeFalsy();
   });
 
@@ -902,6 +943,46 @@ describe('message.subject', () => {
 
 });
 
+describe('message.tag', () => {
+
+  it('should return true for string', () => {
+    const value = 'this is a tag';
+    const result = validators.message.tag(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for string object', () => {
+    const value = new String('this is a tag');
+    const result = validators.message.tag(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    const value = undefined;
+    const result = validators.message.tag(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for number', () => {
+    const value = 123;
+    const result = validators.message.tag(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for object', () => {
+    const value = {};
+    const result = validators.message.tag(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for array', () => {
+    const value = [];
+    const result = validators.message.tag(value);
+    expect(result).toBeFalsy();
+  });
+
+});
+
 describe('message.to', () => {
 
   it('should return false for undefined', () => {
@@ -1239,6 +1320,13 @@ describe('email message', () => {
     expect(result[0].message).toMatch(/priority/);
   });
 
+  it('should return an error when email message invalid tag', async () => {
+    const obj = { ...goodEmail};
+    obj.tag = ['not a good tag'];
+    const result = await validators.email(obj);
+    expect(result.length).toBe(1);
+    expect(result[0].message).toMatch(/tag/);
+  });
 });
 
 describe('email merge', () => {
@@ -1256,7 +1344,8 @@ describe('email merge', () => {
           context: {
             keyA: 'valueA',
             keyB: 'valueB'
-          }
+          },
+          tag: 'this is a good tag'
         }
       ],
       encoding: 'utf-8',
@@ -1443,6 +1532,15 @@ describe('email merge', () => {
     expect(result.length).toBe(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/bcc/);
+  });
+
+  it('should return an error when merges contexts invalid tag', async () => {
+    const obj = goodMergeObject();
+    obj.contexts[0].tag = ['tag', 'tag'];
+    const result = await validators.merge(obj);
+    expect(result.length).toBe(1);
+    expect(result[0].message).toMatch(/Contexts/);
+    expect(result[0].message).toMatch(/tag/);
   });
 
   it('should return an error when merges contexts has no context', async () => {

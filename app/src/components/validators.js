@@ -75,7 +75,8 @@ const validators = {
       if (!Array.isArray(obj.attachments)) {
         errors.push({value: undefined, message: 'Invalid value `attachments`. Expect an array of attachments.'});
       } else {
-        await asyncForEach(obj.attachments, async (a,i) => {
+        // eslint-disable-next-line no-unused-vars
+        await asyncForEach(obj.attachments, async (a,i,r) => {
           let validateSize = true;
           if(!validators.attachment.filename(a['filename'])) {
             errors.push({value: a['filename'], message: `Attachments[${i}] invalid value \`filename\`.`});
@@ -129,6 +130,10 @@ const validators = {
       return result;
     },
 
+    tag: value => {
+      return validators.message.tag(value);
+    },
+
     to: value => {
       return validators.message.to(value);
     }
@@ -149,6 +154,9 @@ const validators = {
           }
           if(!validators.context.bcc(c['bcc'])) {
             errors.push({value: c['bcc'], message: `Contexts[${i}] invalid value \`bcc\`.`});
+          }
+          if(!validators.context.tag(c['tag'])) {
+            errors.push({value: c['tag'], message: `Contexts[${i}] invalid value \`tag\`.`});
           }
           if (!c['context']) {
             // let's just return a separate error when context is not passed in...
@@ -197,6 +205,9 @@ const validators = {
     }
     if (!validators.message.priority(email['priority'])) {
       errors.push({value: email['priority'], message: 'Invalid value `priority`.'});
+    }
+    if (!validators.message.priority(email['tag'])) {
+      errors.push({value: email['tag'], message: 'Invalid value `tag`.'});
     }
     const attachmentErrors = await validators.attachments(email, attachmentSizeLimit);
     if (attachmentErrors) {
@@ -287,6 +298,13 @@ const validators = {
 
     subject: value => {
       return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true});
+    },
+
+    tag: value => {
+      if (value) {
+        return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true});
+      }
+      return true;
     },
 
     to: value => {
