@@ -271,13 +271,12 @@ components:
       schema:
         type: string
         enum:
-          - delayUTC
-          - log
+          - delayTS
           - result
           - status
           - tag
           - timestamp
-      example: 'log,status,timestamp'
+      example: 'status,timestamp'
   securitySchemes:
     BearerAuth:
       type: http
@@ -370,7 +369,7 @@ components:
               greeting: Hello
               target: World
             someone: user
-        delayUTC:
+        delayTS:
           type: integer
           description: Desired UTC time for sending the message
           example: 1570000000
@@ -448,8 +447,7 @@ components:
         body:
           type: string
           description: >-
-            A Nunjucks compatible body template of the message as an Unicode
-            string, Buffer, Stream or an attachment-like object. Refer to
+            A body template of the message as an Unicode string. Refer to
             https://mozilla.github.io/nunjucks/templating.html for template
             syntax.
           example: '{{ something.greeting }} {{ something.target }} content'
@@ -468,7 +466,15 @@ components:
             - binary
             - hex
             - utf-8
+          default: utf-8
           example: utf-8
+        engine:
+          type: string
+          description: Templating engine dialect to use for processing templates.
+          enum:
+            - nunjucks
+          default: nunjucks
+          example: nunjucks
         from:
           type: string
           description: >-
@@ -484,6 +490,7 @@ components:
             - normal
             - low
             - high
+          default: normal
           example: normal
         subject:
           type: string
@@ -554,7 +561,7 @@ components:
             field
           example:
             - bar@gov.bc.ca
-        delayUTC:
+        delayTS:
           type: integer
           description: Desired UTC time for sending the message
           example: 1570000000
@@ -568,6 +575,7 @@ components:
             - binary
             - hex
             - utf-8
+          default: utf-8
           example: utf-8
         from:
           type: string
@@ -636,17 +644,10 @@ components:
     StatusObject:
       type: object
       properties:
-        delayUTC:
+        delayTS:
           type: integer
           description: Desired UTC time for sending the message
           example: 1570000000
-        log:
-          type: array
-          items:
-            type: string
-          description: An array of log strings regarding this message
-          example:
-            - Log message here
         msgId:
           type: string
           description: This message instance uuid
