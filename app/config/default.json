@@ -8,6 +8,7 @@
     "password": ""
   },
   "server": {
+    "attachmentLimit": "25mb",
     "bodyLimit": "100mb",
     "logLevel": "debug",
     "morganFormat": "dev",

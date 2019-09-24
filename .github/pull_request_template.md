@@ -22,6 +22,7 @@
 - [ ] I have read the [CONTRIBUTING](CONTRIBUTING.md) doc
 - [ ] I have checked that unit tests pass locally with my changes
 - [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] I have updated the OpenAPI 3.0 `v*.api-spec.yaml` documentation (if appropriate)
 - [ ] I have added necessary documentation (if appropriate)
 
 ## Further comments
