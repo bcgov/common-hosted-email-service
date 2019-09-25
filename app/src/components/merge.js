@@ -1,6 +1,7 @@
 const nunjucks = require('nunjucks');
 
 const emailComponent = require('./email');
+const queueComponent = require('./queue');
 
 const merge = {
   /** Transforms a template into an array of email messages
@@ -29,7 +30,7 @@ const merge = {
 
     // Send all mail messages with defined transport object
     const results = await Promise.all(messages.map(message => {
-      return emailComponent.sendMailSmtp(message);
+      return queueComponent.enqueue(message);
     }));
 
     return results;

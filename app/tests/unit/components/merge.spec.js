@@ -3,12 +3,14 @@ const log = require('npmlog');
 
 const email = require('../../../src/components/email');
 const merge = require('../../../src/components/merge');
+const queue = require('../../../src/components/queue');
 
 log.level = config.get('server.logLevel');
 log.addLevel('debug', 1500, {
   fg: 'cyan'
 });
 
+jest.mock('bull');
 jest.mock('nodemailer');
 jest.mock('../../../src/components/queue');
 
@@ -87,7 +89,7 @@ describe('mergeMailSmtp', () => {
   let spy;
 
   beforeEach(() => {
-    spy = jest.spyOn(email, 'sendMailSmtp');
+    spy = jest.spyOn(queue, 'enqueue');
   });
 
   afterEach(() => {
