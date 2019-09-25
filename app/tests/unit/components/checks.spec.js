@@ -10,7 +10,7 @@ jest.mock('nodemailer');
 
 describe('getSmtpStatus', () => {
   const invalidHost = 'bad.url.com';
-  const validHost = 'apps.smtp.gov.bc.ca';
+  const validHost = config.get('server.smtpHost');
   const name = 'SMTP Endpoint';
 
   afterEach(() => {

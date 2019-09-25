@@ -97,6 +97,7 @@ For more details, please consult the config library [documentation](https://gith
 | `SERVER_LOGLEVEL` | Server log verbosity. Options: `silly`, `verbose`, `debug`, `info`, `warn`, `error` |
 | `SERVER_MORGANFORMAT` | Morgan format style. Options: `dev`, `combined` |
 | `SERVER_PORT` | Port server is listening to |
+| `SERVER_SMTPHOST` | The SMTP server this app will leerage |
 
 ## Commands
 

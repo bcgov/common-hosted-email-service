@@ -1,3 +1,4 @@
+const config = require('config');
 const log = require('npmlog');
 const nodemailer = require('nodemailer');
 
@@ -39,7 +40,7 @@ const checks = {
    * @returns {object[]} An array of result objects
    */
   getStatus: () => Promise.all([
-    checks.getSmtpStatus('apps.smtp.gov.bc.ca') // TODO: move this to constants file
+    checks.getSmtpStatus(config.get('server.smtpHost'))
   ])
 };
 

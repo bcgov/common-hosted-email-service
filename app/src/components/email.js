@@ -1,3 +1,4 @@
+const config = require('config');
 const log = require('npmlog');
 const nodemailer = require('nodemailer');
 const nunjucks = require('nunjucks');
@@ -6,7 +7,7 @@ const utils = require('./utils');
 
 let etherealTransporter = undefined;
 const smtpTransporter = nodemailer.createTransport({
-  host: 'apps.smtp.gov.bc.ca', // TODO: move this to constants file
+  host: config.get('server.smtpHost'),
   port: 25,
   tls: {
     rejectUnauthorized: false // do not fail on invalid certs
