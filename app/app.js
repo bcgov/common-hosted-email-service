@@ -54,7 +54,7 @@ if (process.env.NODE_ENV !== 'test') {
     await utils.wait(1000);
   }
 
-  if(!connected) {
+  if (!connected) {
     log.error('Unable to connect to Redis...');
     shutdown();
   }
