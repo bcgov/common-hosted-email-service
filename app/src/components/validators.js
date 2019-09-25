@@ -28,7 +28,7 @@ const validators = {
 
     encoding: value => {
       if (value) {
-        return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true}) && validator.isIn(value, ['base64','binary','hex']);
+        return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true}) && validator.isIn(value, ['base64', 'binary', 'hex']);
       }
       return true;
     },
@@ -43,7 +43,7 @@ const validators = {
       }
 
       let attachmentLimit = bytes.parse(limit);
-      if (!attachmentLimit || isNaN(attachmentLimit)|| attachmentLimit < 1) {
+      if (!attachmentLimit || isNaN(attachmentLimit) || attachmentLimit < 1) {
         return false;
       }
 
@@ -57,7 +57,7 @@ const validators = {
         // get the written file size
         const stats = fs.statSync(tmpFile.name);
         return stats.size <= attachmentLimit;
-      } catch(e) {
+      } catch (e) {
         // something wrong (disk i/o?), cannot verify file size
         log.error(`Error validating file size. ${e.message}`);
         return false;
@@ -76,28 +76,34 @@ const validators = {
         errors.push({value: undefined, message: 'Invalid value `attachments`. Expect an array of attachments.'});
       } else {
         // eslint-disable-next-line no-unused-vars
-        await asyncForEach(obj.attachments, async (a,i,r) => {
+        await asyncForEach(obj.attachments, async (a, i, r) => {
           let validateSize = true;
-          if(!validators.attachment.filename(a['filename'])) {
+          if (!validators.attachment.filename(a['filename'])) {
             errors.push({value: a['filename'], message: `Attachments[${i}] invalid value \`filename\`.`});
             validateSize = false;
           }
-          if(!validators.attachment.encoding(a['encoding'])) {
+          if (!validators.attachment.encoding(a['encoding'])) {
             errors.push({value: a['encoding'], message: `Attachments[${i}] invalid value \`encoding\`.`});
             validateSize = false;
           }
-          if(!validators.attachment.contentType(a['contentType'])) {
+          if (!validators.attachment.contentType(a['contentType'])) {
             errors.push({value: a['contentType'], message: `Attachments[${i}] invalid value \`contentType\`.`});
             validateSize = false;
           }
-          if(!validators.attachment.content(a['content'])) {
-            errors.push({value: 'Attachment purposefully omitted', message: `Attachments[${i}] invalid value \`content\`.`});
+          if (!validators.attachment.content(a['content'])) {
+            errors.push({
+              value: 'Attachment purposefully omitted',
+              message: `Attachments[${i}] invalid value \`content\`.`
+            });
             validateSize = false;
           }
           if (validateSize) {
             const validSize = await validators.attachment.size(a.content, a.encoding, attachmentSizeLimit);
-            if(!validSize) {
-              errors.push({value: 'Attachment purposefully omitted', message: `Attachments[${i}] exceeds size limit of ${bytes.format(attachmentSizeLimit, 'MB')}.`});
+            if (!validSize) {
+              errors.push({
+                value: 'Attachment purposefully omitted',
+                message: `Attachments[${i}] exceeds size limit of ${bytes.format(attachmentSizeLimit, 'MB')}.`
+              });
             }
           }
         });
@@ -115,13 +121,17 @@ const validators = {
       return validators.message.cc(value);
     },
 
+    delayTS: value => {
+      return validators.message.delayTS(value);
+    },
+
     keys: obj => {
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
         return false;
       }
       // only pass an object if all keys in the object or child objects pass...
       let result = Object.keys(obj).every(k => {
-        if (obj[k] === Object(obj[k]))  {
+        if (obj[k] === Object(obj[k])) {
           return validators.context.keys(obj[k]);
         }
         // only pass alphanumeric or underscore keys, fail anything else.
@@ -145,25 +155,31 @@ const validators = {
       if (!Array.isArray(obj.contexts)) {
         errors.push({value: undefined, message: 'Invalid value `contexts`. Expect an array of contexts.'});
       } else {
-        obj.contexts.forEach((c,i) => {
-          if(!validators.context.to(c['to'])) {
+        obj.contexts.forEach((c, i) => {
+          if (!validators.context.to(c['to'])) {
             errors.push({value: c['to'], message: `Contexts[${i}] invalid value \`to\`.`});
           }
-          if(!validators.context.cc(c['cc'])) {
+          if (!validators.context.cc(c['cc'])) {
             errors.push({value: c['cc'], message: `Contexts[${i}] invalid value \`cc\`.`});
           }
-          if(!validators.context.bcc(c['bcc'])) {
+          if (!validators.context.bcc(c['bcc'])) {
             errors.push({value: c['bcc'], message: `Contexts[${i}] invalid value \`bcc\`.`});
           }
-          if(!validators.context.tag(c['tag'])) {
+          if (!validators.context.tag(c['tag'])) {
             errors.push({value: c['tag'], message: `Contexts[${i}] invalid value \`tag\`.`});
+          }
+          if (!validators.context.delayTS(c['delayTS'])) {
+            errors.push({value: c['delayTS'], message: `Contexts[${i}] invalid value \`delayTS\`.`});
           }
           if (!c['context']) {
             // let's just return a separate error when context is not passed in...
             errors.push({value: c['context'], message: `Contexts[${i}] invalid value \`context\`.`});
-          } else if(!validators.context.keys(c['context'])) {
+          } else if (!validators.context.keys(c['context'])) {
             // and here we can just show error on improperly named keys.
-            errors.push({value: c['context'], message: `Contexts[${i}] \`context\` has invalid keys/fields, only alphanumeric and underscore identifiers allowed.`});
+            errors.push({
+              value: c['context'],
+              message: `Contexts[${i}] \`context\` has invalid keys/fields, only alphanumeric and underscore identifiers allowed.`
+            });
           }
         });
       }
@@ -173,43 +189,30 @@ const validators = {
     return errors;
   },
 
-  email: async (email, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
+  email: async (obj, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
     // validate the email object
     // completely valid object will return an empty array of errors.
     // an invalid object will return a populated array of errors.
     const errors = [];
 
-    if (!validators.message.from(email['from'])) {
-      errors.push({value: email['from'], message: 'Invalid value `from`.'});
+    validators.messageFields(obj, errors);
+
+    if (!validators.message.to(obj['to'])) {
+      errors.push({value: obj['to'], message: 'Invalid value `to`.'});
     }
-    if (!validators.message.to(email['to'])) {
-      errors.push({value: email['to'], message: 'Invalid value `to`.'});
+    if (!validators.message.cc(obj['cc'])) {
+      errors.push({value: obj['cc'], message: 'Invalid value `cc`.'});
     }
-    if (!validators.message.cc(email['cc'])) {
-      errors.push({value: email['cc'], message: 'Invalid value `cc`.'});
+    if (!validators.message.bcc(obj['bcc'])) {
+      errors.push({value: obj['bcc'], message: 'Invalid value `bcc`.'});
     }
-    if (!validators.message.bcc(email['bcc'])) {
-      errors.push({value: email['bcc'], message: 'Invalid value `bcc`.'});
+    if (!validators.message.tag(obj['tag'])) {
+      errors.push({value: obj['tag'], message: 'Invalid value `tag`.'});
     }
-    if (!validators.message.subject(email['subject'])) {
-      errors.push({value: email['subject'], message: 'Invalid value `subject`.'});
+    if (!validators.message.delayTS(obj['delayTS'])) {
+      errors.push({value: obj['delayTS'], message: 'Invalid value `delayTS`.'});
     }
-    if (!validators.message.bodyType(email['bodyType'])) {
-      errors.push({value: email['bodyType'], message: 'Invalid value `bodyType`.'});
-    }
-    if (!validators.message.body(email['body'])) {
-      errors.push({value: 'Body purposefully omitted', message: 'Invalid value `body`.'});
-    }
-    if (!validators.message.encoding(email['encoding'])) {
-      errors.push({value: email['encoding'], message: 'Invalid value `encoding`.'});
-    }
-    if (!validators.message.priority(email['priority'])) {
-      errors.push({value: email['priority'], message: 'Invalid value `priority`.'});
-    }
-    if (!validators.message.priority(email['tag'])) {
-      errors.push({value: email['tag'], message: 'Invalid value `tag`.'});
-    }
-    const attachmentErrors = await validators.attachments(email, attachmentSizeLimit);
+    const attachmentErrors = await validators.attachments(obj, attachmentSizeLimit);
     if (attachmentErrors) {
       attachmentErrors.forEach(x => errors.push(x));
     }
@@ -217,29 +220,33 @@ const validators = {
     return errors;
   },
 
-  merge: async(merge, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
+  messageFields: function (obj, errors) {
+    if (!validators.message.from(obj['from'])) {
+      errors.push({value: obj['from'], message: 'Invalid value `from`.'});
+    }
+    if (!validators.message.subject(obj['subject'])) {
+      errors.push({value: obj['subject'], message: 'Invalid value `subject`.'});
+    }
+    if (!validators.message.bodyType(obj['bodyType'])) {
+      errors.push({value: obj['bodyType'], message: 'Invalid value `bodyType`.'});
+    }
+    if (!validators.message.body(obj['body'])) {
+      errors.push({value: 'Body purposefully omitted', message: 'Invalid value `body`.'});
+    }
+    if (!validators.message.encoding(obj['encoding'])) {
+      errors.push({value: obj['encoding'], message: 'Invalid value `encoding`.'});
+    }
+    if (!validators.message.priority(obj['priority'])) {
+      errors.push({value: obj['priority'], message: 'Invalid value `priority`.'});
+    }
+  },
+
+  merge: async (merge, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
     // validate the merge object
     // completely valid object will return an empty array of errors.
     // an invalid object will return a populated array of errors.
     const errors = [];
-    if (!validators.message.from(merge['from'])) {
-      errors.push({value: merge['from'], message: 'Invalid value `from`.'});
-    }
-    if (!validators.message.subject(merge['subject'])) {
-      errors.push({value: merge['subject'], message: 'Invalid value `subject`.'});
-    }
-    if (!validators.message.bodyType(merge['bodyType'])) {
-      errors.push({value: merge['bodyType'], message: 'Invalid value `bodyType`.'});
-    }
-    if (!validators.message.body(merge['body'])) {
-      errors.push({value: 'Body purposefully omitted', message: 'Invalid value `body`.'});
-    }
-    if (!validators.message.encoding(merge['encoding'])) {
-      errors.push({value: merge['encoding'], message: 'Invalid value `encoding`.'});
-    }
-    if (!validators.message.priority(merge['priority'])) {
-      errors.push({value: merge['priority'], message: 'Invalid value `priority`.'});
-    }
+    validators.messageFields(merge, errors);
 
     const contextErrors = validators.contexts(merge);
     if (contextErrors) {
@@ -268,7 +275,7 @@ const validators = {
     },
 
     bodyType: value => {
-      return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true}) && validator.isIn(value, ['html','text']);
+      return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true}) && validator.isIn(value, ['html', 'text']);
     },
 
     cc: value => {
@@ -278,9 +285,16 @@ const validators = {
       return true;
     },
 
+    delayTS: value => {
+      if (value) {
+        return validatorUtils.isInt(value);
+      }
+      return true;
+    },
+
     encoding: value => {
       if (value) {
-        return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true}) && validator.isIn(value, ['base64','binary','hex','utf-8']);
+        return validatorUtils.isString(value) && !validator.isEmpty(value, {ignore_whitespace: true}) && validator.isIn(value, ['base64', 'binary', 'hex', 'utf-8']);
       }
       return true;
     },
@@ -291,7 +305,7 @@ const validators = {
 
     priority: value => {
       if (value) {
-        return validatorUtils.isString(value) && validator.isIn(value, ['normal','low', 'high']);
+        return validatorUtils.isString(value) && validator.isIn(value, ['normal', 'low', 'high']);
       }
       return true;
     },
@@ -316,18 +330,28 @@ const validators = {
 };
 
 const validatorUtils = {
-  isString: x => {
-    return Object.prototype.toString.call(x) === '[object String]';
-  },
 
   isEmail: x => {
     return validatorUtils.isString(x) && !validator.isEmpty(x, {ignore_whitespace: true}) && validator.isEmail(x, {allow_display_name: true});
   },
 
   isEmailList: x => {
-    return x && Array.isArray(x) && x.every(v => { return validatorUtils.isEmail(v); });
-  }
+    return x && Array.isArray(x) && x.every(v => {
+      return validatorUtils.isEmail(v);
+    });
+  },
 
+  isInt: x => {
+    if (isNaN(x)) {
+      return false;
+    }
+    const num = parseFloat(x);
+    return (num | 0) === num;
+  },
+
+  isString: x => {
+    return Object.prototype.toString.call(x) === '[object String]';
+  }
 };
 
-module.exports = { validators, validatorUtils };
+module.exports = {validators, validatorUtils};

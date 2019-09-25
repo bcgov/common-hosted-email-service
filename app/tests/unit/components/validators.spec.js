@@ -1,4 +1,4 @@
-const { validators, validatorUtils } = require('../../../src/components/validators');
+const {validators, validatorUtils} = require('../../../src/components/validators');
 const {realSmallFile, smallFile} = require('./base64Files');
 
 describe('validatorUtils.isEmail', () => {
@@ -50,21 +50,21 @@ describe('validatorUtils.isEmail', () => {
 describe('validatorUtils.isEmailList', () => {
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','email2@address2.com'];
+    const list = ['email@address.com', 'email2@address2.com'];
     const result = validatorUtils.isEmailList(list);
 
     expect(result).toBeTruthy();
   });
 
   it('should return true for array of email addresses with display names', () => {
-    const list = ['Email Address <email@address.com>','Email Address II <email2@address2.com>'];
+    const list = ['Email Address <email@address.com>', 'Email Address II <email2@address2.com>'];
     const result = validatorUtils.isEmailList(list);
 
     expect(result).toBeTruthy();
   });
 
   it('should return true for array of email addresses, some with display names', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validatorUtils.isEmailList(list);
 
     expect(result).toBeTruthy();
@@ -97,6 +97,68 @@ describe('validatorUtils.isEmailList', () => {
 
 });
 
+describe('validatorUtils.isInt', () => {
+
+  it('should return true for a int', () => {
+    const value = 123;
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for a integer as string ', () => {
+    const value = '123456';
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for a integer as string object ', () => {
+    const value = String(123456);
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for a non-numeric string ', () => {
+    const value = 'abcdefg1234567';
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a float ', () => {
+    const value = 123.45;
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a float string ', () => {
+    const value = '123.45';
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    const result = validatorUtils.isInt([{value: 123}]);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a function', () => {
+    const value = x => {
+      return String(x);
+    };
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+});
+
+
 describe('validatorUtils.isString', () => {
 
   it('should return true for a string', () => {
@@ -107,7 +169,7 @@ describe('validatorUtils.isString', () => {
   });
 
   it('should return true for a string object ', () => {
-    const value = new String(123456);
+    const value = String(123456);
     const result = validatorUtils.isString(value);
 
     expect(result).toBeTruthy();
@@ -134,7 +196,7 @@ describe('validatorUtils.isString', () => {
 
   it('should return false for a function', () => {
     const value = x => {
-      return new String(x);
+      return String(x);
     };
     const result = validatorUtils.isString(value);
 
@@ -152,7 +214,7 @@ describe('attachment.content', () => {
   });
 
   it('should return true for populated string object', () => {
-    const value = new String('this is a populated string');
+    const value = String('this is a populated string');
     const result = validators.attachment.content(value);
     expect(result).toBeTruthy();
   });
@@ -204,7 +266,7 @@ describe('attachment.contentType', () => {
   });
 
   it('should return true for populated string object', () => {
-    const value = new String('this is the content type');
+    const value = String('this is the content type');
     const result = validators.attachment.contentType(value);
     expect(result).toBeTruthy();
   });
@@ -296,7 +358,7 @@ describe('attachment.filename', () => {
   });
 
   it('should return true for populated string object', () => {
-    const value = new String('this is a populated string');
+    const value = String('this is a populated string');
     const result = validators.attachment.filename(value);
     expect(result).toBeTruthy();
   });
@@ -402,13 +464,13 @@ describe('context.bcc', () => {
   });
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.context.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
-    const list = ['this is not a valid email value', 'email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.context.bcc(list);
     expect(result).toBeFalsy();
   });
@@ -436,13 +498,13 @@ describe('context.cc', () => {
   });
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.context.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
-    const list = ['this is not a valid email value', 'email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.context.cc(list);
     expect(result).toBeFalsy();
   });
@@ -453,6 +515,63 @@ describe('context.cc', () => {
     expect(result).toBeFalsy();
   });
 
+});
+
+describe('context.delayTS', () => {
+
+  it('should return true for undefined', () => {
+    const value = undefined;
+    const result = validators.context.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for int', () => {
+    const value = 123;
+    const result = validators.context.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for empty string', () => {
+    const value = '';
+    const result = validators.context.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for int string', () => {
+    const value = '123';
+    const result = validators.context.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for populated int string object', () => {
+    const value = String('123');
+    const result = validators.context.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for float', () => {
+    const value = 123.45;
+    const result = validators.context.delayTS(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for whitespace string', () => {
+    const value = '                     ';
+    const result = validators.context.delayTS(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for array argument', () => {
+    const value = [];
+    const result = validators.context.delayTS(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for object argument', () => {
+    const value = {value: 123};
+    const result = validators.context.delayTS(value);
+    expect(result).toBeFalsy();
+  });
 });
 
 describe('context.keys', () => {
@@ -482,19 +601,28 @@ describe('context.keys', () => {
   });
 
   it('should return true for valid context', () => {
-    const value = { 'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {'good': 'good key name'} };
+    const value = {'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {'good': 'good key name'}};
     const result = validators.context.keys(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for context with bad key/field', () => {
-    const value = { 'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {'good': 'good key name'}, 'a1_&': 'bad key' };
+    const value = {
+      'test': '123',
+      'this_is_a_valid_key_from_json_123': 'pass',
+      'subObject': {'good': 'good key name'},
+      'a1_&': 'bad key'
+    };
     const result = validators.context.keys(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for context with bad key/field in sub-object', () => {
-    const value = { 'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {'good': 'good key name', 'a1_&': 'bad key'} };
+    const value = {
+      'test': '123',
+      'this_is_a_valid_key_from_json_123': 'pass',
+      'subObject': {'good': 'good key name', 'a1_&': 'bad key'}
+    };
     const result = validators.context.keys(value);
     expect(result).toBeFalsy();
   });
@@ -510,7 +638,7 @@ describe('context.tag', () => {
   });
 
   it('should return true for string object', () => {
-    const value = new String('this is a tag');
+    const value = String('this is a tag');
     const result = validators.context.tag(value);
     expect(result).toBeTruthy();
   });
@@ -556,13 +684,13 @@ describe('contexts.to', () => {
   });
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.context.to(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
-    const list = ['this is not a valid email value', 'email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.context.to(list);
     expect(result).toBeFalsy();
   });
@@ -590,13 +718,13 @@ describe('message.bcc', () => {
   });
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.message.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
-    const list = ['this is not a valid email value', 'email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.message.bcc(list);
     expect(result).toBeFalsy();
   });
@@ -618,7 +746,7 @@ describe('message.body', () => {
   });
 
   it('should return true for populated string object', () => {
-    const value = new String('this is a populated string');
+    const value = String('this is a populated string');
     const result = validators.message.body(value);
     expect(result).toBeTruthy();
   });
@@ -710,13 +838,13 @@ describe('message.cc', () => {
   });
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.message.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
-    const list = ['this is not a valid email value', 'email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.message.cc(list);
     expect(result).toBeFalsy();
   });
@@ -727,6 +855,63 @@ describe('message.cc', () => {
     expect(result).toBeFalsy();
   });
 
+});
+
+describe('message.delayTS', () => {
+
+  it('should return true for undefined', () => {
+    const value = undefined;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for int', () => {
+    const value = 123;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for empty string', () => {
+    const value = '';
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for int string', () => {
+    const value = '123';
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for populated int string object', () => {
+    const value = String('123');
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for float', () => {
+    const value = 123.45;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for whitespace string', () => {
+    const value = '                     ';
+    const result = validators.message.delayTS(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for array argument', () => {
+    const value = [];
+    const result = validators.message.delayTS(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for object argument', () => {
+    const value = {value: 123};
+    const result = validators.message.delayTS(value);
+    expect(result).toBeFalsy();
+  });
 });
 
 describe('message.encoding', () => {
@@ -900,7 +1085,7 @@ describe('message.subject', () => {
   });
 
   it('should return true for populated string object', () => {
-    const value = new String('this is a populated string');
+    const value = String('this is a populated string');
     const result = validators.message.subject(value);
     expect(result).toBeTruthy();
   });
@@ -952,7 +1137,7 @@ describe('message.tag', () => {
   });
 
   it('should return true for string object', () => {
-    const value = new String('this is a tag');
+    const value = String('this is a tag');
     const result = validators.message.tag(value);
     expect(result).toBeTruthy();
   });
@@ -998,13 +1183,13 @@ describe('message.to', () => {
   });
 
   it('should return true for array of email addresses', () => {
-    const list = ['email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.message.to(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
-    const list = ['this is not a valid email value', 'email@address.com','"Email Address Jr." <email2@address2.com>'];
+    const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
     const result = validators.message.to(list);
     expect(result).toBeFalsy();
   });
@@ -1043,7 +1228,12 @@ describe('attachments list', () => {
 
   it('should return empty error list for valid attachments', async () => {
     const obj = {
-      attachments: [ {filename: 'file.pdf', encoding: 'base64', contentType: 'application/pdf', content: smallFile.content} ]
+      attachments: [{
+        filename: 'file.pdf',
+        encoding: 'base64',
+        contentType: 'application/pdf',
+        content: smallFile.content
+      }]
     };
     const result = await validators.attachments(obj);
     expect(result.length).toBe(0);
@@ -1159,19 +1349,26 @@ describe('email message', () => {
     subject: 'Email subject',
     bodyType: 'text',
     body: 'This is the email body.  It is plain text',
+    delayTS: 1570000,
     encoding: 'utf-8',
     priority: 'normal',
-    attachments: [{filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}]
+    tag: 'this is a good tag',
+    attachments: [{
+      filename: 'fileOk.pdf',
+      encoding: 'base64',
+      contentType: 'application/pdf',
+      content: realSmallFile.content
+    }]
   };
 
   it('should return empty error list for a complete and valid email message', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message has invalid attachment', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.attachments = [{encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}];
 
     const result = await validators.email(obj);
@@ -1181,7 +1378,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no from', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.from;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1189,7 +1386,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid from', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.from = 'not a good from';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1197,7 +1394,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no to', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.to;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1205,7 +1402,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid to', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.to = 'not a good from';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1213,14 +1410,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no cc', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.cc;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid cc', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.cc = 'not a good to';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1228,14 +1425,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no bcc', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.bcc;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid bcc', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.bcc = 'not a good bcc';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1243,7 +1440,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no subject', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.subject;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1251,7 +1448,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid subject', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.subject = 123;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1259,7 +1456,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no bodyType', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.bodyType;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1267,7 +1464,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid bodyType', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.bodyType = 'xhtmlx';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1275,7 +1472,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no body', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.body;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1283,7 +1480,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid body', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.body = {};
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1291,14 +1488,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no encoding', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.encoding;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid encoding', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.encoding = 'not a good encoding';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1306,34 +1503,62 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no priority', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     delete obj.priority;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid priority', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.priority = 'not a good priority';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
     expect(result[0].message).toMatch(/priority/);
   });
 
+  it('should not return an error when email message has no tag', async () => {
+    const obj = {...goodEmail};
+    delete obj.tag;
+    const result = await validators.email(obj);
+    expect(result.length).toBe(0);
+  });
+
   it('should return an error when email message invalid tag', async () => {
-    const obj = { ...goodEmail};
+    const obj = {...goodEmail};
     obj.tag = ['not a good tag'];
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
     expect(result[0].message).toMatch(/tag/);
   });
+
+  it('should not return an error when email message has no delayTS', async () => {
+    const obj = {...goodEmail};
+    delete obj.delayTS;
+    const result = await validators.email(obj);
+    expect(result.length).toBe(0);
+  });
+
+  it('should return an error when email message invalid delayTS', async () => {
+    const obj = {...goodEmail};
+    obj.delayTS = 'not a good delayTS';
+    const result = await validators.email(obj);
+    expect(result.length).toBe(1);
+    expect(result[0].message).toMatch(/delayTS/);
+  });
+
 });
 
 describe('email merge', () => {
 
   const goodMergeObject = () => {
     return {
-      attachments: [{filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}],
+      attachments: [{
+        filename: 'fileOk.pdf',
+        encoding: 'base64',
+        contentType: 'application/pdf',
+        content: realSmallFile.content
+      }],
       bodyType: 'text',
       body: 'This is the email body.  It is plain text',
       contexts: [
@@ -1345,6 +1570,7 @@ describe('email merge', () => {
             keyA: 'valueA',
             keyB: 'valueB'
           },
+          delayTS: 157000,
           tag: 'this is a good tag'
         }
       ],
@@ -1534,6 +1760,13 @@ describe('email merge', () => {
     expect(result[0].message).toMatch(/bcc/);
   });
 
+  it('should not return an error when merge contexts has no tag', async () => {
+    const obj = goodMergeObject();
+    delete obj.contexts[0].tag;
+    const result = await validators.merge(obj);
+    expect(result.length).toBe(0);
+  });
+
   it('should return an error when merges contexts invalid tag', async () => {
     const obj = goodMergeObject();
     obj.contexts[0].tag = ['tag', 'tag'];
@@ -1541,6 +1774,21 @@ describe('email merge', () => {
     expect(result.length).toBe(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/tag/);
+  });
+
+  it('should not return an error when merge contexts has no delayTS', async () => {
+    const obj = goodMergeObject();
+    delete obj.contexts[0].delayTS;
+    const result = await validators.merge(obj);
+    expect(result.length).toBe(0);
+  });
+
+  it('should return an error when email message invalid delayTS', async () => {
+    const obj = goodMergeObject();
+    obj.contexts[0].delayTS = 'not a good delayTS';
+    const result = await validators.merge(obj);
+    expect(result.length).toBe(1);
+    expect(result[0].message).toMatch(/delayTS/);
   });
 
   it('should return an error when merges contexts has no context', async () => {

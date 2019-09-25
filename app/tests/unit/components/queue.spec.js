@@ -11,10 +11,14 @@ jest.mock('bull');
 const Job = jest.fn(() => {
   return {
     id: 1,
-    finished: () => {},
-    log: () => {},
-    moveToFailed: () => {},
-    update: () => {}
+    finished: () => {
+    },
+    log: () => {
+    },
+    moveToFailed: () => {
+    },
+    update: () => {
+    }
   };
 });
 
@@ -31,7 +35,8 @@ describe('enqueue', () => {
 
   it('should add a message to the queue', () => {
     const message = {};
-    spy.mockImplementation(() => {});
+    spy.mockImplementation(() => {
+    });
 
     const result = queue.enqueue(message);
     expect(result).toBeTruthy();
@@ -80,7 +85,7 @@ describe('onProcess', () => {
   it('should dispatch a message through nodemailer', async () => {
     const job = new Job();
     job.data = {
-      message: new Object()
+      message: {}
     };
 
     const result = await queue.onProcess(job);
