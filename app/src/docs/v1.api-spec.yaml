@@ -134,7 +134,7 @@ paths:
       summary: Template mail merge validation & preview
       operationId: postPreview
       tags:
-        - Preview
+        - EmailMerge
       security:
         - OpenID:
             - EMAILER
