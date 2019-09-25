@@ -11,6 +11,7 @@ log.addLevel('debug', 1500, {
 });
 
 jest.mock('nodemailer');
+jest.mock('../../../src/components/queue');
 jest.mock('../../../src/components/utils');
 
 // Constant Fixtures
@@ -140,7 +141,6 @@ describe('mergeMailSmtp', () => {
     const result = await email.mergeMailSmtp(template);
     expect(result).toBeTruthy();
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual(info);
     expect(spy).toHaveBeenCalledTimes(2);
   });
 

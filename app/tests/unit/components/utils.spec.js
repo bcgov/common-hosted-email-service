@@ -62,3 +62,11 @@ describe('toPascalCase', () => {
     expect(result).toMatch(/[A-Z][a-z]+(?:[A-Z][a-z]+)*/);
   });
 });
+
+describe('wait', () => {
+  it('should return after a period of time', () => {
+    const result = utils.wait(200);
+
+    expect(result).resolves.toBeTruthy();
+  });
+});

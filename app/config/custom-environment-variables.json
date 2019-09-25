@@ -5,11 +5,16 @@
     "realm": "KC_REALM",
     "serverUrl": "KC_SERVERURL"
   },
+  "redis": {
+    "host": "REDIS_HOST",
+    "password": "REDIS_PASSWORD"
+  },
   "server": {
     "attachmentLimit": "SERVER_ATTACHMENTLIMIT",
     "bodyLimit": "SERVER_BODYLIMIT",
     "logLevel": "SERVER_LOGLEVEL",
     "morganFormat": "SERVER_MORGANFORMAT",
-    "port": "SERVER_PORT"
+    "port": "SERVER_PORT",
+    "smtpHost": "SERVER_SMTPHOST"
   }
 }

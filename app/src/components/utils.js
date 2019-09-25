@@ -19,10 +19,17 @@ const utils = {
   prettyStringify: (obj, indent = 2) => JSON.stringify(obj, null, indent),
 
   /** Returns a string in Pascal Case
-   * @param {string} str A string
-   * @returns {string} A string formatted in Pascal Case
+   *  @param {string} str A string
+   *  @returns {string} A string formatted in Pascal Case
    */
-  toPascalCase: str => str.toLowerCase().replace(/\b\w/g, t => t.toUpperCase())
+  toPascalCase: str => str.toLowerCase().replace(/\b\w/g, t => t.toUpperCase()),
+
+  /** A blocking sleep/wait function
+   *  https://stackoverflow.com/a/39914235
+   *  @param {integer} ms Number of milliseconds to wait
+   *  @returns A promise after `ms` milliseconds
+   */
+  wait: ms => new Promise(r => setTimeout(r, ms))
 };
 
 module.exports = utils;

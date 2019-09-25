@@ -1,6 +1,11 @@
 const emailComponent = require('../../components/email');
+const queueComponent = require('../../components/queue');
+
 const emailRouter = require('express').Router();
-const {validateEmail, validateMerge} = require('../../middleware/validation');
+const {
+  validateEmail,
+  validateMerge
+} = require('../../middleware/validation');
 
 /** Email sending endpoint */
 emailRouter.post('/', validateEmail, async (req, res, next) => {
@@ -9,8 +14,10 @@ emailRouter.post('/', validateEmail, async (req, res, next) => {
       const result = await emailComponent.sendMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      const result = await emailComponent.sendMailSmtp(req.body);
-      res.status(201).json(result);
+      const result = queueComponent.enqueue(req.body);
+      res.status(201).json({
+        messageId: result
+      });
     }
   } catch (error) {
     next(error);

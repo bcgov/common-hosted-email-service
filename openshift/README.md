@@ -28,7 +28,8 @@ oc create -n 9f0fbe-<env> configmap ches-server-config \
   --from-literal=SERVER_BODYLIMIT=100mb \
   --from-literal=SERVER_LOGLEVEL=info \
   --from-literal=SERVER_MORGANFORMAT=combined \
-  --from-literal=SERVER_PORT=3000
+  --from-literal=SERVER_PORT=3000 \
+  --from-literal=SERVER_SMTPHOST=apps.smtp.gov.bc.ca
 ```
 
 ### Secrets

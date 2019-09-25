@@ -3,11 +3,16 @@
     "realm": "jbd6rnxw",
     "serverUrl": "https://sso-dev.pathfinder.gov.bc.ca/auth"
   },
+  "redis": {
+    "host": "127.0.0.1",
+    "password": ""
+  },
   "server": {
     "attachmentLimit": "25mb",
     "bodyLimit": "100mb",
     "logLevel": "debug",
     "morganFormat": "dev",
-    "port": "3000"
+    "port": "3000",
+    "smtpHost": "apps.smtp.gov.bc.ca"
   }
 }

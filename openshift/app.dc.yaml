@@ -68,6 +68,13 @@ objects:
               secretKeyRef:
                 key: password
                 name: ches-keycloak-secret
+          - name: REDIS_HOST
+            value: "${APP_NAME}-redis-${JOB_NAME}"
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: redis-${JOB_NAME}-secret
           envFrom:
           - configMapRef:
               name: ches-keycloak-config
