@@ -31,6 +31,8 @@ const queue = {
     return id;
   },
 
+  getMessage: async msgId => await chesQueue.getJob(msgId),
+
   /** Cleanup message data upon job completion
    *  @param {object} job A Bull Queue Job object
    */

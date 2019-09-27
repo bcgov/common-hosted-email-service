@@ -1,12 +1,12 @@
 const mergeComponent = require('../../components/merge');
 
-const emailRouter = require('express').Router();
+const mergeRouter = require('express').Router();
 const {
   validateMerge
 } = require('../../middleware/validation');
 
 /** Template mail merge & email sending endpoint */
-emailRouter.post('/', validateMerge, async (req, res, next) => {
+mergeRouter.post('/', validateMerge, async (req, res, next) => {
   try {
     if (req.query.devMode) {
       const result = await mergeComponent.mergeMailEthereal(req.body);
@@ -21,7 +21,7 @@ emailRouter.post('/', validateMerge, async (req, res, next) => {
 });
 
 /** Template mail merge validation & preview endpoint */
-emailRouter.post('/preview', validateMerge, (req, res, next) => {
+mergeRouter.post('/preview', validateMerge, (req, res, next) => {
   try {
     const result = mergeComponent.mergeTemplate(req.body);
     res.status(201).json(result);
@@ -30,4 +30,4 @@ emailRouter.post('/preview', validateMerge, (req, res, next) => {
   }
 });
 
-module.exports = emailRouter;
+module.exports = mergeRouter;

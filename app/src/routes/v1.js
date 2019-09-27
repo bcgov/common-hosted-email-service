@@ -7,6 +7,7 @@ const keycloak = require('../components/keycloak');
 const emailRouter = require('./v1/email');
 const healthRouter = require('./v1/health');
 const mergeRouter = require('./v1/merge');
+const statusRouter = require('./v1/status');
 
 const clientId = config.get('keycloak.clientId');
 
@@ -39,5 +40,8 @@ router.use('/email', keycloak.protect(`${clientId}:EMAILER`), emailRouter);
 
 /** Merge Router */
 router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), mergeRouter);
+
+/** Status Router */
+router.use('/status', keycloak.protect(`${clientId}:EMAILER`), statusRouter);
 
 module.exports = router;
