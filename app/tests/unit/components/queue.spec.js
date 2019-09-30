@@ -11,14 +11,10 @@ jest.mock('bull');
 const Job = jest.fn(() => {
   return {
     id: 1,
-    finished: () => {
-    },
-    log: () => {
-    },
-    moveToFailed: () => {
-    },
-    update: () => {
-    }
+    finished: () => {},
+    log: () => {},
+    moveToFailed: () => {},
+    update: () => {}
   };
 });
 
@@ -35,10 +31,30 @@ describe('enqueue', () => {
 
   it('should add a message to the queue', () => {
     const message = {};
-    spy.mockImplementation(() => {
-    });
+    spy.mockImplementation(() => {});
 
     const result = queue.enqueue(message);
+    expect(result).toBeTruthy();
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getMessage', () => {
+  let spy;
+
+  beforeEach(() => {
+    spy = jest.spyOn(queue.queue, 'getJob');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should invoke getJob on the queue', () => {
+    const msgId = 'msgId';
+    spy.mockImplementation(() => {});
+
+    const result = queue.getMessage(msgId);
     expect(result).toBeTruthy();
     expect(spy).toHaveBeenCalledTimes(1);
   });

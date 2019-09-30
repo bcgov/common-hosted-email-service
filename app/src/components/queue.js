@@ -31,6 +31,10 @@ const queue = {
     return id;
   },
 
+  /** Fetches the associated job for the message
+   *  @param {string} msgId The message uuid
+   *  @returns {object} A Job object if found, otherwise null
+   */
   getMessage: async msgId => await chesQueue.getJob(msgId),
 
   /** Cleanup message data upon job completion
