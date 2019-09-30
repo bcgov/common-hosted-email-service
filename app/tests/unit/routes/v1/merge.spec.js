@@ -1,6 +1,6 @@
-const express = require('express');
 const request = require('supertest');
 
+const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/merge');
 const mergeComponent = require('../../../../src/components/merge');
 
@@ -8,12 +8,7 @@ jest.mock('bull');
 
 // Simple Express Server
 const basePath = '/api/v1/merge';
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({
-  extended: false
-}));
-app.use(basePath, router);
+const app = helper.expressHelper(basePath, router);
 
 const errorMessage = 'broken';
 const url = 'https://example.com';

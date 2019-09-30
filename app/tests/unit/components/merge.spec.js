@@ -1,14 +1,9 @@
-const config = require('config');
-const log = require('npmlog');
-
+const helper = require('../../common/helper');
 const email = require('../../../src/components/email');
 const merge = require('../../../src/components/merge');
 const queue = require('../../../src/components/queue');
 
-log.level = config.get('server.logLevel');
-log.addLevel('debug', 1500, {
-  fg: 'cyan'
-});
+helper.logHelper();
 
 jest.mock('bull');
 jest.mock('nodemailer');

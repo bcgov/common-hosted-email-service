@@ -1,17 +1,12 @@
-const express = require('express');
 const request = require('supertest');
 
+const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/health');
 const checkComponent = require('../../../../src/components/health');
 
 // Simple Express Server
 const basePath = '/api/v1/health';
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({
-  extended: false
-}));
-app.use(basePath, router);
+const app = helper.expressHelper(basePath, router);
 
 describe(`GET ${basePath}`, () => {
   afterEach(() => {

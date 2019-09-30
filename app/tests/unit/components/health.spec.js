@@ -1,10 +1,10 @@
 const config = require('config');
-const log = require('npmlog');
 const nodemailer = require('nodemailer');
 
+const helper = require('../../common/helper');
 const health = require('../../../src/components/health');
 
-log.level = config.get('server.logLevel');
+helper.logHelper();
 
 jest.mock('nodemailer');
 

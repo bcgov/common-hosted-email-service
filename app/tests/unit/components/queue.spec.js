@@ -1,10 +1,8 @@
-const config = require('config');
-const log = require('npmlog');
-
+const helper = require('../../common/helper');
 const email = require('../../../src/components/email');
 const queue = require('../../../src/components/queue');
 
-log.level = config.get('server.logLevel');
+helper.logHelper();
 
 jest.mock('bull');
 
