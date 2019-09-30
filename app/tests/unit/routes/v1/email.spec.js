@@ -61,7 +61,7 @@ describe(`POST ${basePath}`, () => {
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeTruthy();
-    expect(response.body.messageId).toMatch(id);
+    expect(response.body.msgId).toMatch(id);
     expect(spy).toHaveBeenCalled();
 
     spy.mockRestore();

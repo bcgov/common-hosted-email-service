@@ -15,7 +15,7 @@ emailRouter.post('/', validateEmail, async (req, res, next) => {
     } else {
       const result = queueComponent.enqueue(req.body);
       res.status(201).json({
-        messageId: result
+        msgId: result
       });
     }
   } catch (error) {

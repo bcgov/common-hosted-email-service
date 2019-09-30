@@ -19,7 +19,7 @@ const status = {
 
     if (status === 'completed') {
       result.result = {
-        messageId: job.returnvalue.messageId || undefined,
+        smtpMsgId: job.returnvalue.messageId || undefined,
         response: job.returnvalue.response || undefined
       };
     }

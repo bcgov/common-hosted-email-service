@@ -8,6 +8,7 @@ jest.mock('bull');
 
 const delay = 10000;
 const msgId = 'msgId';
+const smtpMsgId = 'smtpMsgId';
 const timestamp = 1569500000;
 
 describe('getMessageId', () => {
@@ -54,7 +55,7 @@ describe('getMessageId', () => {
       id: msgId,
       getState: jest.fn(() => queueStatus),
       returnvalue: {
-        messageId: msgId,
+        messageId: smtpMsgId,
         response: 'response'
       },
       timestamp: timestamp
@@ -67,7 +68,7 @@ describe('getMessageId', () => {
     expect(result.status).toBe(queueStatus);
     expect(result.txId).toBeTruthy();
     expect(result.result).toBeTruthy();
-    expect(result.result.messageId).toBe(msgId);
+    expect(result.result.smtpMsgId).toBe(smtpMsgId);
     expect(result.result.response).toBeTruthy();
     expect(spy).toHaveBeenCalledTimes(1);
   });
