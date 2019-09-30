@@ -131,11 +131,15 @@ const validators = {
       }
       // only pass an object if all keys in the object or child objects pass...
       let result = Object.keys(obj).every(k => {
+        // check to, bcc, cc as special...
+        if (k === 'to') return validators.context.to(obj[k]);
+        if (k === 'cc') return validators.context.cc(obj[k]);
+        if (k === 'bcc') return validators.context.bcc(obj[k]);
         if (obj[k] === Object(obj[k])) {
           return validators.context.keys(obj[k]);
         }
         // only pass alphanumeric or underscore keys, fail anything else.
-        return (/^\w+$/.test(k));
+        return (/^\w+$/.test(k)) && validatorUtils.isString(obj[k]);
       });
       return result;
     },
@@ -178,7 +182,7 @@ const validators = {
             // and here we can just show error on improperly named keys.
             errors.push({
               value: c['context'],
-              message: `Contexts[${i}] \`context\` has invalid keys/fields, only alphanumeric and underscore identifiers allowed.`
+              message: `Contexts[${i}] \`context\` is invalid. Names must be alphanumeric or underscore, and values must be string.`
             });
           }
         });
