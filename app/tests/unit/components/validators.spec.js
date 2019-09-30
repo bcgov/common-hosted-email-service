@@ -871,6 +871,18 @@ describe('message.delayTS', () => {
     expect(result).toBeTruthy();
   });
 
+  it('should return true for large integers', () => {
+    const value = 1569878107287;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for unix epoch ts', () => {
+    const value = 1569879623;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
   it('should return true for empty string', () => {
     const value = '';
     const result = validators.message.delayTS(value);
@@ -1568,7 +1580,15 @@ describe('email merge', () => {
           bcc: ['"BCC Recipient" <cc@recipient.org>'],
           context: {
             keyA: 'valueA',
-            keyB: 'valueB'
+            keyB: 'valueB',
+            stringArray: ['a', 'b', 'c'],
+            intArray: [1, 2, 3],
+            objArray: [{a: 1, b: 2, c: 3}],
+            subObject: {
+              a: 1,
+              b: 2,
+              c: '3'
+            }
           },
           delayTS: 157000,
           tag: 'this is a good tag'
@@ -1817,6 +1837,5 @@ describe('email merge', () => {
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/alphanumeric/);
   });
-
 
 });
