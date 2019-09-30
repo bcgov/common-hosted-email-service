@@ -871,6 +871,18 @@ describe('message.delayTS', () => {
     expect(result).toBeTruthy();
   });
 
+  it('should return true for large integers', () => {
+    const value = 1569878107287;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for unix epoch ts', () => {
+    const value = 1569879623;
+    const result = validators.message.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
   it('should return true for empty string', () => {
     const value = '';
     const result = validators.message.delayTS(value);

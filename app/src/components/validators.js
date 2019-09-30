@@ -346,7 +346,8 @@ const validatorUtils = {
       return false;
     }
     const num = parseFloat(x);
-    return (num | 0) === num;
+    // use modulus to determine if it is an int
+    return num % 1 === 0;
   },
 
   isString: x => {
