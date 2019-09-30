@@ -362,7 +362,7 @@ components:
           type: object
           description: >-
             A freeform JSON object of key-value pairs.  All keys must be
-            alphanumeric or underscore.  Special cases: to, cc, and bcc are allowed and must be arrays of valid email addresses.
+            alphanumeric or underscore.
           example:
             something:
               greeting: Hello

@@ -1568,7 +1568,15 @@ describe('email merge', () => {
           bcc: ['"BCC Recipient" <cc@recipient.org>'],
           context: {
             keyA: 'valueA',
-            keyB: 'valueB'
+            keyB: 'valueB',
+            stringArray: ['a', 'b', 'c'],
+            intArray: [1, 2, 3],
+            objArray: [{a: 1, b: 2, c: 3}],
+            subObject: {
+              a: 1,
+              b: 2,
+              c: '3'
+            }
           },
           delayTS: 157000,
           tag: 'this is a good tag'
@@ -1817,64 +1825,5 @@ describe('email merge', () => {
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/alphanumeric/);
   });
-
-  it('should return an error when merges contexts has context with invalid keys', async () => {
-    const obj = goodMergeObject();
-    const badContext = {
-      'to': [
-        'jsherman@parcsystems.ca'
-      ],
-      'cc': [
-        'noone',
-        'nowhere'
-      ],
-      'bcc': [],
-      'context': {
-        'to': [
-          'jsherman@parcsystems.ca'
-        ],
-        'cc': [],
-        'bcc': [],
-        'bad col name!': 'hey',
-        'superLongData': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Dolor sed viverra ipsum nunc aliquet bibendum enim. In massa tempor nec feugiat. Nunc aliquet bibendum enim facilisis gravida. Nisl nunc mi ipsum faucibus vitae aliquet nec ullamcorper. Amet luctus venenatis lectus magna fringilla. Volutpat maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Egestas egestas fringilla phasellus faucibus scelerisque eleifend. Sagittis orci a scelerisque purus semper eget duis. Nulla pharetra diam sit amet nisl suscipit. Sed adipiscing diam donec adipiscing tristique risus nec feugiat in. Fusce ut placerat orci nulla. Pharetra vel turpis nunc eget lorem dolor. Tristique senectus et netus et malesuada.'
-      }
-    };
-    obj.contexts = [badContext];
-    const result = await validators.merge(obj);
-    console.log(result);
-    //expect(result.length).toBe(1);
-    expect(result[0].message).toMatch(/Contexts/);
-    expect(result[0].message).toMatch(/cc/);
-  });
-
-  it('should return an error when merges contexts has context with non-string context value', async () => {
-    const obj = goodMergeObject();
-    const badContext = {
-      'to': [
-        'jsherman@parcsystems.ca'
-      ],
-      'cc': [],
-      'bcc': [],
-      'context': {
-        'to': [
-          'jsherman@parcsystems.ca'
-        ],
-        'cc': [],
-        'bcc': [],
-        'goodColName': 'hey',
-        'ok': {
-          'good': '123'
-        },
-        'bad': 123
-      }
-    };
-    obj.contexts = [badContext];
-    const result = await validators.merge(obj);
-    console.log(result);
-    //expect(result.length).toBe(1);
-    expect(result[0].message).toMatch(/Contexts/);
-    expect(result[0].message).toMatch(/alphanumeric/);
-  });
-
 
 });
