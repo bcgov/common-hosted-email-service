@@ -30,7 +30,9 @@ const merge = {
 
     // Send all mail messages with defined transport object
     const results = await Promise.all(messages.map(message => {
-      return queueComponent.enqueue(message);
+      return {
+        msgId: queueComponent.enqueue(message)
+      };
     }));
 
     return results;
