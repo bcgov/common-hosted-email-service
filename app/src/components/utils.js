@@ -1,4 +1,18 @@
 const utils = {
+  /** Calculates the difference in delay relative to now
+   *  @param {integer} delayTS Desired UTC time to delay to
+   *  @returns {integer} Number of milliseconds `delayTS` is in the future
+   *    If `delayTS` is now or in the past, it will return 0
+   */
+  calculateDelayMS: delayTS => Math.max(delayTS - Date.now(), 0),
+
+  /** Calculates the delay relative to a provided timestamp
+   *  @param {integer} delay Number of milliseconds to delay
+   *  @param {integer} timestamp Reference UTC time
+   *  @returns {integer} A UTC time with the delay added
+   */
+  calculateDelayTS: (delay, timestamp) => timestamp + delay,
+
   /** Returns a new object where undefined and empty arrays are dropped
    *  @param {object} obj A JSON Object
    *  @returns {object} A JSON Object without empty arrays and undefined properties

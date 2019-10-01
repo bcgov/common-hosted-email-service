@@ -3,6 +3,45 @@ const utils = require('../../../src/components/utils');
 
 helper.logHelper();
 
+describe('calculateDelayMS', () => {
+  it('should return an appropriate delay difference', () => {
+    const delayTS = Date.now() + 60000;
+
+    const result = utils.calculateDelayMS(delayTS);
+
+    expect(result).toBeTruthy();
+    expect(result).toBeGreaterThan(59900);
+    expect(result).toBeLessThan(60100);
+  });
+
+  it('should return 0 when delay is in the past', () => {
+    const delayTS = Date.now() - 60000;
+    const result = utils.calculateDelayMS(delayTS);
+
+    expect(result).toBeFalsy();
+    expect(result).toBe(0);
+  });
+});
+
+describe('calculateDelayTS', () => {
+  it('should return the correct delayed UTC time', () => {
+    const delay = 60000;
+    const result = utils.calculateDelayTS(delay, Date.now());
+
+    expect(result).toBeTruthy();
+    expect(result).toBeGreaterThan(Date.now() + 59900);
+    expect(result).toBeLessThan(Date.now() + 60100);
+  });
+
+  it('should return 0 when delay is in the past', () => {
+    const delayTS = Date.now() - 60000;
+    const result = utils.calculateDelayMS(delayTS);
+
+    expect(result).toBeFalsy();
+    expect(result).toBe(0);
+  });
+});
+
 describe('filterUndefinedAndEmpty', () => {
   const obj = {
     foo: undefined,
