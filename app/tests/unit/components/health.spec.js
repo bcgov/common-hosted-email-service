@@ -1,10 +1,10 @@
 const config = require('config');
-const log = require('npmlog');
 const nodemailer = require('nodemailer');
 
-const checks = require('../../../src/components/checks');
+const helper = require('../../common/helper');
+const health = require('../../../src/components/health');
 
-log.level = config.get('server.logLevel');
+helper.logHelper();
 
 jest.mock('nodemailer');
 
@@ -22,7 +22,7 @@ describe('getSmtpStatus', () => {
       verify: jest.fn().mockResolvedValue()
     });
 
-    const result = await checks.getSmtpStatus(validHost);
+    const result = await health.getSmtpStatus(validHost);
     expect(result).toBeTruthy();
     expect(result.name).toMatch(name);
     expect(result.endpoint).toMatch(`https://${validHost}`);
@@ -36,7 +36,7 @@ describe('getSmtpStatus', () => {
       'verify': jest.fn().mockRejectedValue({'message': `getaddrinfo ENOTFOUND ${invalidHost}`})
     });
 
-    const result = await checks.getSmtpStatus(invalidHost);
+    const result = await health.getSmtpStatus(invalidHost);
     expect(result).toBeTruthy();
     expect(result.name).toMatch(name);
     expect(result.endpoint).toMatch(`https://${invalidHost}`);
@@ -48,13 +48,13 @@ describe('getSmtpStatus', () => {
 
 describe('getStatus', () => {
   afterEach(() => {
-    checks.getSmtpStatus.mockReset();
+    health.getSmtpStatus.mockReset();
   });
 
   it('should yield an array of statuses', async () => {
-    checks.getSmtpStatus = jest.fn().mockResolvedValue({});
+    health.getSmtpStatus = jest.fn().mockResolvedValue({});
 
-    const result = await checks.getStatus();
+    const result = await health.getStatus();
     expect(result).toBeTruthy();
     expect(result.length).toEqual(1);
   });

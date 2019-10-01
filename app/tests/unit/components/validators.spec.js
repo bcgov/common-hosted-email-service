@@ -1,5 +1,5 @@
-const {validators, validatorUtils} = require('../../../src/components/validators');
-const {realSmallFile, smallFile} = require('./base64Files');
+const { validators, validatorUtils } = require('../../../src/components/validators');
+const { realSmallFile, smallFile } = require('../../fixtures/base64Files');
 
 describe('validatorUtils.isEmail', () => {
 
@@ -447,6 +447,19 @@ describe('attachment.filename', () => {
     expect(result).toBeFalsy();
   });
 
+  it('should return false on temp file handling error', async () => {
+    const tmp = require('tmp');
+    const spy = jest.spyOn(tmp, 'fileSync');
+    spy.mockImplementation(() => {
+      throw new Error('coverage');
+    });
+
+    const content = smallFile.content;
+    const result = await validators.attachment.size(content, 'base64');
+    expect(result).toBeFalsy();
+
+    spy.mockRestore();
+  });
 });
 
 describe('context.bcc', () => {

@@ -4,8 +4,12 @@ const path = require('path');
 
 const keycloak = require('../components/keycloak');
 
-const checksRouter = require('./v1/checks');
 const emailRouter = require('./v1/email');
+const healthRouter = require('./v1/health');
+const mergeRouter = require('./v1/merge');
+const statusRouter = require('./v1/status');
+
+const clientId = config.get('keycloak.clientId');
 
 /** Base v1 Responder */
 router.get('/', (_req, res) => {
@@ -28,10 +32,16 @@ router.get('/api-spec.yaml', (_req, res) => {
   res.sendFile(path.join(__dirname, '../docs/v1.api-spec.yaml'));
 });
 
-/** Checks Router */
-router.use('/checks', keycloak.protect(), checksRouter);
+/** Health Router */
+router.use('/checks', keycloak.protect(), healthRouter);
 
 /** Email Router */
-router.use('/email', keycloak.protect(`${config.get('keycloak.clientId')}:EMAILER`), emailRouter);
+router.use('/email', keycloak.protect(`${clientId}:EMAILER`), emailRouter);
+
+/** Merge Router */
+router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), mergeRouter);
+
+/** Status Router */
+router.use('/status', keycloak.protect(`${clientId}:EMAILER`), statusRouter);
 
 module.exports = router;
