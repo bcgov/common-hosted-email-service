@@ -1,5 +1,6 @@
 const emailComponent = require('../../components/email');
 const queueComponent = require('../../components/queue');
+const utilsComponent = require('../../components/utils');
 
 const emailRouter = require('express').Router();
 const {
@@ -13,7 +14,10 @@ emailRouter.post('/', validateEmail, async (req, res, next) => {
       const result = await emailComponent.sendMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      const result = queueComponent.enqueue(req.body);
+      const { delayTS, ...message } = req.body;
+      const result = queueComponent.enqueue(message, {
+        delay: delayTS ? utilsComponent.calculateDelayMS(delayTS) : undefined
+      });
       res.status(201).json({
         msgId: result
       });
