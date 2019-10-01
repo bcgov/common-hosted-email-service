@@ -1,15 +1,16 @@
-const queueComponent = require('./queue');
+const queue = require('./queue');
+const utils = require('./utils');
 
 const status = {
   getMessageId: async msgId => {
-    const job = await queueComponent.getMessage(msgId);
+    const job = await queue.getMessage(msgId);
     if (!job) {
       return null;
     }
 
     const status = await job.getState();
     const result = {
-      delayTS: job.timestamp + job.delay,
+      delayTS: utils.calculateDelayTS(job.opts.timestamp, job.opts.delay),
       msgId: job.id,
       status: status,
       timestamp: job.timestamp,

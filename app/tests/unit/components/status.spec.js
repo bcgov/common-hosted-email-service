@@ -33,10 +33,12 @@ describe('getMessageId', () => {
   it('should return a delayed status', async () => {
     const queueStatus = 'delayed';
     spy.mockResolvedValue({
-      delay: delay,
       id: msgId,
       getState: jest.fn(() => queueStatus),
-      timestamp: timestamp
+      opts: {
+        delay: delay,
+        timestamp: timestamp
+      }
     });
 
     const result = await status.getMessageId(msgId);
@@ -51,14 +53,16 @@ describe('getMessageId', () => {
   it('should return a completed status with result contents', async () => {
     const queueStatus = 'completed';
     spy.mockResolvedValue({
-      delay: delay,
       id: msgId,
       getState: jest.fn(() => queueStatus),
+      opts: {
+        delay: delay,
+        timestamp: timestamp
+      },
       returnvalue: {
         messageId: smtpMsgId,
         response: 'response'
-      },
-      timestamp: timestamp
+      }
     });
 
     const result = await status.getMessageId(msgId);
@@ -76,11 +80,13 @@ describe('getMessageId', () => {
   it('should return a completed status without result contents', async () => {
     const queueStatus = 'completed';
     spy.mockResolvedValue({
-      delay: delay,
       id: msgId,
       getState: jest.fn(() => queueStatus),
-      returnvalue: {},
-      timestamp: timestamp
+      opts: {
+        delay: delay,
+        timestamp: timestamp
+      },
+      returnvalue: {}
     });
 
     const result = await status.getMessageId(msgId);

@@ -54,9 +54,11 @@ describe(`POST ${basePath}`, () => {
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
       body: 'body',
+      delayTS: 1,
       from: 'email@email.com',
       to: ['email@email.com'],
-      subject: 'subject'
+      subject: 'subject',
+      tag: 'tag'
     });
 
     expect(response.statusCode).toBe(201);
@@ -75,9 +77,11 @@ describe(`POST ${basePath}`, () => {
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
       body: 'body',
+      delayTS: 0,
       from: 'email@email.com',
       to: ['email@email.com'],
-      subject: 'subject'
+      subject: 'subject',
+      tag: 'tag'
     });
 
     expect(response.statusCode).toBe(500);
