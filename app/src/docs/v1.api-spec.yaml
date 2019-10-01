@@ -503,6 +503,10 @@ components:
           description: A corresponding message uuid
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
+        tag:
+          type: string
+          description: A unique string which is associated with the message
+          example: tag
         to:
           type: array
           items:
@@ -622,10 +626,10 @@ components:
       properties:
         type:
           type: string
-          description: What type of problem, link to explanation of problem
+          description: 'What type of problem, link to explanation of problem'
         title:
           type: string
-          description: Title of problem, generally the Http Status Code description
+          description: 'Title of problem, generally the Http Status Code description'
         status:
           type: string
           description: The Http Status code
@@ -646,7 +650,9 @@ components:
           example: 00000000-0000-0000-0000-000000000000
         result:
           type: object
-          description: A subset of the SMTP server response if message was sent
+          description: >-
+            A SMTP server response with Personally Identifiable information
+            removed. This object should only appear if the message was sent.
           properties:
             smtpMsgId:
               type: string
@@ -655,7 +661,10 @@ components:
             response:
               type: string
               description: X
-              example: 250 2.6.0 <00000000-0000-0000-0000-000000000000@gov.bc.ca> [InternalId=00000000000000, Hostname=some.server.ca] 1524 bytes in 0.218, 6.814 KB/sec Queued mail for delivery
+              example: >-
+                250 2.6.0 <00000000-0000-0000-0000-000000000000@gov.bc.ca>
+                [InternalId=00000000000000, Hostname=some.server.ca] 1524 bytes
+                in 0.218, 6.814 KB/sec Queued mail for delivery
         status:
           type: string
           description: (DRAFT) The state of this message in the queue
@@ -713,11 +722,11 @@ components:
                   value:
                     type: object
                     description: Contents of the field that was in error.
-                    example: "utf-8x"
+                    example: utf-8x
                   message:
                     type: string
                     description: The error message for the field.
-                    example: "Invalid value `encoding`."
+                    example: Invalid value `encoding`.
   responses:
     BadRequest:
       description: Request is missing content or is malformed
@@ -742,7 +751,9 @@ components:
     UnauthorizedError:
       description: Access token is missing or invalid
     UnprocessableEntity:
-      description: The server was unable to process the contained instructions.  Generally validation error(s).
+      description: >-
+        The server was unable to process the contained instructions. Generally
+        validation error(s).
       content:
         application/json:
           schema:
