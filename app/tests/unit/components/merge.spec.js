@@ -17,19 +17,20 @@ const url = 'https://example.com';
 
 // Object Fixtures
 const contextEntry = {
-  'to': [
+  to: [
     'bar@example.com'
   ],
-  'cc': [
+  cc: [
     'baz@example.com'
   ],
-  'bcc': [
+  bcc: [
     'foo@example.com',
     'fizz@example.com'
   ],
-  'context': {
-    'foo': 'test'
-  }
+  context: {
+    foo: 'test'
+  },
+  delayTS: 1
 };
 const info = {
   messageId: '<b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>',
@@ -101,12 +102,14 @@ describe('mergeMailSmtp', () => {
   });
 
   it('should throw an error if any sending failed', async () => {
+    const noDelay = Object.assign({}, template);
+    delete noDelay.contexts[0].delayTS;
     spy.mockResolvedValueOnce(info);
     spy.mockImplementation(() => {
       throw new Error(errorMessage);
     });
 
-    expect(merge.mergeMailSmtp(template)).rejects.toThrow(errorMessage);
+    expect(merge.mergeMailSmtp(noDelay)).rejects.toThrow(errorMessage);
   });
 });
 

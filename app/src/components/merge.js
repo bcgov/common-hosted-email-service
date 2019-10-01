@@ -1,7 +1,8 @@
 const nunjucks = require('nunjucks');
 
-const emailComponent = require('./email');
-const queueComponent = require('./queue');
+const email = require('./email');
+const queue = require('./queue');
+const utils = require('./utils');
 
 const merge = {
   /** Transforms a template into an array of email messages
@@ -10,11 +11,13 @@ const merge = {
    *  @returns {string[]} An array of generated Ethereal email urls
    */
   mergeMailEthereal: async template => {
-    const messages = merge.mergeTemplate(template);
+    const contexts = merge.mergeTemplate(template);
 
     // Send all mail messages with defined transport object
-    const results = await Promise.all(messages.map(message => {
-      return emailComponent.sendMailEthereal(message);
+    const results = await Promise.all(contexts.map(context => {
+      // Remove delay as we do not use the queue for Ethereal messages
+      delete context.delayTS;
+      return email.sendMailEthereal(context);
     }));
 
     return results;
@@ -26,12 +29,15 @@ const merge = {
    *  @returns {object[]} An array of nodemailer result objects
    */
   mergeMailSmtp: async template => {
-    const messages = merge.mergeTemplate(template);
+    const contexts = merge.mergeTemplate(template);
 
     // Send all mail messages with defined transport object
-    const results = await Promise.all(messages.map(message => {
+    const results = await Promise.all(contexts.map(context => {
+      const { delayTS, ...message } = context;
       return {
-        msgId: queueComponent.enqueue(message)
+        msgId: queue.enqueue(message, {
+          delay: delayTS ? utils.calculateDelayMS(delayTS) : undefined
+        })
       };
     }));
 
@@ -53,10 +59,12 @@ const merge = {
     return contexts.map(entry => {
       return Object.assign({
         body: merge.renderMerge(body, entry.context),
-        to: entry.to,
         cc: entry.cc,
         bcc: entry.bcc,
-        subject: merge.renderMerge(subject, entry.context)
+        delayTS: entry.delayTS,
+        subject: merge.renderMerge(subject, entry.context),
+        tag: entry.tag,
+        to: entry.to,
       }, partialTemplate);
     });
   },
