@@ -65,9 +65,8 @@ objects:
                 key: password
                 name: redis-${JOB_NAME}-secret
         volumes:
-        - name: redis-${JOB_NAME}-data
-          persistentVolumeClaim:
-            claimName: redis-${JOB_NAME}
+        - emptyDir: {}
+          name: redis-${JOB_NAME}-data
     test: false
     triggers:
     - imageChangeParams:
@@ -80,17 +79,6 @@ objects:
           namespace: openshift
       type: ImageChange
     - type: ConfigChange
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: redis-${JOB_NAME}
-  spec:
-    accessModes:
-      - ReadWriteOnce
-    storageClassName: ${REDIS_PERSISTENT_VOLUME_CLASS}
-    resources:
-      requests:
-        storage: '${REDIS_VOLUME_CAPACITY}'
 - apiVersion: v1
   kind: Service
   metadata:
@@ -117,13 +105,3 @@ parameters:
   description: Application name
   displayName: Application name
   required: true
-- name: REDIS_VOLUME_CAPACITY
-  description: Volume space available for Redis
-  displayName: Redis Volume Capacity
-  required: true
-  value: 2Gi
-- name: REDIS_PERSISTENT_VOLUME_CLASS
-  description: The class of the volume; gluster-file, gluster-block, gluster-file-db
-  displayName: Persistent Volume Class name
-  required: false
-  value: gluster-file
