@@ -5,6 +5,7 @@ const log = require('npmlog');
 const morgan = require('morgan');
 const Problem = require('api-problem');
 
+const db = require('./src/models');
 const keycloak = require('./src/components/keycloak');
 const { queue } = require('./src/components/queue');
 const utils = require('./src/components/utils');
@@ -40,26 +41,12 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan(config.get('server.morganFormat')));
 
   // Check database connection and exit if unsuccessful
-  (async () => {
-    const { Client } = require('pg');
-
-    const client = new Client({
-      user: config.get('db.username'),
-      host: config.get('db.host'),
-      database: config.get('db.database'),
-      password: config.get('db.password')
-    });
-    try {
-      await client.connect();
-      await client.query('SELECT 1+1 AS result');
-      log.info('Connected to Database');
-      client.end();
-    } catch (error) {
-      log.error('Unable to connect to Database...');
-      client.end();
+  db.sequelize.authenticate()
+    .then(() => log.info('Connected to Database'))
+    .catch(err => {
+      log.error(err);
       shutdown();
-    }
-  })();
+    });
 
   // Check Redis connection
   (async (connected) => {
@@ -142,6 +129,7 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.isShutdown = true;
+  db.sequelize.close();
   queue.close();
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
