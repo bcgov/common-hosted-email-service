@@ -1,4 +1,8 @@
 {
+  "db": {
+    "username": "username",
+    "password": "password"
+  },
   "keycloak": {
     "clientId": "clientId",
     "clientSecret": "clientSecret"
