@@ -10,6 +10,7 @@
     "start": "node ./bin/www",
     "lint": "node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
     "lint:fix": "node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
+    "migrate": "node_modules/.bin/sequelize db:migrate",
     "test": "node_modules/.bin/jest --verbose",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
@@ -31,6 +32,8 @@
     "npmlog": "^4.1.2",
     "nunjucks": "^3.2.0",
     "pg": "^7.12.1",
+    "sequelize": "^5.19.2",
+    "sequelize-cli": "^5.5.1",
     "tmp": "^0.1.0",
     "uuid": "^3.3.3",
     "validator": "^11.1.0"
@@ -104,7 +107,8 @@
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/**/*.js",
-      "!src/docs/*.*"
+      "!src/docs/*.*",
+      "!src/migrations/*.js"
     ],
     "testResultsProcessor": "jest-sonar-reporter"
   },
