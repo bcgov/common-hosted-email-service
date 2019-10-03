@@ -19,8 +19,38 @@ objects:
       app: "${APP_NAME}-${JOB_NAME}"
       deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
     strategy:
-      resources: {}
       type: Rolling
+      rollingParams:
+        timeoutSeconds: 600
+        pre:
+          failurePolicy: Abort
+          execNewPod:
+            command:
+            - npm
+            - run
+            - migrate
+            containerName: "${APP_NAME}-app-${JOB_NAME}"
+            env:
+            - name: NODE_ENV
+              value: production
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: app-db-name
+                  name: "patroni-${JOB_NAME}-secret"
+            - name: DB_HOST
+              value: "patroni-${JOB_NAME}"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: app-db-username
+                  name: "patroni-${JOB_NAME}-secret"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: app-db-password
+                  name: "patroni-${JOB_NAME}-secret"
+      resources: {}
     template:
       metadata:
         annotations:
