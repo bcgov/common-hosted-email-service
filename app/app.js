@@ -6,9 +6,7 @@ const morgan = require('morgan');
 const Problem = require('api-problem');
 
 const keycloak = require('./src/components/keycloak');
-const {
-  queue
-} = require('./src/components/queue');
+const { queue } = require('./src/components/queue');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
 
@@ -40,25 +38,47 @@ log.debug('Config', utils.prettyStringify(config));
 if (process.env.NODE_ENV !== 'test') {
   // Add Morgan endpoint logging
   app.use(morgan(config.get('server.morganFormat')));
-}
 
-// Check Redis connection
-(async (connected) => {
-  for (let i = 0; i < 5; i++) {
-    if (queue.clients[0].status === 'ready') {
-      state.isRedisConnected = true;
-      log.info('Connected to Redis');
-      return;
+  // Check database connection and exit if unsuccessful
+  (async () => {
+    const { Client } = require('pg');
+
+    const client = new Client({
+      user: config.get('db.username'),
+      host: config.get('db.host'),
+      database: config.get('db.database'),
+      password: config.get('db.password')
+    });
+    try {
+      await client.connect();
+      await client.query('SELECT 1+1 AS result');
+      log.info('Connected to Database');
+      client.end();
+    } catch (error) {
+      log.error('Unable to connect to Database...');
+      client.end();
+      shutdown();
+    }
+  })();
+
+  // Check Redis connection
+  (async (connected) => {
+    for (let i = 0; i < 5; i++) {
+      if (queue.clients[0].status === 'ready') {
+        state.isRedisConnected = true;
+        log.info('Connected to Redis');
+        return;
+      }
+
+      await utils.wait(1000);
     }
 
-    await utils.wait(1000);
-  }
-
-  if (!connected) {
-    log.error('Unable to connect to Redis...');
-    shutdown();
-  }
-})(state.isRedisConnected);
+    if (!connected) {
+      log.error('Unable to connect to Redis...');
+      shutdown();
+    }
+  })(state.isRedisConnected);
+}
 
 // Use Keycloak OIDC Middleware
 app.use(keycloak.middleware());

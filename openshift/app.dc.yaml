@@ -58,6 +58,23 @@ objects:
           env:
           - name: NODE_ENV
             value: production
+          - name: DB_DATABASE
+            valueFrom:
+              secretKeyRef:
+                key: app-db-name
+                name: "patroni-${JOB_NAME}-secret"
+          - name: DB_HOST
+            value: "patroni-${JOB_NAME}"
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: app-db-username
+                name: "patroni-${JOB_NAME}-secret"
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: app-db-password
+                name: "patroni-${JOB_NAME}-secret"
           - name: KC_CLIENTID
             valueFrom:
               secretKeyRef:
@@ -69,7 +86,7 @@ objects:
                 key: password
                 name: ches-keycloak-secret
           - name: REDIS_HOST
-            value: "${APP_NAME}-redis-${JOB_NAME}"
+            value: "redis-${JOB_NAME}"
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:

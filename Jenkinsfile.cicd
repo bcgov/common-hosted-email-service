@@ -236,34 +236,76 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
         throw new Exception('Missing ConfigMaps and/or Secrets')
       }
 
-      if(openshift.selector('secret', "redis-${JOB_NAME}-secret").exists()) {
-        echo "Redis Secret already exists. Skipping..."
-      } else {
-        echo "Processing Redis Secret..."
-        def dcRedisSecretTemplate = openshift.process('-f',
-          'openshift/redis.secret.yaml',
-          "REPO_NAME=${REPO_NAME}",
-          "JOB_NAME=${JOB_NAME}",
-          "APP_NAME=${APP_NAME}"
-        )
-
-        echo "Creating Redis Secret..."
-        openshift.create(dcRedisSecretTemplate)
-      }
-
-      // Apply Redis Deployment
       timeout(10) {
-        echo "Processing DeploymentConfig Redis.."
-        def dcRedisTemplate = openshift.process('-f',
-          'openshift/redis-ephemeral.dc.yaml',
-          "REPO_NAME=${REPO_NAME}",
-          "JOB_NAME=${JOB_NAME}",
-          "APP_NAME=${APP_NAME}"
-        )
+        parallel(
+          Patroni: {
+            // Apply Patroni Secret
+            if(openshift.selector('secret', "patroni-${JOB_NAME}-secret").exists()) {
+              echo "Patroni Secret already exists. Skipping..."
+            } else {
+              echo "Processing Patroni Secret..."
+              def dcPatroniSecretTemplate = openshift.process('-f',
+                'openshift/patroni.secret.yaml',
+                "APP_DB_NAME=${APP_NAME}",
+                "INSTANCE=${JOB_NAME}"
+              )
 
-        echo "Applying Redis Deployment..."
-        def dcRedis = openshift.apply(dcRedisTemplate).narrow('dc')
-        dcRedis.rollout().status('--watch=true')
+              echo "Creating Patroni Secret..."
+              openshift.create(dcPatroniSecretTemplate)
+            }
+
+            // Apply Patroni Database
+            if(openshift.selector('dc', "patroni-${JOB_NAME}").exists()) {
+              echo "Patroni Deployment already exists. Skipping..."
+            } else {
+              echo "Processing Patroni StatefulSet.."
+              def dcPatroniTemplate = openshift.process('-f',
+                'openshift/patroni-ephemeral.dc.yaml',
+                "APP_NAME=${APP_NAME}",
+                "INSTANCE=${JOB_NAME}"
+              )
+
+              echo "Applying Patroni StatefulSet..."
+              def dcPatroni = openshift.apply(dcPatroniTemplate).narrow('statefulset')
+              dcPatroni.rollout().status('--watch=true')
+            }
+          },
+
+          Redis: {
+            // Apply Redis Secret
+            if(openshift.selector('secret', "redis-${JOB_NAME}-secret").exists()) {
+              echo "Redis Secret already exists. Skipping..."
+            } else {
+              echo "Processing Redis Secret..."
+              def dcRedisSecretTemplate = openshift.process('-f',
+                'openshift/redis.secret.yaml',
+                "REPO_NAME=${REPO_NAME}",
+                "JOB_NAME=${JOB_NAME}",
+                "APP_NAME=${APP_NAME}"
+              )
+
+              echo "Creating Redis Secret..."
+              openshift.create(dcRedisSecretTemplate)
+            }
+
+            // Apply Redis Deployment
+            if(openshift.selector('dc', "redis-${JOB_NAME}").exists()) {
+              echo "Redis Deployment already exists. Skipping..."
+            } else {
+              echo "Processing DeploymentConfig Redis.."
+              def dcRedisTemplate = openshift.process('-f',
+                'openshift/redis-ephemeral.dc.yaml',
+                "REPO_NAME=${REPO_NAME}",
+                "JOB_NAME=${JOB_NAME}",
+                "APP_NAME=${APP_NAME}"
+              )
+
+              echo "Applying Redis Deployment..."
+              def dcRedis = openshift.apply(dcRedisTemplate).narrow('dc')
+              dcRedis.rollout().status('--watch=true')
+            }
+          }
+        )
       }
 
       createDeploymentStatus(projectEnv, 'PENDING', hostRouteEnv)
