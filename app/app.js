@@ -49,22 +49,6 @@ if (process.env.NODE_ENV !== 'test') {
         const dataServiceOk = await dataService.initialize(knex);
         if (!dataServiceOk) {
           shutdown();
-        } else {
-          const { Content, Message, Status, Trxn } = require('./src/services/data');
-          const txns = await Trxn.query();
-          console.log(txns);
-          const msgs = await Message.query().where('txId', txns[0].id);
-          console.log(txns);
-          const stats = await Status.query().where('msgId', msgs[0].id);
-          console.log(stats);
-          const c = await Content.query().where('msgId', msgs[0].id);
-          console.log(c);
-    
-          const msg = await Message.query().findById(msgs[0].id).eager('[statuses, content]');
-          console.log(JSON.stringify(msg, null, 2));
-    
-          const txn = await Trxn.query().findById(txns[0].id).eager({ messages: { content: true, statuses: true } });
-          console.log(JSON.stringify(txn, null, 2));
         }
       } catch (err) {
         log.error(`Error initializing database: ${err.message}`);

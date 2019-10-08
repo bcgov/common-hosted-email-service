@@ -1,5 +1,3 @@
-const uuidv4 = require('uuid/v4');
-
 exports.up = function(knex) {
   return Promise.resolve()
     .then(() => knex.schema.createTable('trxn', table => {
@@ -25,25 +23,7 @@ exports.up = function(knex) {
       table.increments('id').primary();
       table.uuid('msgId').references('id').inTable('message').notNullable().index();
       table.json('content');
-    }))
-    .then(async () => {
-      // we could use .returning from the insert, but not supported by sqlite.
-      // so we will query for the parent and insert the children
-      return await knex('trxn').insert({id: uuidv4(), client: 'mssc'});
-    })
-    .then(async () => {
-      const row = await knex.table('trxn').first();
-      return await knex('message').insert({id: uuidv4(), txId: row.id, tag: undefined, delayTS: undefined});
-    })
-    .then(async () => {
-      const row = await knex.table('message').first();
-      return await knex('status').insert({msgId: row.id});
-    })
-    .then(async () => {
-      const row = await knex.table('message').first();
-      return await knex('content').insert({msgId: row.id, content: {a: 'b', c:'d'}});
-    });
-  
+    }));
 };
 
 exports.down = function(knex) {
