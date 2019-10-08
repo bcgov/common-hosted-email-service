@@ -2,9 +2,11 @@ const compression = require('compression');
 const config = require('config');
 const express = require('express');
 const log = require('npmlog');
+const Knex = require('knex');
 const morgan = require('morgan');
 const Problem = require('api-problem');
 
+const { dataService } = require('./src/services/data');
 const keycloak = require('./src/components/keycloak');
 const { queue } = require('./src/components/queue');
 const utils = require('./src/components/utils');
@@ -38,46 +40,59 @@ log.debug('Config', utils.prettyStringify(config));
 if (process.env.NODE_ENV !== 'test') {
   // Add Morgan endpoint logging
   app.use(morgan(config.get('server.morganFormat')));
-
+  
   // Check database connection and exit if unsuccessful
-  (async () => {
-    const { Client } = require('pg');
-
-    const client = new Client({
-      user: config.get('db.username'),
-      host: config.get('db.host'),
-      database: config.get('db.database'),
-      password: config.get('db.password')
-    });
-    try {
-      await client.connect();
-      await client.query('SELECT 1+1 AS result');
-      log.info('Connected to Database');
-      client.end();
-    } catch (error) {
-      log.error('Unable to connect to Database...');
-      client.end();
-      shutdown();
-    }
-  })();
-
-  // Check Redis connection
-  (async (connected) => {
-    for (let i = 0; i < 5; i++) {
-      if (queue.clients[0].status === 'ready') {
-        state.isRedisConnected = true;
-        log.info('Connected to Redis');
-        return;
+  (
+    async () => {
+      try {
+        const knex = Knex(require('./knexfile'));
+        const dataServiceOk = await dataService.initialize(knex);
+        if (!dataServiceOk) {
+          shutdown();
+        } else {
+          const { Content, Message, Status, Trxn } = require('./src/services/data');
+          const txns = await Trxn.query();
+          console.log(txns);
+          const msgs = await Message.query().where('txId', txns[0].id);
+          console.log(txns);
+          const stats = await Status.query().where('msgId', msgs[0].id);
+          console.log(stats);
+          const c = await Content.query().where('msgId', msgs[0].id);
+          console.log(c);
+    
+          const msg = await Message.query().findById(msgs[0].id).eager('[statuses, content]');
+          console.log(JSON.stringify(msg, null, 2));
+    
+          const txn = await Trxn.query().findById(txns[0].id).eager({ messages: { content: true, statuses: true } });
+          console.log(JSON.stringify(txn, null, 2));
+        }
+      } catch (err) {
+        log.error(`Error initializing database: ${err.message}`);
+        log.error(JSON.stringify(err));
+        shutdown();
       }
-
-      await utils.wait(1000);
     }
-
-    if (!connected) {
-      log.error('Unable to connect to Redis...');
-      shutdown();
+  )();
+  
+  // Check Redis connection
+  (
+    async (connected) => {
+      for (let i = 0; i < 5; i++) {
+        if (queue.clients[0].status === 'ready') {
+          state.isRedisConnected = true;
+          log.info('Connected to Redis');
+          return;
+        }
+        
+        await utils.wait(1000);
+      }
+      
+      if (!connected) {
+        log.error('Unable to connect to Redis...');
+        shutdown();
+      }
     }
-  })(state.isRedisConnected);
+  )(state.isRedisConnected);
 }
 
 // Use Keycloak OIDC Middleware
@@ -113,12 +128,12 @@ app.use((err, _req, res, _next) => {
   if (err.stack) {
     log.error(err.stack);
   }
-
+  
   if (err instanceof Problem) {
     err.send(res);
   } else {
     new Problem(500, {
-      details: (err.message) ? err.message : err
+      details: err.message ? err.message : err
     }).send(res);
   }
 });
@@ -139,7 +154,7 @@ process.on('unhandledRejection', err => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-function shutdown() {
+function shutdown () {
   log.info('Received kill signal. Shutting down...');
   state.isShutdown = true;
   queue.close();
