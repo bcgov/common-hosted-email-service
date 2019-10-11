@@ -6,30 +6,39 @@
   "author": "NR Common Service Showcase <NR.CommonServiceShowcase@gov.bc.ca>",
   "scripts": {
     "build": "echo Nothing to build",
-    "serve": "nodemon ./bin/www",
+    "serve": "../node_modules/.bin/nodemon ./bin/www",
     "start": "node ./bin/www",
-    "lint": "node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
-    "lint:fix": "node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
-    "test": "node_modules/.bin/jest --verbose",
+    "lint": "../node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
+    "lint:fix": "../node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
+    "test": "../node_modules/.bin/jest --verbose --testPathIgnorePatterns '<rootDir>/tests/integration' '<rootDir>/tests/unit/routes' '<rootDir>/tests/unit/components/merge*' '<rootDir>/tests/unit/components/health*' ",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
-    "purge": "rm -rf node_modules",
+    "purge": "rm -rf ../node_modules",
     "rebuild": "npm run clean && npm run build",
-    "reinstall": "npm run purge && npm install"
+    "reinstall": "npm run purge && npm install",
+    "migrate": "npm run migrate:latest",
+    "migrate:latest": "../node_modules/.bin/knex migrate:latest",
+    "migrate:rollback": "../node_modules/.bin/knex migrate:rollback",
+    "migrate:up": "../node_modules/.bin/knex migrate:up",
+    "migrate:down": "../node_modules/.bin/knex migrate:down"
   },
   "homepage": "https://github.com/bcgov/common-hosted-email-service",
   "dependencies": {
     "api-problem": "^6.0.1",
+    "atob": "^2.1.2",
     "bull": "^3.11.0",
     "bytes": "^3.1.0",
     "compression": "^1.7.4",
     "config": "^3.2.3",
     "express": "^4.17.1",
     "keycloak-connect": "^7.0.0",
+    "knex": "^0.19.5",
+    "moment": "^2.24.0",
     "morgan": "^1.9.1",
     "nodemailer": "^6.3.0",
     "npmlog": "^4.1.2",
     "nunjucks": "^3.2.0",
+    "objection": "^1.6.11",
     "pg": "^7.12.1",
     "tmp": "^0.1.0",
     "uuid": "^3.3.3",
@@ -40,6 +49,7 @@
     "jest": "^24.9.0",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^1.19.3",
+    "sqlite3": "^4.1.0",
     "supertest": "^4.0.2"
   },
   "eslintConfig": {
@@ -104,7 +114,12 @@
     "collectCoverage": true,
     "collectCoverageFrom": [
       "src/**/*.js",
-      "!src/docs/*.*"
+      "!src/docs/*.*",
+      "!src/services/**.**",
+      "!src/middleware/*.*",
+      "!src/routes/**.*",
+      "!src/components/health.**",
+      "!src/components/merge.**"
     ],
     "testResultsProcessor": "jest-sonar-reporter"
   },

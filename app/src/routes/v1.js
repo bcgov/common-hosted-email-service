@@ -3,6 +3,7 @@ const router = require('express').Router();
 const path = require('path');
 
 const keycloak = require('../components/keycloak');
+const authorizedParty = require('../middleware/authorizedParty');
 
 const emailRouter = require('./v1/email');
 const healthRouter = require('./v1/health');
@@ -36,12 +37,12 @@ router.get('/api-spec.yaml', (_req, res) => {
 router.use('/checks', keycloak.protect(), healthRouter);
 
 /** Email Router */
-router.use('/email', keycloak.protect(`${clientId}:EMAILER`), emailRouter);
+router.use('/email', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, emailRouter);
 
 /** Merge Router */
-router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), mergeRouter);
+router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, mergeRouter);
 
 /** Status Router */
-router.use('/status', keycloak.protect(`${clientId}:EMAILER`), statusRouter);
+router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, statusRouter);
 
 module.exports = router;

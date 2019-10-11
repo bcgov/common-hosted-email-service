@@ -1,8 +1,11 @@
 const nunjucks = require('nunjucks');
 
-const email = require('./email');
-const queue = require('./queue');
 const utils = require('./utils');
+
+const { DataServiceFactory } = require('../services/data/service');
+const { EmailServiceFactory } = require('../services/email/service');
+const { QueueServiceFactory } = require('../services/queue/service');
+const { transformer } = require('../services/data/transform');
 
 const merge = {
   /** Transforms a template into an array of email messages
@@ -11,39 +14,49 @@ const merge = {
    *  @returns {string[]} An array of generated Ethereal email urls
    */
   mergeMailEthereal: async template => {
+    const emailService = await EmailServiceFactory.getEtherealInstance();
     const contexts = merge.mergeTemplate(template);
-
+    
     // Send all mail messages with defined transport object
     const results = await Promise.all(contexts.map(context => {
       // Remove delay as we do not use the queue for Ethereal messages
       delete context.delayTS;
-      return email.sendMailEthereal(context);
+      return emailService.sendMail(context, true);
     }));
-
+    
     return results;
   },
-
+  
   /** Transforms a template into an array of email messages
    *  and sends it to the SMTP server
+   *  @param {string} client name - authorized party performing the merge.
    *  @param {object} template A mail merge template
-   *  @returns {object[]} An array of nodemailer result objects
+   *  @returns {object} a TransactionResponse API object
    */
-  mergeMailSmtp: async template => {
+  mergeMailSmtp: async (client, template) => {
+    const dataService = DataServiceFactory.getService();
+    const queueService = QueueServiceFactory.getService();
+    
+    // build out the individual messages from the payload...
     const contexts = merge.mergeTemplate(template);
-
+    
+    // create the transaction and messages...
+    let trxn = await dataService.create(client, contexts);
+    
     // Send all mail messages with defined transport object
-    const results = await Promise.all(contexts.map(context => {
-      const { delayTS, ...message } = context;
-      return {
-        msgId: queue.enqueue(message, {
-          delay: delayTS ? utils.calculateDelayMS(delayTS) : undefined
-        })
-      };
+    await Promise.all(trxn.messages.map(msg => {
+      const delayTS = msg.delayTimestamp;
+      const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
+      queueService.enqueue(msg, { delay: delay });
     }));
-
-    return results;
+    
+    // fetch the updated transaction/messages/statuses...
+    trxn = await dataService.readTransaction(trxn.transactionId);
+    
+    // return transaction in API format
+    return transformer.transaction(trxn);
   },
-
+  
   /** Transforms a template into an array of email messages
    *  @param {object} template A mail merge template
    *  @returns {object[]} messages An array of message objects
@@ -55,7 +68,7 @@ const merge = {
       subject,
       ...partialTemplate
     } = template;
-
+    
     return contexts.map(entry => {
       return Object.assign({
         body: merge.renderMerge(body, entry.context),
@@ -64,11 +77,11 @@ const merge = {
         delayTS: entry.delayTS,
         subject: merge.renderMerge(subject, entry.context),
         tag: entry.tag,
-        to: entry.to,
+        to: entry.to
       }, partialTemplate);
     });
   },
-
+  
   /** Applies the context onto the template based on the template dialect
    *  @param {string} template A template string
    *  @param {object} context A key/value object store for template population
