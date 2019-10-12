@@ -78,6 +78,7 @@ if (process.env.NODE_ENV !== 'test') {
       try {
         const queueConnection = QueueConnectionFactory.getConnection();
         queueConnectionOk = await queueConnection.initialize();
+        state.isRedisConnected = queueConnectionOk;
         if (queueConnectionOk && dataService && emailService) {
           queueService = QueueServiceFactory.initialize(queueConnection, dataService, emailService);
           
