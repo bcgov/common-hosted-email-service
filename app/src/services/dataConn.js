@@ -6,21 +6,20 @@ const { Model } = require('objection');
 class DataConnection {
   
   constructor () {
-    this.configuration = knexfile;
+    this.knex = Knex(knexfile);
   }
   
-  get configuration () {
-    return this._configuration;
-  }
-  
-  set configuration (v) {
-    this._configuration = v;
-    this._connected = false;
-    this._knex = this._configuration ? Knex(this._configuration) : undefined;
+  get connected () {
+    return this._connected;
   }
   
   get knex () {
     return this._knex;
+  }
+  
+  set knex (v) {
+    this._knex = v;
+    this._connected = false;
   }
   
   async checkConnection () {

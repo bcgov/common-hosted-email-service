@@ -82,7 +82,7 @@ describe('dataservice', () => {
   
   it('should return false on initializing data service without knex', async () => {
     const dataConnection = new DataConnection();
-    dataConnection.configuration = undefined;
+    dataConnection.knex = undefined;
     const connectOK = await dataConnection.checkConnection();
     expect(connectOK).toBeFalsy();
   });

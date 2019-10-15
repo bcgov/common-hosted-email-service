@@ -1,20 +1,18 @@
 const mergeComponent = require('../../components/merge');
 
 const mergeRouter = require('express').Router();
-const {
-  validateMerge
-} = require('../../middleware/validation');
+const { validateMerge } = require('../../middleware/validation');
+
+const ChesService = require('../../services/chesSvc');
 
 /** Template mail merge & email sending endpoint */
 mergeRouter.post('/', validateMerge, async (req, res, next) => {
   try {
-    if (req.query.devMode) {
-      const result = await mergeComponent.mergeMailEthereal(req.body);
-      res.status(201).json(result);
-    } else {
-      const result = await mergeComponent.mergeMailSmtp(req.authorizedParty, req.body);
-      res.status(201).json(result);
-    }
+    const ethereal = (req.query.devMode !== undefined);
+    
+    const chesService = new ChesService();
+    const result = await chesService.sendEmailMerge(req.authorizedParty, req.body, ethereal);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }
