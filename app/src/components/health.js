@@ -1,40 +1,36 @@
 const config = require('config');
 const log = require('npmlog');
-const nodemailer = require('nodemailer');
+
+const EmailConnection = require('../services/emailConn');
 
 const checks = {
   /** Checks the connectivity of the SMTP host
    *  @param {string} host The SMTP host endpoint
    *  @returns A result object
    */
-  getSmtpStatus: async host => {
+  getSmtpStatus: async () => {
+  
+    const emailConnection = new EmailConnection();
+  
     const result = {
       authenticated: false,
       authorized: false,
-      endpoint: `https://${host}`,
+      endpoint: `https://${emailConnection.host}`,
       healthCheck: false,
       name: 'SMTP Endpoint'
     };
-
+  
     try {
-      const transporter = nodemailer.createTransport({
-        host: host,
-        port: 25,
-        tls: {
-          rejectUnauthorized: false // do not fail on invalid certs
-        }
-      });
-
-      await transporter.verify();
+      const emailConnectionOk = await emailConnection.checkConnection();
+    
       result.authenticated = true;
       result.authorized = true;
-      result.healthCheck = true;
+      result.healthCheck = emailConnectionOk;
     } catch (error) {
       log.error('getSmtpStatus', error.message);
     }
-
-    return result;
-  },
+  
+    return result;  },
 
   /** Returns a list of all endpoint connectivity states
    * @returns {object[]} An array of result objects

@@ -12,7 +12,7 @@ mergeRouter.post('/', validateMerge, async (req, res, next) => {
       const result = await mergeComponent.mergeMailEthereal(req.body);
       res.status(201).json(result);
     } else {
-      const result = await mergeComponent.mergeMailSmtp(req.body);
+      const result = await mergeComponent.mergeMailSmtp(req.authorizedParty, req.body);
       res.status(201).json(result);
     }
   } catch (error) {
