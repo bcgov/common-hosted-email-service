@@ -42,26 +42,26 @@ class ChesService {
     this._queueService = v;
   }
   
-  async getStatus (messageId, includeStatusHistory = false) {
+  async getStatus (client, messageId, includeStatusHistory = false) {
     if (!messageId) {
       throw new Problem(400, { detail: 'Error getting status. Message Id cannot be null' });
     }
     
     try {
       // fetch the message and statuses... (throws error if not found)
-      const msg = await this.dataService.readMessage(messageId);
+      const msg = await this.dataService.readMessage(client, messageId);
       
       // transform message and statuses into API format...
       const status = Transformer.status(msg, includeStatusHistory);
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.error(`Get Status for messageId = ${messageId} error. Message not found`);
-        throw new Problem(404, { detail: `Error getting status for message ${messageId}. Message not found.` });
+        log.error(`Get Status for client = ${client} & messageId = ${messageId} error. Message not found`);
+        throw new Problem(404, { detail: `Error getting status for message ${messageId} (Client ${client}). Message not found.` });
       } else {
-        log.error(`Get Status for messageId = ${messageId} error. ${e.message}`);
+        log.error(`Get Status for client = ${client} & messageId = ${messageId} error. ${e.message}`);
         log.error(JSON.stringify(e, null, 2));
-        throw new Problem(500, { detail: `Error getting status for message ${messageId}. ${e.message}` });
+        throw new Problem(500, { detail: `Error getting status for client = ${client} & messageId = ${messageId}. ${e.message}` });
       }
     }
   }
@@ -80,15 +80,15 @@ class ChesService {
         return result;
       } else {
         // create the transaction...
-        let trxn = await this.dataService.create(client, message);
+        let trxn = await this.dataService.createTransaction(client, message);
         
         // queue up the messages...
         const delayTS = trxn.messages[0].delayTimestamp;
         const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
-        await this.queueService.enqueue(trxn.messages[0], { delay: delay });
+        await this.queueService.enqueue(client, trxn.messages[0], { delay: delay });
         
         // fetch the transaction/messages/statuses...
-        trxn = await this.dataService.readTransaction(trxn.transactionId);
+        trxn = await this.dataService.readTransaction(client, trxn.transactionId);
         
         //return to caller in API format
         return Transformer.transaction(trxn);
@@ -125,17 +125,17 @@ class ChesService {
         const contexts = mergeComponent.mergeTemplate(template);
         
         // create the transaction and messages...
-        let trxn = await this.dataService.create(client, contexts);
+        let trxn = await this.dataService.createTransaction(client, contexts);
         
         // Send all mail messages with defined transport object
         await Promise.all(trxn.messages.map(msg => {
           const delayTS = msg.delayTimestamp;
           const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
-          this.queueService.enqueue(msg, { delay: delay });
+          this.queueService.enqueue(client, msg, { delay: delay });
         }));
         
         // fetch the updated transaction/messages/statuses...
-        trxn = await this.dataService.readTransaction(trxn.transactionId);
+        trxn = await this.dataService.readTransaction(client, trxn.transactionId);
         
         // return transaction in API format
         return Transformer.transaction(trxn);
@@ -145,20 +145,6 @@ class ChesService {
       log.error(JSON.stringify(e, null, 2));
       throw new Problem(500, { detail: `Error sending email merge. ${e.message}` });
     }
-  }
-  
-  static getService(dataService, emailService, queueService) {
-    const result = new ChesService();
-    if (dataService) {
-      result.dataService = dataService;
-    }
-    if (emailService) {
-      result.emailService = emailService;
-    }
-    if (queueService) {
-      result.queueService = queueService;
-    }
-    return result;
   }
 }
 

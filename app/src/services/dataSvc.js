@@ -50,7 +50,7 @@ class DataService {
     this._connection = v;
   }
   
-  async create (client, msg) {
+  async createTransaction (client, msg) {
     if (!msg) {
       throw Error('Transaction cannot be created with email message(s)');
     }
@@ -74,7 +74,7 @@ class DataService {
       
       await trx.commit();
       
-      return await this.readTransaction(transactionId);
+      return await this.readTransaction(client, transactionId);
     } catch (err) {
       log.error(`Error creating transaction record: ${err.message}. Rolling back,..`);
       log.error(err);
@@ -83,12 +83,15 @@ class DataService {
     }
   }
   
-  async deleteContent (messageId) {
+  async deleteContent (client, messageId) {
     if (!messageId) {
       throw Error('Cannot delete message content without providing a message id.');
     }
     let trx;
     try {
+      // first query for message, throw not found if client/message not exist...
+      await this.readMessage(client, messageId);
+
       trx = await transaction.start(Content.knex());
       const cItems = await Content.query(trx)
         .patch({ email: null })
@@ -96,44 +99,10 @@ class DataService {
       log.info(`Updated ${cItems} content records...`);
       
       await trx.commit();
+      
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating content record: ${err.message}. Rolling back,..`);
-      log.error(err);
-      if (trx) await trx.rollback();
-      throw err;
-    }
-  }
-  
-  async deleteTransactionsByClient (client) {
-    if (!client) {
-      throw Error('Cannot delete transactions by client without providing a client name.');
-    }
-    let trx;
-    try {
-      trx = await transaction.start(Trxn.knex());
-      
-      const trxnQuery = Trxn.query(trx)
-        .select('transactionId')
-        .where('client', 'like', `%${client}%`);
-      
-      const msgsQuery = Message.query(trx)
-        .select('messageId')
-        .whereIn('transactionId', trxnQuery);
-      
-      const qItems = await Queue.query(trx).delete().whereIn('messageId', msgsQuery);
-      log.info(`Deleted ${qItems} queue records...`);
-      const cItems = await Content.query(trx).delete().whereIn('messageId', msgsQuery);
-      log.info(`Deleted ${cItems} content records...`);
-      const sItems = await Status.query(trx).delete().whereIn('messageId', msgsQuery);
-      log.info(`Deleted ${sItems} status records...`);
-      const mItems = await Message.query(trx).delete().whereIn('transactionId', trxnQuery);
-      log.info(`Deleted ${mItems} message records...`);
-      const tItems = await Trxn.query(trx).delete().where('client', 'like', `%${client}%`);
-      log.info(`Deleted ${tItems} transaction records...`);
-      
-      await trx.commit();
-    } catch (err) {
-      log.error(`Error deleting transaction records: ${err.message}. Rolling back,..`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -144,9 +113,15 @@ class DataService {
   // find messages (by id, by client, by message state)
   // find messages (by id, by client, by message state)
   
-  async readMessage (messageId) {
+  async readMessage (client, messageId) {
+  
+    const trxnQuery = Trxn.query()
+      .select('transactionId')
+      .where('client', client);
+  
     return Message.query()
       .findById(messageId)
+      .whereIn('transactionId', trxnQuery)
       .eagerAlgorithm(Model.JoinEagerAlgorithm)
       .eager({
         statusHistory: true,
@@ -161,9 +136,10 @@ class DataService {
       }).throwIfNotFound();
   }
   
-  async readTransaction (transactionId) {
+  async readTransaction (client, transactionId) {
     return Trxn.query()
       .findById(transactionId)
+      .where('client', client)
       .eagerAlgorithm(Model.JoinEagerAlgorithm)
       .eager({
         messages: {
@@ -180,12 +156,13 @@ class DataService {
       }).throwIfNotFound();
   }
   
-  async updateStatus (messageId, queueId, status, description) {
+  async updateStatus (client, messageId, status, description) {
     let trx;
     try {
-      trx = await transaction.start(Message.knex());
+      // first query for message, throw not found if client/message not exist...
+      const msg = await this.readMessage(client, messageId);
       
-      const msg = await Message.query(trx).findById(messageId).throwIfNotFound();
+      trx = await transaction.start(Message.knex());
       
       const businessStatus = queueToBusinessStatus(status);
       if (msg.status !== businessStatus) {
@@ -200,7 +177,6 @@ class DataService {
       
       // always add the queue status...
       await Queue.query(trx).insert({
-        externalQueueId: queueId,
         messageId: messageId,
         status: status,
         description: description
@@ -208,7 +184,7 @@ class DataService {
       
       await trx.commit();
       
-      return await this.readMessage(messageId);
+      return await this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating message record: ${err.message}. Rolling back,..`);
       log.error(err);

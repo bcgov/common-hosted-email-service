@@ -1,5 +1,4 @@
 const log = require('npmlog');
-const uuidv4 = require('uuid/v4');
 
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
@@ -41,37 +40,42 @@ class QueueService {
     return this._queue;
   }
   
-  async enqueue (message, opts = {}) {
-    const id = uuidv4();
+  async enqueue (client, message, opts = {}) {
     const job = this.queue.add({
-      message: message.content.email,
+      client: client,
       messageId: message.messageId
     }, Object.assign(opts, {
-      jobId: id
+      jobId: message.messageId
     }));
     
-    await this.dataService.updateStatus(message.messageId, id, 'enqueued');
+    await this.dataService.updateStatus(client, message.messageId, 'enqueued');
     
-    log.info('enqueue', `Job ${id} enqueued`);
+    log.info('enqueue', `Job ${message.messageId} enqueued`);
     return job.id;
   }
   
   async updateContent (job) {
-    if (job && job.data && job.data.messageId) {
-      await this.dataService.deleteContent(job.data.messageId);
+    if (job && job.data && job.data.messageId && job.data.client) {
+      await this.dataService.deleteContent(job.data.client, job.data.messageId);
     }
-    await job.update(null); // Scrub out message information on finish
+    await job.update(null); // Scrub out client and message id
   }
   
   async updateStatus (job, status, description) {
-    if (job && job.data && job.data.messageId) {
-      await this.dataService.updateStatus(job.data.messageId, job.id, status, description);
+    if (job && job.data && job.data.messageId && job.data.client) {
+      await this.dataService.updateStatus(job.data.client, job.data.messageId, status, description);
     }
   }
   
-  async sendMessage (message) {
-    if (message) {
-      return await this.emailService.send(message);
+  async sendMessage (job) {
+    if (job && job.data && job.data.messageId && job.data.client) {
+      try {
+        const msg = await this.dataService.readMessage(job.data.client, job.data.messageId);
+        return await this.emailService.send(msg.content.email);
+      } catch (e) {
+        log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
+        log.error(JSON.stringify(e, null, 2));
+      }
     }
     return null;
   }

@@ -12,7 +12,7 @@ statusRouter.get('/:msgId', async (req, res, next) => {
     const includeHistory = truth.includes(historyFlag);
     
     // transform message and statuses into API format...
-    const status = await chesService.getStatus(req.params.msgId, includeHistory);
+    const status = await chesService.getStatus(req.authorizedParty, req.params.msgId, includeHistory);
     
     // return
     res.status(200).json(status);

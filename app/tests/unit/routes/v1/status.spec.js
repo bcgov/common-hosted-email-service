@@ -1,4 +1,6 @@
+const Problem = require('api-problem');
 const request = require('supertest');
+
 const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/status');
 
@@ -6,12 +8,16 @@ const router = require('../../../../src/routes/v1/status');
 const basePath = '/api/v1/status';
 const app = helper.expressHelper(basePath, router);
 
+const mockNotFound = jest.fn(() => {
+  throw new Problem(404);
+});
+
 jest.mock('../../../../src/services/chesSvc', () => {
   return jest.fn().mockImplementation(() => {
     return {
-      getStatus: async (msgId, includeHistory) => {
+      getStatus: async (client, msgId, includeHistory) => {
         if (msgId === 'notfound') {
-          throw new Error();
+          mockNotFound();
         }
         const result = {
           'msgId': msgId,
@@ -84,6 +90,6 @@ describe(`POST ${basePath}/:msgId`, () => {
   it('should respond with a not found error', async () => {
     const id = 'notfound';
     const response = await request(app).get(`${basePath}/${id}`);
-    expect(response.statusCode).not.toBe(200);
+    expect(response.statusCode).toBe(404);
   });
 });

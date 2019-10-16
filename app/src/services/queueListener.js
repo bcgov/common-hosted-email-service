@@ -50,14 +50,14 @@ class QueueListener {
     log.info('queue', `Job ${job.id} is processing...`);
     
     try {
-      if (job.data.message) {
+      if (job.data.messageId && job.data.client) {
         await QueueListener.queueService.updateStatus(job, 'processing');
-        const result = await QueueListener.queueService.sendMessage(job.data.message);
+        const result = await QueueListener.queueService.sendMessage(job);
         await QueueListener.queueService.updateStatus(job, 'delivered');
         await job.log(JSON.stringify(result));
         return result;
       } else {
-        throw new Error('Message missing or formatted incorrectly');
+        throw new Error('Message information missing or formatted incorrectly');
       }
     } catch (error) {
       await job.log(error.message);

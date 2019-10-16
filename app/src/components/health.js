@@ -1,4 +1,3 @@
-const config = require('config');
 const log = require('npmlog');
 
 const EmailConnection = require('../services/emailConn');
@@ -36,7 +35,7 @@ const checks = {
    * @returns {object[]} An array of result objects
    */
   getStatus: () => Promise.all([
-    checks.getSmtpStatus(config.get('server.smtpHost'))
+    checks.getSmtpStatus()
   ])
 };
 

@@ -11,6 +11,8 @@ const DataService = require('../../src/services/dataSvc');
 const EmailService = require('../../src/services/emailSvc');
 const QueueService = require('../../src/services/queueSvc');
 
+const { deleteTransactionsByClient } = require('./dataUtils');
+
 helper.logHelper();
 
 const config = require('../../knexfile');
@@ -119,12 +121,15 @@ describe('ches service', () => {
     queueService = new QueueService();
     queueService.connection = queueConnection;
     
-    chesService = ChesService.getService(dataService, emailService, queueService);
+    chesService = new ChesService();
+    chesService.dataService = dataService;
+    chesService.emailService = emailService;
+    chesService.queueService = queueService;
     
   });
   
   afterAll(async () => {
-    await dataService.deleteTransactionsByClient(CLIENT);
+    await deleteTransactionsByClient(CLIENT);
     return knex.destroy();
   });
   
@@ -132,7 +137,7 @@ describe('ches service', () => {
     
     it('should throw a 400 when no message id.', async () => {
       try {
-        await chesService.getStatus(undefined);
+        await chesService.getStatus(CLIENT, undefined);
       } catch (e) {
         expect(e).toBeTruthy();
         expect(e.status).toBe('400');
@@ -141,7 +146,7 @@ describe('ches service', () => {
     
     it('should throw a 404 with invalid message id.', async () => {
       try {
-        await chesService.getStatus(uuidv4());
+        await chesService.getStatus(CLIENT, uuidv4());
       } catch (e) {
         expect(e).toBeTruthy();
         expect(e.status).toBe('404');
@@ -150,9 +155,9 @@ describe('ches service', () => {
     
     it('should return a status.', async () => {
       const email = emails[0];
-      const trxn = await dataService.create(CLIENT, email);
+      const trxn = await dataService.createTransaction(CLIENT, email);
       
-      const result = await chesService.getStatus(trxn.messages[0].messageId);
+      const result = await chesService.getStatus(CLIENT, trxn.messages[0].messageId);
       
       expect(result).toBeTruthy();
       expect(result.msgId).toMatch(trxn.messages[0].messageId);
@@ -162,9 +167,9 @@ describe('ches service', () => {
     
     it('should return a status with status history.', async () => {
       const email = emails[0];
-      const trxn = await dataService.create(CLIENT, email);
+      const trxn = await dataService.createTransaction(CLIENT, email);
       
-      const result = await chesService.getStatus(trxn.messages[0].messageId, true);
+      const result = await chesService.getStatus(CLIENT, trxn.messages[0].messageId, true);
       
       expect(result).toBeTruthy();
       expect(result.msgId).toMatch(trxn.messages[0].messageId);

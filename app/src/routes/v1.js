@@ -34,7 +34,7 @@ router.get('/api-spec.yaml', (_req, res) => {
 });
 
 /** Health Router */
-router.use('/checks', keycloak.protect(), healthRouter);
+router.use('/checks', keycloak.protect(), authorizedParty, healthRouter);
 
 /** Email Router */
 router.use('/email', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, emailRouter);

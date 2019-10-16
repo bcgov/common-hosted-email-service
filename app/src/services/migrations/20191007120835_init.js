@@ -36,7 +36,6 @@ exports.up = function (knex) {
     }))
     .then(() => knex.schema.createTable('queue', table => {
       table.increments('queueId').primary();
-      table.uuid('externalQueueId').notNullable();
       statusTable(table);
     }));
 };
