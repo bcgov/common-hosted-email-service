@@ -8,11 +8,12 @@ const moment = require('moment');
 class Transformer {
   
   /** @function transaction
-   *  @param trxn - a Fully inflated Trxn
+   *  @param {object} trxn - a Fully inflated Trxn
    *
    *  transform a Trxn model from the db into TransactionResponse for the api
    *
    *  Returns TransactionResponse
+   *  @see Trxn
    */
   static transaction (trxn) {
     const result = {
@@ -27,6 +28,15 @@ class Transformer {
     return result;
   }
   
+  /** @function status
+   *  @param {object} msg - a Fully inflated Message
+   *  @param {boolean} includeHistory - if true, return the status history array.
+   *
+   *  transform a Message model from the db into StatusResponse for the api
+   *
+   *  Returns StatusResponse
+   *  @see Message
+   */
   static status (msg, includeHistory = false) {
     const delayTS = msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : null;
     const result = {

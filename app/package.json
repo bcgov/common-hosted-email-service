@@ -11,6 +11,7 @@
     "lint": "./node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
     "lint:fix": "./node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
     "test": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns '<rootDir>/tests/integration'",
+    "test:integration": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns '<rootDir>/tests/unit' --collectCoverage false",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
     "purge": "rm -rf ./node_modules",

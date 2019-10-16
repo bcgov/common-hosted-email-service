@@ -1,3 +1,21 @@
+/**
+ * @module chesSvc.spec
+ *
+ * Jest tests for the ChesService class.
+ * These tests require a full set of (running) infrastructure.
+ * - Postgresql database
+ * - Redis Queue
+ * - Email server
+ *
+ * It will run migrations before the tests, and then purge any test data when completed.
+ *
+ * @see ChesService
+ * @see DataService
+ * @see EmailService
+ * @see QueueService
+ */
+const Bull = require('bull');
+const config = require('config');
 const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
@@ -15,7 +33,7 @@ const { deleteTransactionsByClient } = require('./dataUtils');
 
 helper.logHelper();
 
-const config = require('../../knexfile');
+const knexfile = require('../../knexfile');
 
 const emails = [
   {
@@ -91,7 +109,7 @@ describe('ches service', () => {
   
   beforeAll(async () => {
     
-    knex = Knex(config);
+    knex = Knex(knexfile);
     await knex.migrate.latest();
     
     const dataConnection = new DataConnection();
@@ -107,6 +125,12 @@ describe('ches service', () => {
     }
     
     const queueConnection = new QueueConnection();
+    queueConnection.queue = new Bull('ches-svc-testing', {
+      redis: {
+        host: config.get('redis.host'),
+        password: config.get('redis.password')
+      }
+    });
     const queueConnectionOK = await queueConnection.checkConnection();
     if (!queueConnectionOK) {
       throw Error('Error initializing queue connection');
@@ -130,6 +154,7 @@ describe('ches service', () => {
   
   afterAll(async () => {
     await deleteTransactionsByClient(CLIENT);
+    QueueConnection.close();
     return knex.destroy();
   });
   

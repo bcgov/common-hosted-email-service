@@ -11,7 +11,7 @@ class Content extends UpdatedAt(Model) {
   }
   
   static get jsonAttributes () {
-    return ['email'];
+    return ['email', 'sendResult'];
   }
   
   static relationMappings () {

@@ -1,3 +1,18 @@
+/**
+ * @module ChesService
+ *
+ * Create a business service for CHES.
+ * Provide a wrapper around business functions that use multiple services.
+ *
+ * @see DataService
+ * @see EmailService
+ * @see QueueService
+ * @see Transformer
+ *
+ * @see mergeComponent
+ *
+ * @exports ChesService
+ */
 const log = require('npmlog');
 const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
@@ -12,32 +27,57 @@ const Transformer = require('./transform');
 
 class ChesService {
   
+  /**
+   * Creates a new ChesService with default Data, Email, Queue Services (all with default connections).
+   * @class
+   */
   constructor () {
     this.dataService = new DataService();
     this.emailService = new EmailService();
     this.queueService = new QueueService();
   }
   
+  /** @function dataService
+   *  Gets the current DataService
+   */
   get dataService () {
     return this._dataService;
   }
   
+  /** @function dataService
+   *  Sets the current DataService
+   *  @param {object} v - a DataService object.
+   */
   set dataService (v) {
     this._dataService = v;
   }
   
+  /** @function emailService
+   *  Gets the current EmailService
+   */
   get emailService () {
     return this._emailService;
   }
   
+  /** @function emailService
+   *  Sets the current EmailService
+   *  @param {object} v - am EmailService object.
+   */
   set emailService (v) {
     this._emailService = v;
   }
   
+  /** @function queueService
+   *  Gets the current QueueService
+   */
   get queueService () {
     return this._queueService;
   }
   
+  /** @function queueService
+   *  Sets the current QueueService
+   *  @param {object} v - a QueueService.
+   */
   set queueService (v) {
     this._queueService = v;
   }
@@ -66,6 +106,13 @@ class ChesService {
     }
   }
   
+  /** @function sendEmail
+   *  Creates and Queues the API message for delivery
+   *  @param {string} client - the authorized party / client
+   *  @param {object} message - the API email message
+   *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
+   *  @returns {object} TransactionResponse
+   */
   async sendEmail (client, message, ethereal = false) {
     if (!message) {
       throw new Problem(400, { detail: 'Error sending email. Email message cannot be null' });
@@ -100,6 +147,13 @@ class ChesService {
     }
   }
   
+  /** @function sendEmailMerge
+   *  Creates and Queues the API messages for delivery
+   *  @param {string} client - the authorized party / client
+   *  @param {object} template - the API email template
+   *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
+   *  @returns {object} TransactionResponse
+   */
   async sendEmailMerge (client, template, ethereal = false) {
     if (!template) {
       throw new Problem(400, { detail: 'Error sending email merge. Email templates/contexts cannot be null' });

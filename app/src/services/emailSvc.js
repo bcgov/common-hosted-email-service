@@ -1,3 +1,15 @@
+/**
+ * @module EmailService
+ *
+ * Service to send email.
+ * Uses an SMTP server by default, can send to Ethereal.
+ *
+ *
+ * @see EmailConnection
+ * @see NodeMailer
+ *
+ * @exports EmailService
+ */
 const log = require('npmlog');
 
 const utils = require('../components/utils');
@@ -5,19 +17,33 @@ const utils = require('../components/utils');
 const EmailConnection = require('./emailConn');
 
 class EmailService {
-  
+  /**
+   * Creates a new EmailService with default connection.
+   * @class
+   */
   constructor () {
     this.connection = new EmailConnection();
   }
   
+  /** @function connection
+   *  Gets the current EmailConnection
+   */
   get connection () {
     return this._connection;
   }
   
+  /** @function connection
+   *  Sets the current EmailConnection
+   *  @param {object} v - an EmailConnection
+   */
   set connection (v) {
     this._connection = v;
   }
   
+  /** Create a nodemailer envelope from a Message
+   *  @param {object} message - a Message (email)
+   *  @returns {object} - the nodemailer message
+   */
   createEnvelope (message) {
     const envelope = utils.filterUndefinedAndEmpty(message);
     // Reassign the body field into the type specified by bodyType
@@ -29,6 +55,11 @@ class EmailService {
     return envelope;
   }
   
+  /** Delivers mail object through specified mailer
+   *  Uses SMTP by default
+   *  @param {object} mailer - a nodemailer transport
+   *  @param {object} message - the nodemailer message
+   */
   async sendMail (mailer, message) {
     try {
       const envelope = this.createEnvelope(message);
@@ -44,8 +75,10 @@ class EmailService {
     }
   }
   
-  /** Creates an email and sends it to the SMTP server
+  /** Creates an email and sends it...
+   *  Uses SMTP by default
    *  @param {object} message An email message object
+   *  @param {boolean} ethereal - when true, send to Ethereal service (good for local testing)
    *  @returns {object} A nodemailer result object
    */
   async send (message, ethereal = false) {

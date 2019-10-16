@@ -1,3 +1,14 @@
+/**
+ * @module QueueListener
+ *
+ * Listens to Bull queue events, calls QueueService to perform tasks.
+ *
+ * @see QueueService
+ *
+ * @see Bull
+ *
+ * @exports QueueListener
+ */
 const log = require('npmlog');
 
 const QueueService = require('./queueSvc');
@@ -6,6 +17,11 @@ let queueService;
 
 class QueueListener {
   
+  /**
+   * @function queueService
+   * Get the default QueueService.
+   * This is the QueueService that will be told to run tasks when events fire.
+   */
   static get queueService () {
     if (!queueService) {
       queueService = new QueueService();

@@ -1,3 +1,12 @@
+/**
+ * @module dataSvc.spec
+ *
+ * Jest tests for the DataService class.
+ * These tests require a configured connection to a Postgresql database.
+ * It will run migrations before the tests, and then purge any test data when completed.
+ *
+ * @see DataService
+ */
 const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
@@ -54,6 +63,7 @@ function expectNewMessage (trxnId, msgId, msg, email) {
   expect(msg.content).toBeTruthy();
   expect(msg.content.createdAt).toBeTruthy();
   expect(msg.content.updatedAt).toBeTruthy();
+  expect(msg.content.result).toBeFalsy();
   if (email) {
     expect(msg.delayTimestamp.toString()).toEqual(email.delayTS.toString());
     expect(msg.tag).toMatch(email.tag);
@@ -272,11 +282,17 @@ describe('dataservice', () => {
     expect(updated2.statusHistory).toHaveLength(2);
     expect(updated2.queueHistory).toHaveLength(1);
     
-    const content1 = await dataService.deleteContent(client1, messageId1);
+    const content1 = await dataService.deleteContentEmail(client1, messageId1);
     expect(content1.content.email).toBeFalsy();
   
-    const content2 = await dataService.deleteContent(client2, messageId2);
+    const content2 = await dataService.deleteContentEmail(client2, messageId2);
     expect(content2.content.email).toBeFalsy();
+  
+    const smtp1 = await dataService.updateContentSendResult(client1, messageId1, {msgId: uuidv4(), response: 'response'});
+    expect(smtp1.content.sendResult).toBeTruthy();
+  
+    const smpt2 = await dataService.updateContentSendResult(client2, messageId2, {msgId: uuidv4(), response: 'response'});
+    expect(smpt2.content.sendResult).toBeTruthy();
   
     await expect(dataService.readTransaction(client1, transactionId2)).rejects.toThrow();
     await expect(dataService.readTransaction(client2, transactionId1)).rejects.toThrow();
@@ -287,8 +303,11 @@ describe('dataservice', () => {
     await expect(dataService.updateStatus(client1, messageId2, 'bad')).rejects.toThrow();
     await expect(dataService.updateStatus(client2, messageId1, 'bad')).rejects.toThrow();
   
-    await expect(dataService.deleteContent(client1, messageId2)).rejects.toThrow();
-    await expect(dataService.deleteContent(client2, messageId1)).rejects.toThrow();
+    await expect(dataService.deleteContentEmail(client1, messageId2)).rejects.toThrow();
+    await expect(dataService.deleteContentEmail(client2, messageId1)).rejects.toThrow();
+  
+    await expect(dataService.updateContentSendResult(client1, messageId2, {msgId: uuidv4(), response: 'response'})).rejects.toThrow();
+    await expect(dataService.updateContentSendResult(client2, messageId1, {msgId: uuidv4(), response: 'response'})).rejects.toThrow();
   
     deleteTransactionsByClient(client1);
     deleteTransactionsByClient(client2);
@@ -342,13 +361,30 @@ describe('dataservice', () => {
     expect(result).toBeTruthy();
     expect(result.messages[0].content.email).toBeTruthy();
     
-    const msg = await dataService.deleteContent(CLIENT, result.messages[0].messageId);
+    const msg = await dataService.deleteContentEmail(CLIENT, result.messages[0].messageId);
     expect(msg.content.email).toBeFalsy();
     
   });
   
   it('should error set content email to null no message id.', async () => {
-    await expect(dataService.deleteContent(undefined)).rejects.toThrow();
+    await expect(dataService.deleteContentEmail(CLIENT,undefined)).rejects.toThrow();
+  });
+  
+  it('should set content send result to value', async () => {
+    const email = emails[0];
+    const result = await dataService.createTransaction(CLIENT, email);
+    expect(result).toBeTruthy();
+    expect(result.messages[0].content.email).toBeTruthy();
+    
+    const msg = await dataService.updateContentSendResult(CLIENT, result.messages[0].messageId, {msgId: uuidv4(), response: 'some response'});
+    expect(msg.content.sendResult).toBeTruthy();
+    expect(msg.content.sendResult.msgId).toBeTruthy();
+    expect(msg.content.sendResult.response).toBeTruthy();
+    
+  });
+  
+  it('should error set content result to null no message id.', async () => {
+    await expect(dataService.updateContentSendResult(CLIENT, undefined)).rejects.toThrow();
   });
   
 });

@@ -7,6 +7,12 @@ const Queue = require('../../src/services/models/queue');
 const Status = require('../../src/services/models/status');
 const Trxn = require('../../src/services/models/trxn');
 
+/**
+ * deleteTransactionsByClient
+ * Utility function to clean up test data by client.
+ * @function
+ * @param {string} client - The client name...
+ */
 async function deleteTransactionsByClient (client) {
   if (!client) {
     throw Error('Cannot delete transactions by client without providing a client name.');
