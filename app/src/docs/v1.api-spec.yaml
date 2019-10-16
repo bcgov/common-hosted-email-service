@@ -57,11 +57,7 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - in: query
-          name: devMode
-          description: Send output to Ethereal for testing if true
-          schema:
-            type: boolean
+        - $ref: '#/components/parameters/QueryDevMode'
       requestBody:
         description: Fields required to perform a mail merge and send
         required: true
@@ -100,11 +96,7 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - in: query
-          name: devMode
-          description: Send output to Ethereal for testing if true
-          schema:
-            type: boolean
+        - $ref: '#/components/parameters/QueryDevMode'
       requestBody:
         description: Fields required to perform a mail merge and send
         required: true
@@ -170,44 +162,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   /status:
-    parameters:
-      - $ref: '#/components/parameters/StatusFilter'
     get:
       summary: Queryable message transaction status
       operationId: GetStatusQuery
       tags:
-        - Status
+        - Message
       security:
         - OpenID:
             - EMAILER
       parameters:
-        - in: query
-          name: tag
-          description: The desired messages with the specified tag association
-          schema:
-            type: string
-          example: tag
-        - in: query
-          name: txId
-          description: The desired messages associated with the transaction uuid
-          schema:
-            type: string
-            format: uuid
-          example: 00000000-0000-0000-0000-000000000000
-        - in: query
-          name: status
-          description: (DRAFT) Yield messages in the specified status
-          schema:
-            type: string
-            enum:
-              - active
-              - completed
-              - delayed
-              - failed
-              - paused
-              - stuck
-              - waiting
-          example: completed
+        - $ref: '#/components/parameters/QueryFilter'
+        - $ref: '#/components/parameters/QueryMessageId'
+        - $ref: '#/components/parameters/QueryStatus'
+        - $ref: '#/components/parameters/QueryTag'
+        - $ref: '#/components/parameters/QueryTransactionId'
       responses:
         '200':
           description: Returns the status of message transactions
@@ -229,24 +197,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   '/status/{msgId}':
-    parameters:
-      - in: path
-        name: msgId
-        description: Uuid of the message
-        required: true
-        schema:
-          type: string
-          format: uuid
-          example: 00000000-0000-0000-0000-000000000000
-      - $ref: '#/components/parameters/StatusFilter'
     get:
       summary: Status of a single message
       operationId: GetStatusMessage
       tags:
-        - Status
+        - Message
       security:
         - OpenID:
             - EMAILER
+      parameters:
+        - $ref: '#/components/parameters/PathMessageId'
+        - $ref: '#/components/parameters/QueryFilter'
       responses:
         '200':
           description: Returns the status of the message
@@ -266,9 +227,96 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /cancel:
+    delete:
+      summary: Cancel multiple delayed messages
+      operationId: DeleteCancelQuery
+      tags:
+        - Message
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - $ref: '#/components/parameters/QueryMessageId'
+        - $ref: '#/components/parameters/QueryStatus'
+        - $ref: '#/components/parameters/QueryTag'
+        - $ref: '#/components/parameters/QueryTransactionId'
+      responses:
+        '202':
+          description: Request is acknowledged but not necessarily completed
+          headers:
+            Content-Location:
+              description: >-
+                URL location to affected resource. Use the same query and path
+                parameters as this request to find the affected resource.
+              example: >-
+                /status?msgId=00000000-0000-0000-0000-000000000000&status=completed&tag=example&txId=00000000-0000-0000-0000-000000000000
+              schema:
+                type: string
+                format: uri
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/cancel/{msgId}':
+    delete:
+      summary: Cancel a single delayed message
+      operationId: DeleteCancelMessage
+      tags:
+        - Message
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - $ref: '#/components/parameters/PathMessageId'
+      responses:
+        '202':
+          description: Request is acknowledged but not necessarily completed
+          headers:
+            Content-Location:
+              description: >-
+                URL location to affected resource. Use the same query and path
+                parameters as this request to find the affected resource.
+              example: /status/00000000-0000-0000-0000-000000000000
+              schema:
+                type: string
+                format: uri
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   parameters:
-    StatusFilter:
+    PathMessageId:
+      in: path
+      name: msgId
+      description: Uuid of the message
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: 00000000-0000-0000-0000-000000000000
+    QueryDevMode:
+      in: query
+      name: devMode
+      description: Send output to Ethereal for testing if true
+      schema:
+        type: boolean
+    QueryFilter:
       in: query
       name: filter
       description: >-
@@ -283,6 +331,44 @@ components:
           - tag
           - timestamp
       example: 'status,timestamp'
+    QueryMessageId:
+      in: query
+      name: msgId
+      description: Uuid of a message
+      schema:
+        type: string
+        format: uuid
+        example: 00000000-0000-0000-0000-000000000000
+    QueryStatus:
+      in: query
+      name: status
+      description: (DRAFT) Yield messages in the specified status
+      schema:
+        type: string
+        enum:
+          - active
+          - completed
+          - delayed
+          - failed
+          - paused
+          - stuck
+          - waiting
+      example: completed
+    QueryTag:
+      in: query
+      name: tag
+      description: The desired messages with the specified tag association
+      schema:
+        type: string
+      example: tag
+    QueryTransactionId:
+      in: query
+      name: txId
+      description: The desired messages associated with the transaction uuid
+      schema:
+        type: string
+        format: uuid
+      example: 00000000-0000-0000-0000-000000000000
   securitySchemes:
     BearerAuth:
       type: http
@@ -742,6 +828,8 @@ components:
             $ref: '#/components/schemas/Error'
     Forbidden:
       description: Lack required role to perform action
+    NoContent:
+      description: Accepted and no content
     NotFound:
       description: Not found
       content:
