@@ -288,10 +288,10 @@ describe('dataservice', () => {
     const content2 = await dataService.deleteContentEmail(client2, messageId2);
     expect(content2.content.email).toBeFalsy();
   
-    const smtp1 = await dataService.updateContentSendResult(client1, messageId1, {msgId: uuidv4(), response: 'response'});
+    const smtp1 = await dataService.updateContentSendResult(client1, messageId1, {smtpMsgId: uuidv4(), response: 'response'});
     expect(smtp1.content.sendResult).toBeTruthy();
   
-    const smpt2 = await dataService.updateContentSendResult(client2, messageId2, {msgId: uuidv4(), response: 'response'});
+    const smpt2 = await dataService.updateContentSendResult(client2, messageId2, {smtpMsgId: uuidv4(), response: 'response'});
     expect(smpt2.content.sendResult).toBeTruthy();
   
     await expect(dataService.readTransaction(client1, transactionId2)).rejects.toThrow();
@@ -306,8 +306,8 @@ describe('dataservice', () => {
     await expect(dataService.deleteContentEmail(client1, messageId2)).rejects.toThrow();
     await expect(dataService.deleteContentEmail(client2, messageId1)).rejects.toThrow();
   
-    await expect(dataService.updateContentSendResult(client1, messageId2, {msgId: uuidv4(), response: 'response'})).rejects.toThrow();
-    await expect(dataService.updateContentSendResult(client2, messageId1, {msgId: uuidv4(), response: 'response'})).rejects.toThrow();
+    await expect(dataService.updateContentSendResult(client1, messageId2, {smtpMsgId: uuidv4(), response: 'response'})).rejects.toThrow();
+    await expect(dataService.updateContentSendResult(client2, messageId1, {smtpMsgId: uuidv4(), response: 'response'})).rejects.toThrow();
   
     deleteTransactionsByClient(client1);
     deleteTransactionsByClient(client2);
@@ -376,9 +376,9 @@ describe('dataservice', () => {
     expect(result).toBeTruthy();
     expect(result.messages[0].content.email).toBeTruthy();
     
-    const msg = await dataService.updateContentSendResult(CLIENT, result.messages[0].messageId, {msgId: uuidv4(), response: 'some response'});
+    const msg = await dataService.updateContentSendResult(CLIENT, result.messages[0].messageId, {smtpMsgId: uuidv4(), response: 'some response'});
     expect(msg.content.sendResult).toBeTruthy();
-    expect(msg.content.sendResult.msgId).toBeTruthy();
+    expect(msg.content.sendResult.smtpMsgId).toBeTruthy();
     expect(msg.content.sendResult.response).toBeTruthy();
     
   });

@@ -145,7 +145,7 @@ class QueueService {
       try {
         const msg = await this.dataService.readMessage(job.data.client, job.data.messageId);
         const smtpResult = await this.emailService.send(msg.content.email);
-        const sendResult = { msgId: smtpResult.messageId, response: smtpResult.response };
+        const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateContentSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
         log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
