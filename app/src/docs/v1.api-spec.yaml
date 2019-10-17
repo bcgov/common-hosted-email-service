@@ -19,6 +19,9 @@ paths:
   /health:
     get:
       summary: (DRAFT) Returns status of correspondent APIs
+      description: >-
+        This endpoint returns the state and connectivity of any external
+        services this service depends on.
       operationId: getHealth
       tags:
         - Health
@@ -50,6 +53,10 @@ paths:
   /email:
     post:
       summary: Send an email
+      description: >-
+        This endpoint accepts a single message and adds it to the queue. Should
+        there be validation errors, the endpoint will return a list of reasons
+        why it failed validation.
       operationId: postEmail
       tags:
         - Email
@@ -89,6 +96,11 @@ paths:
   /emailMerge:
     post:
       summary: Template mail merge & email sending
+      description: >-
+        This endpoint performs an email merge by serializing out the content and
+        template and then adding the messages to the queue. Should there be
+        validation errors, the endpoint will return a list of reasons why it
+        failed validation.
       operationId: postMerge
       tags:
         - EmailMerge
@@ -124,6 +136,10 @@ paths:
   /emailMerge/preview:
     post:
       summary: Template mail merge validation & preview
+      description: >-
+        This endpoint returns an array of transformed message objects with the
+        templates populated. Should there be validation errors, the endpoint
+        will return a list of reasons why it failed validation.
       operationId: postPreview
       tags:
         - EmailMerge
@@ -164,6 +180,11 @@ paths:
   /status:
     get:
       summary: Queryable message transaction status
+      description: >-
+        This is a freeform query endpoint, and reasonably expects at least one
+        of the parameters to be populated. To minimize response size, only
+        msgId, status, tag and txId properties will appear if no other fields
+        are explicitly requested.
       operationId: GetStatusQuery
       tags:
         - Message
@@ -199,6 +220,10 @@ paths:
   '/status/{msgId}':
     get:
       summary: Status of a single message
+      description: >-
+        This endpoint retrieves and returns all of the information related to
+        msgId. Unlike the queryable endpoint, this singleton endpoint will yield
+        all properties by default.
       operationId: GetStatusMessage
       tags:
         - Message
