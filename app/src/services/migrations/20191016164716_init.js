@@ -43,5 +43,6 @@ exports.down = function (knex) {
   return knex.schema
     .dropTableIfExists('queue')
     .dropTableIfExists('status')
-    .dropTableIfExists('message');
+    .dropTableIfExists('message')
+    .dropTableIfExists('trxn');
 };
