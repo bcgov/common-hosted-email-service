@@ -222,8 +222,8 @@ paths:
       summary: Status of a single message
       description: >-
         This endpoint retrieves and returns all of the information related to
-        msgId. Unlike the queryable endpoint, this singleton endpoint will yield
-        all properties by default.
+        msgId. Unlike the queryable endpoint, this single element endpoint will
+        yield all properties by default.
       operationId: GetStatusMessage
       tags:
         - Message
