@@ -33,6 +33,7 @@ router.get('/api-spec.yaml', (_req, res) => {
 });
 
 /** Health Router */
+// TODO: change route to health
 router.use('/checks', keycloak.protect(), healthRouter);
 
 /** Email Router */
