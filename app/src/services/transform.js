@@ -22,7 +22,7 @@ class Transformer {
     result.messages = trxn.messages.map(m => {
       return {
         msgId: m.messageId,
-        to: m.content.email.to
+        to: m.email.to
       };
     });
     return result;

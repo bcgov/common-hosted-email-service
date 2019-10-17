@@ -64,9 +64,8 @@ class DataConnection {
         const transactionExists = await this._knex.schema.hasTable('trxn');
         const messageExists = await this._knex.schema.hasTable('message');
         const statusExists = await this._knex.schema.hasTable('status');
-        const contentExists = await this._knex.schema.hasTable('content');
         const queueExists = await this._knex.schema.hasTable('queue');
-        schemaOk = transactionExists && messageExists && statusExists && contentExists && queueExists;
+        schemaOk = transactionExists && messageExists && statusExists && queueExists;
       }
       if (schemaOk) {
         log.info('Database schema ok...');

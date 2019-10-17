@@ -117,7 +117,7 @@ class QueueService {
    */
   async updateContent (job) {
     if (job && job.data && job.data.messageId && job.data.client) {
-      await this.dataService.deleteContentEmail(job.data.client, job.data.messageId);
+      await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
     }
     await job.update(null); // Scrub out client and message id
   }
@@ -144,9 +144,9 @@ class QueueService {
     if (job && job.data && job.data.messageId && job.data.client) {
       try {
         const msg = await this.dataService.readMessage(job.data.client, job.data.messageId);
-        const smtpResult = await this.emailService.send(msg.content.email);
+        const smtpResult = await this.emailService.send(msg.email);
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
-        await this.dataService.updateContentSendResult(job.data.client, job.data.messageId, sendResult);
+        await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
         log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
         log.error(JSON.stringify(e, null, 2));

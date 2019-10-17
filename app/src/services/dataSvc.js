@@ -17,7 +17,6 @@ const uuidv4 = require('uuid/v4');
 
 const DataConnection = require('./dataConn');
 
-const Content = require('./models/content');
 const Message = require('./models/message');
 const Queue = require('./models/queue');
 const Status = require('./models/status');
@@ -25,7 +24,7 @@ const Trxn = require('./models/trxn');
 
 /** @function createMessage
  *  inserts all message related data into the db for a Trxn (transaction)
- *  inserts an initial status record and content (email) record.
+ *  inserts an initial status record.
  *  @param {string} transactionId - transaction parent record
  *  @param {object} msg - API email message object
  *  @param {object} db - an Objection/Knex transaction for commit/rollback
@@ -36,16 +35,12 @@ const createMessage = async (transactionId, msg, db) => {
     messageId: uuidv4(),
     transactionId: transactionId,
     tag: msg.tag,
+    email: msg,
     delayTimestamp: msg.delayTS
   });
   
   await Status.query(db).insert({
     messageId: messageObj.messageId
-  });
-  
-  await Content.query(db).insert({
-    messageId: messageObj.messageId,
-    email: msg
   });
   
   return messageObj;
@@ -128,35 +123,32 @@ class DataService {
     }
   }
   
-  /** @function deleteContentEmail
-   *  Deletes the email data from a message content.
+  /** @function deleteMessageEmail
+   *  Deletes the email data from a message.
    *  We don't want to retain any private-ish data longer than required to perform our task.
    *
    *  @param {string} client- the authorized party / client
-   *  @param {string} messageId - the id of the message we want to purge email content
+   *  @param {string} messageId - the id of the message we want to purge email
    *  @throws NotFoundError if message for client not found
    *  @returns {object} Message object, fully populated.
    */
-  async deleteContentEmail (client, messageId) {
-    if (!messageId) {
-      throw Error('Cannot delete message content without providing a message id.');
-    }
+  async deleteMessageEmail (client, messageId) {
     let trx;
     try {
       // first query for message, throw not found if client/message not exist...
       await this.readMessage(client, messageId);
       
-      trx = await transaction.start(Content.knex());
-      const cItems = await Content.query(trx)
+      trx = await transaction.start(Message.knex());
+      const cItems = await Message.query(trx)
         .patch({ email: null })
         .where('messageId', messageId);
-      log.info(`Updated ${cItems} content records...`);
+      log.info(`Updated ${cItems} message email records...`);
       
       await trx.commit();
       
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error(`Error updating content (email) record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message (email) record: ${err.message}. Rolling back,..`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -176,7 +168,6 @@ class DataService {
    *  @returns {object} Message object, fully populated.
    */
   async readMessage (client, messageId) {
-    
     const trxnQuery = Trxn.query()
       .select('transactionId')
       .where('client', client);
@@ -187,7 +178,6 @@ class DataService {
       .eagerAlgorithm(Model.JoinEagerAlgorithm)
       .eager({
         statusHistory: true,
-        content: true,
         queueHistory: true
       })
       .modifyEager('statusHistory', builder => {
@@ -214,7 +204,6 @@ class DataService {
       .eager({
         messages: {
           statusHistory: true,
-          content: true,
           queueHistory: true
         }
       })
@@ -226,33 +215,33 @@ class DataService {
       }).throwIfNotFound();
   }
   
-  /** @function updateContentSendResult
-   *  Updates the message's content result field.
-   *  The content result is populated once the email has been sent.
+  /** @function updateMessageSendResult
+   *  Updates the message's send result field.
+   *  The send result is populated once the email has been sent.
    *
    *  @param {string} client- the authorized party / client
-   *  @param {string} messageId - the id of the message we want to purge email content
+   *  @param {string} messageId - the id of the message
    *  @param {object} sendResult - the pared down SMTP result
    *  @throws NotFoundError if message for client not found
    *  @returns {object} Message object, fully populated.
    */
-  async updateContentSendResult (client, messageId, sendResult) {
+  async updateMessageSendResult (client, messageId, sendResult) {
     let trx;
     try {
       // first query for message, throw not found if client/message not exist...
       await this.readMessage(client, messageId);
       
-      trx = await transaction.start(Content.knex());
-      const cItems = await Content.query(trx)
+      trx = await transaction.start(Message.knex());
+      const cItems = await Message.query(trx)
         .patch({ sendResult: sendResult })
         .where('messageId', messageId);
-      log.info(`Updated ${cItems} content (result) records...`);
+      log.info(`Updated ${cItems} message (result) records...`);
       
       await trx.commit();
       
       return await this.readMessage(client, messageId);
     } catch (err) {
-      log.error(`Error updating message content record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message send result record: ${err.message}. Rolling back,..`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;

@@ -1,7 +1,6 @@
 const log = require('npmlog');
 const { transaction } = require('objection');
 
-const Content = require('../../src/services/models/content');
 const Message = require('../../src/services/models/message');
 const Queue = require('../../src/services/models/queue');
 const Status = require('../../src/services/models/status');
@@ -31,8 +30,6 @@ async function deleteTransactionsByClient (client) {
     
     const qItems = await Queue.query(trx).delete().whereIn('messageId', msgsQuery);
     log.info(`Deleted ${qItems} queue records...`);
-    const cItems = await Content.query(trx).delete().whereIn('messageId', msgsQuery);
-    log.info(`Deleted ${cItems} content records...`);
     const sItems = await Status.query(trx).delete().whereIn('messageId', msgsQuery);
     log.info(`Deleted ${sItems} status records...`);
     const mItems = await Message.query(trx).delete().whereIn('transactionId', trxnQuery);

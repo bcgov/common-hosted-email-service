@@ -60,14 +60,12 @@ function expectNewMessage (trxnId, msgId, msg, email) {
   expect(msg.statusHistory[0].status).toMatch('accepted');
   expect(msg.statusHistory[0].createdAt).toBeTruthy();
   expect(msg.statusHistory[0].updatedAt).toBeFalsy();
-  expect(msg.content).toBeTruthy();
-  expect(msg.content.createdAt).toBeTruthy();
-  expect(msg.content.updatedAt).toBeTruthy();
-  expect(msg.content.result).toBeFalsy();
+  expect(msg.email).toBeTruthy();
+  expect(msg.sendResult).toBeFalsy();
   if (email) {
     expect(msg.delayTimestamp.toString()).toEqual(email.delayTS.toString());
     expect(msg.tag).toMatch(email.tag);
-    expect(msg.content.email.to).toEqual(email.to);
+    expect(msg.email.to).toEqual(email.to);
   }
 }
 
@@ -147,7 +145,7 @@ describe('dataservice', () => {
       expectNewMessage(result.transactionId, result.messages[i].messageId, result.messages[i]);
       // can't be sure that the order of email processing is sequential
       result.messages.forEach(m => {
-        if (m.tag === email.tag && compare(m.content.email.to, email.to) && m.delayTimestamp.toString() === email.delayTS.toString()) {
+        if (m.tag === email.tag && compare(m.email.to, email.to) && m.delayTimestamp.toString() === email.delayTS.toString()) {
           matchedEmail = true;
         }
       });
@@ -244,7 +242,7 @@ describe('dataservice', () => {
     const client1 = `client1-${uuidv4()}`;
     const result1 = await dataService.createTransaction(client1, email);
     expect(result1).toBeTruthy();
-  
+    
     const client2 = `client1-${uuidv4()}`;
     const result2 = await dataService.createTransaction(client2, email);
     expect(result2).toBeTruthy();
@@ -256,23 +254,23 @@ describe('dataservice', () => {
     expect(transact1).toBeTruthy();
     expect(transact1.transactionId).toMatch(transactionId1);
     expect(transact1.client).toMatch(client1);
-
+    
     const transact2 = await dataService.readTransaction(client2, transactionId2);
     expect(transact2).toBeTruthy();
     expect(transact2.transactionId).toMatch(transactionId2);
     expect(transact2.client).toMatch(client2);
-  
+    
     const messageId1 = transact1.messages[0].messageId;
     const messageId2 = transact2.messages[0].messageId;
-  
+    
     const message1 = await dataService.readMessage(client1, messageId1);
     expect(message1).toBeTruthy();
     expect(message1.messageId).toMatch(messageId1);
-  
+    
     const message2 = await dataService.readMessage(client2, messageId2);
     expect(message2).toBeTruthy();
     expect(message2.messageId).toMatch(messageId2);
-  
+    
     const newStatus = 'a whole new status';
     const updated1 = await dataService.updateStatus(client1, messageId1, newStatus);
     expect(updated1.statusHistory).toHaveLength(2);
@@ -282,36 +280,48 @@ describe('dataservice', () => {
     expect(updated2.statusHistory).toHaveLength(2);
     expect(updated2.queueHistory).toHaveLength(1);
     
-    const content1 = await dataService.deleteContentEmail(client1, messageId1);
-    expect(content1.content.email).toBeFalsy();
-  
-    const content2 = await dataService.deleteContentEmail(client2, messageId2);
-    expect(content2.content.email).toBeFalsy();
-  
-    const smtp1 = await dataService.updateContentSendResult(client1, messageId1, {smtpMsgId: uuidv4(), response: 'response'});
-    expect(smtp1.content.sendResult).toBeTruthy();
-  
-    const smpt2 = await dataService.updateContentSendResult(client2, messageId2, {smtpMsgId: uuidv4(), response: 'response'});
-    expect(smpt2.content.sendResult).toBeTruthy();
-  
+    const content1 = await dataService.deleteMessageEmail(client1, messageId1);
+    expect(content1.email).toBeFalsy();
+    
+    const content2 = await dataService.deleteMessageEmail(client2, messageId2);
+    expect(content2.email).toBeFalsy();
+    
+    const smtp1 = await dataService.updateMessageSendResult(client1, messageId1, {
+      smtpMsgId: uuidv4(),
+      response: 'response'
+    });
+    expect(smtp1.sendResult).toBeTruthy();
+    
+    const smpt2 = await dataService.updateMessageSendResult(client2, messageId2, {
+      smtpMsgId: uuidv4(),
+      response: 'response'
+    });
+    expect(smpt2.sendResult).toBeTruthy();
+    
     await expect(dataService.readTransaction(client1, transactionId2)).rejects.toThrow();
     await expect(dataService.readTransaction(client2, transactionId1)).rejects.toThrow();
     
     await expect(dataService.readMessage(client1, messageId2)).rejects.toThrow();
     await expect(dataService.readMessage(client2, messageId1)).rejects.toThrow();
-  
+    
     await expect(dataService.updateStatus(client1, messageId2, 'bad')).rejects.toThrow();
     await expect(dataService.updateStatus(client2, messageId1, 'bad')).rejects.toThrow();
-  
-    await expect(dataService.deleteContentEmail(client1, messageId2)).rejects.toThrow();
-    await expect(dataService.deleteContentEmail(client2, messageId1)).rejects.toThrow();
-  
-    await expect(dataService.updateContentSendResult(client1, messageId2, {smtpMsgId: uuidv4(), response: 'response'})).rejects.toThrow();
-    await expect(dataService.updateContentSendResult(client2, messageId1, {smtpMsgId: uuidv4(), response: 'response'})).rejects.toThrow();
-  
+    
+    await expect(dataService.deleteMessageEmail(client1, messageId2)).rejects.toThrow();
+    await expect(dataService.deleteMessageEmail(client2, messageId1)).rejects.toThrow();
+    
+    await expect(dataService.updateMessageSendResult(client1, messageId2, {
+      smtpMsgId: uuidv4(),
+      response: 'response'
+    })).rejects.toThrow();
+    await expect(dataService.updateMessageSendResult(client2, messageId1, {
+      smtpMsgId: uuidv4(),
+      response: 'response'
+    })).rejects.toThrow();
+    
     deleteTransactionsByClient(client1);
     deleteTransactionsByClient(client2);
-  
+    
   });
   
   it('should error out on find message with bad id', async () => {
@@ -355,36 +365,39 @@ describe('dataservice', () => {
     await expect(dataService.readTransaction(client, transactionId)).rejects.toThrow();
   });
   
-  it('should set content email to null', async () => {
+  it('should set message email to null', async () => {
     const email = emails[0];
     const result = await dataService.createTransaction(CLIENT, email);
     expect(result).toBeTruthy();
-    expect(result.messages[0].content.email).toBeTruthy();
+    expect(result.messages[0].email).toBeTruthy();
     
-    const msg = await dataService.deleteContentEmail(CLIENT, result.messages[0].messageId);
-    expect(msg.content.email).toBeFalsy();
+    const msg = await dataService.deleteMessageEmail(CLIENT, result.messages[0].messageId);
+    expect(msg.email).toBeFalsy();
     
   });
   
-  it('should error set content email to null no message id.', async () => {
-    await expect(dataService.deleteContentEmail(CLIENT,undefined)).rejects.toThrow();
+  it('should error set message email to null no message id.', async () => {
+    await expect(dataService.deleteMessageEmail(CLIENT, undefined)).rejects.toThrow();
   });
   
-  it('should set content send result to value', async () => {
+  it('should set message send result to value', async () => {
     const email = emails[0];
     const result = await dataService.createTransaction(CLIENT, email);
     expect(result).toBeTruthy();
-    expect(result.messages[0].content.email).toBeTruthy();
+    expect(result.messages[0].email).toBeTruthy();
     
-    const msg = await dataService.updateContentSendResult(CLIENT, result.messages[0].messageId, {smtpMsgId: uuidv4(), response: 'some response'});
-    expect(msg.content.sendResult).toBeTruthy();
-    expect(msg.content.sendResult.smtpMsgId).toBeTruthy();
-    expect(msg.content.sendResult.response).toBeTruthy();
+    const msg = await dataService.updateMessageSendResult(CLIENT, result.messages[0].messageId, {
+      smtpMsgId: uuidv4(),
+      response: 'some response'
+    });
+    expect(msg.sendResult).toBeTruthy();
+    expect(msg.sendResult.smtpMsgId).toBeTruthy();
+    expect(msg.sendResult.response).toBeTruthy();
     
   });
   
-  it('should error set content result to null no message id.', async () => {
-    await expect(dataService.updateContentSendResult(CLIENT, undefined)).rejects.toThrow();
+  it('should error set message result to null no message id.', async () => {
+    await expect(dataService.updateMessageSendResult(CLIENT, undefined)).rejects.toThrow();
   });
   
 });

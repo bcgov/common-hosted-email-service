@@ -11,7 +11,6 @@ class Message extends UpdatedAt(Model) {
   }
   
   static relationMappings () {
-    const Content = require('./content');
     const Queue = require('./queue');
     const Status = require('./status');
     const Trxn = require('./trxn');
@@ -30,14 +29,6 @@ class Message extends UpdatedAt(Model) {
         join: {
           from: 'message.messageId',
           to: 'status.messageId'
-        }
-      },
-      content: {
-        relation: Model.HasOneRelation,
-        modelClass: Content,
-        join: {
-          from: 'message.messageId',
-          to: 'content.messageId'
         }
       },
       queueHistory: {
