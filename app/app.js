@@ -42,23 +42,23 @@ log.debug('Config', utils.prettyStringify(config));
 if (process.env.NODE_ENV !== 'test') {
   // Add Morgan endpoint logging
   app.use(morgan(config.get('server.morganFormat')));
-  
+
   // Check database connection and exit if unsuccessful
   (async () => {
     try {
       const dataConnection = new DataConnection();
       const dataConnectionOk = await dataConnection.checkConnection();
-      
+
       const queueConnection = new QueueConnection();
       const queueConnectionOk = await queueConnection.checkConnection();
       state.isRedisConnected = queueConnectionOk;
-      
+
       let emailConnectionOk = true;
       if (process.env.NODE_ENV == 'production') {
         const emailConnection = new EmailConnection();
         emailConnectionOk = await emailConnection.checkConnection();
       }
-      
+
       if (dataConnectionOk && queueConnectionOk && emailConnectionOk) {
         // listen on the queue connection...
         queueConnection.queue.process(QueueListener.onProcess);
@@ -109,7 +109,7 @@ app.use((err, _req, res, _next) => {
   if (err.stack) {
     log.error(err.stack);
   }
-  
+
   if (err instanceof Problem) {
     err.send(res);
   } else {
