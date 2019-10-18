@@ -10,8 +10,8 @@
     "start": "node ./bin/www",
     "lint": "./node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
     "lint:fix": "./node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
-    "test": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns '<rootDir>/tests/integration'",
-    "test:integration": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns '<rootDir>/tests/unit' --collectCoverage false",
+    "test": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns '/tests/integration'",
+    "test:integration": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns '/tests/unit' --collectCoverage false",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
     "purge": "rm -rf ./node_modules",
@@ -31,7 +31,6 @@
     "bytes": "^3.1.0",
     "compression": "^1.7.4",
     "config": "^3.2.3",
-    "eslint": "^6.5.1",
     "express": "^4.17.1",
     "keycloak-connect": "^7.0.0",
     "knex": "^0.19.5",
@@ -47,10 +46,10 @@
     "validator": "^11.1.0"
   },
   "devDependencies": {
+    "eslint": "^6.5.1",
     "jest": "^24.9.0",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^1.19.3",
-    "sqlite3": "^4.1.0",
     "supertest": "^4.0.2"
   },
   "eslintConfig": {

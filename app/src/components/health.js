@@ -4,7 +4,6 @@ const EmailConnection = require('../services/emailConn');
 
 const checks = {
   /** Checks the connectivity of the SMTP host
-   *  @param {string} host The SMTP host endpoint
    *  @returns A result object
    */
   getSmtpStatus: async () => {
