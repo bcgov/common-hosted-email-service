@@ -5,11 +5,11 @@ class Trxn extends UpdatedAt(Model) {
   static get tableName () {
     return 'trxn';
   }
-  
+
   static get idColumn () {
     return 'transactionId';
   }
-  
+
   static relationMappings () {
     const Message = require('./message');
     return {
@@ -23,7 +23,7 @@ class Trxn extends UpdatedAt(Model) {
       }
     };
   }
-  
+
 }
 
 module.exports = Trxn;

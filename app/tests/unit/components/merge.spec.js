@@ -55,13 +55,13 @@ describe('renderMerge', () => {
   const context = {
     foo: 'test'
   };
-  
+
   it('should yield a rendered merge string', () => {
     const result = merge.renderMerge(str, context);
     expect(result).toBeTruthy();
     expect(result).toMatch('Hello test');
   });
-  
+
   it('should throw an error on an unrecognized dialect', () => {
     const dialect = 'badDialect';
     const result = () => merge.renderMerge(str, context, dialect);

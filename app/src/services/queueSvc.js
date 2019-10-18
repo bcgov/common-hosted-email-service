@@ -32,14 +32,14 @@ class QueueService {
     this.dataService = new DataService();
     this.emailService = new EmailService();
   }
-  
+
   /** @function connection
    *  Gets the current QueueConnection
    */
   get connection () {
     return this._connection;
   }
-  
+
   /** @function connection
    *  Sets the current QueueConnection
    *  also sets the internal queue
@@ -49,14 +49,14 @@ class QueueService {
     this._connection = v;
     this._queue = this._connection.queue;
   }
-  
+
   /** @function dataService
    *  Gets the current DataService
    */
   get dataService () {
     return this._dataService;
   }
-  
+
   /** @function dataService
    *  Sets the current DataService
    *  @param {object} v - the DataService
@@ -64,14 +64,14 @@ class QueueService {
   set dataService (v) {
     this._dataService = v;
   }
-  
+
   /** @function emailService
    *  Gets the current DataService
    */
   get emailService () {
     return this._emailService;
   }
-  
+
   /** @function emailService
    *  Sets the current DataService
    *  @param {object} v - the EmailService
@@ -79,14 +79,14 @@ class QueueService {
   set emailService (v) {
     this._emailService = v;
   }
-  
+
   /** @function queue
    *  Gets the current QueueConnection's queue
    */
   get queue () {
     return this._queue;
   }
-  
+
   /** @function enqueue
    *  Adds a new job to the queue.
    *  Job contains enough information for the service to read and update data required for the job.
@@ -102,13 +102,13 @@ class QueueService {
     }, Object.assign(opts, {
       jobId: message.messageId
     }));
-    
+
     await this.dataService.updateStatus(client, message.messageId, 'enqueued');
-    
+
     log.info('enqueue', `Job ${message.messageId} enqueued`);
     return job.id;
   }
-  
+
   /** @function updateContent
    *  Update the persisted content (email message) for a Message.
    *  When jobs are completed or failed/errored, we want to remove the email content.
@@ -121,7 +121,7 @@ class QueueService {
     }
     await job.update(null); // Scrub out client and message id
   }
-  
+
   /** @function updateStatus
    *  Update the persisted status for a Message
    *
@@ -134,7 +134,7 @@ class QueueService {
       await this.dataService.updateStatus(job.data.client, job.data.messageId, status, description);
     }
   }
-  
+
   /** @function sendMessage
    *  Get the persisted email content and send it through the EmailService.
    *

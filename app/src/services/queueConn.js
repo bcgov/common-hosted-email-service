@@ -30,14 +30,14 @@ class QueueConnection {
     };
     this.queue = new Bull('ches', configuration);
   }
-  
+
   /** @function queue
    *  Gets the underlying Bull queue
    */
   get queue () {
     return this._queue;
   }
-  
+
   /** @function queue
    *  Sets the underlying Bull queue
    *  Also sets the globalQueue object
@@ -48,14 +48,14 @@ class QueueConnection {
     this._connected = false;
     globalQueue = this._queue;
   }
-  
+
   /** @function connected
    *  True or false if connected.
    */
   get connected () {
     return this._connected;
   }
-  
+
   /** @function close
    *  Will close the globally stored QueueConnection
    */
@@ -65,11 +65,11 @@ class QueueConnection {
         globalQueue.close();
         // eslint-disable-next-line no-empty
       } catch (e) {
-      
+
       }
     }
   }
-  
+
   /** @function checkConnection
    *  Checks the current QueueConnection and returns true if queue is connected.
    */

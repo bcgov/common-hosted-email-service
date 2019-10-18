@@ -16,7 +16,7 @@ const QueueService = require('./queueSvc');
 let queueService;
 
 class QueueListener {
-  
+
   /**
    * @function queueService
    * Get the default QueueService.
@@ -28,7 +28,7 @@ class QueueListener {
     }
     return queueService;
   }
-  
+
   /** Cleanup message data upon job completion
    *  @param {object} job A Bull Queue Job object
    */
@@ -37,7 +37,7 @@ class QueueListener {
     await QueueListener.queueService.updateStatus(job, 'completed');
     await QueueListener.queueService.updateContent(job);
   }
-  
+
   /** Log the job error upon encountering an error
    *  @param {object} job A Bull Queue Job object
    */
@@ -49,7 +49,7 @@ class QueueListener {
       log.error('queue', 'A Job failed');
     }
   }
-  
+
   /** Cleanup message data upon job failure
    *  @param {object} job A Bull Queue Job object
    */
@@ -58,13 +58,13 @@ class QueueListener {
     await QueueListener.queueService.updateStatus(job, 'failed', job.failedReason);
     await QueueListener.queueService.updateContent(job);
   }
-  
+
   /** Execute the message job task
    *  @param {object} job A Bull Queue Job object
    */
   static async onProcess (job) {
     log.info('queue', `Job ${job.id} is processing...`);
-    
+
     try {
       if (job.data.messageId && job.data.client) {
         await QueueListener.queueService.updateStatus(job, 'processing');
@@ -84,7 +84,7 @@ class QueueListener {
       await job.finished();
     }
   }
-  
+
 }
 
 module.exports = QueueListener;

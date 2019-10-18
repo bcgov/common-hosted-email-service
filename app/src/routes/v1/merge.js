@@ -9,7 +9,7 @@ const ChesService = require('../../services/chesSvc');
 mergeRouter.post('/', validateMerge, async (req, res, next) => {
   try {
     const ethereal = (req.query.devMode !== undefined);
-    
+
     const chesService = new ChesService();
     const result = await chesService.sendEmailMerge(req.authorizedParty, req.body, ethereal);
     res.status(201).json(result);

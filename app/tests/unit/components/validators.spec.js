@@ -78,7 +78,7 @@ describe('validatorUtils.isEmailList', () => {
   });
 
   it('should return false for non-array value', () => {
-    const result = validatorUtils.isEmailList({field: 'value'});
+    const result = validatorUtils.isEmailList({ field: 'value' });
 
     expect(result).toBeFalsy();
   });
@@ -142,7 +142,7 @@ describe('validatorUtils.isInt', () => {
   });
 
   it('should return false for an array', () => {
-    const result = validatorUtils.isInt([{value: 123}]);
+    const result = validatorUtils.isInt([{ value: 123 }]);
 
     expect(result).toBeFalsy();
   });
@@ -157,7 +157,6 @@ describe('validatorUtils.isInt', () => {
   });
 
 });
-
 
 describe('validatorUtils.isString', () => {
 
@@ -183,13 +182,13 @@ describe('validatorUtils.isString', () => {
   });
 
   it('should return false for a non-string object ', () => {
-    const result = validatorUtils.isString({value: 'string'});
+    const result = validatorUtils.isString({ value: 'string' });
 
     expect(result).toBeFalsy();
   });
 
   it('should return false for an array', () => {
-    const result = validatorUtils.isString([{value: 'string'}]);
+    const result = validatorUtils.isString([{ value: 'string' }]);
 
     expect(result).toBeFalsy();
   });
@@ -250,7 +249,7 @@ describe('attachment.content', () => {
   });
 
   it('should return false for object argument', () => {
-    const value = {value: 123};
+    const value = { value: 123 };
     const result = validators.attachment.content(value);
     expect(result).toBeFalsy();
   });
@@ -394,7 +393,7 @@ describe('attachment.filename', () => {
   });
 
   it('should return false for object argument', () => {
-    const value = {value: 123};
+    const value = { value: 123 };
     const result = validators.attachment.filename(value);
     expect(result).toBeFalsy();
   });
@@ -581,7 +580,7 @@ describe('context.delayTS', () => {
   });
 
   it('should return false for object argument', () => {
-    const value = {value: 123};
+    const value = { value: 123 };
     const result = validators.context.delayTS(value);
     expect(result).toBeFalsy();
   });
@@ -614,7 +613,11 @@ describe('context.keys', () => {
   });
 
   it('should return true for valid context', () => {
-    const value = {'test': '123', 'this_is_a_valid_key_from_json_123': 'pass', 'subObject': {'good': 'good key name'}};
+    const value = {
+      'test': '123',
+      'this_is_a_valid_key_from_json_123': 'pass',
+      'subObject': { 'good': 'good key name' }
+    };
     const result = validators.context.keys(value);
     expect(result).toBeTruthy();
   });
@@ -623,7 +626,7 @@ describe('context.keys', () => {
     const value = {
       'test': '123',
       'this_is_a_valid_key_from_json_123': 'pass',
-      'subObject': {'good': 'good key name'},
+      'subObject': { 'good': 'good key name' },
       'a1_&': 'bad key'
     };
     const result = validators.context.keys(value);
@@ -634,7 +637,7 @@ describe('context.keys', () => {
     const value = {
       'test': '123',
       'this_is_a_valid_key_from_json_123': 'pass',
-      'subObject': {'good': 'good key name', 'a1_&': 'bad key'}
+      'subObject': { 'good': 'good key name', 'a1_&': 'bad key' }
     };
     const result = validators.context.keys(value);
     expect(result).toBeFalsy();
@@ -795,7 +798,7 @@ describe('message.body', () => {
   });
 
   it('should return false for object argument', () => {
-    const value = {value: 123};
+    const value = { value: 123 };
     const result = validators.message.body(value);
     expect(result).toBeFalsy();
   });
@@ -933,7 +936,7 @@ describe('message.delayTS', () => {
   });
 
   it('should return false for object argument', () => {
-    const value = {value: 123};
+    const value = { value: 123 };
     const result = validators.message.delayTS(value);
     expect(result).toBeFalsy();
   });
@@ -1042,7 +1045,7 @@ describe('message.from', () => {
   });
 
   it('should return false for object', () => {
-    const value = {from: 'email@address.com'};
+    const value = { from: 'email@address.com' };
     const result = validators.message.from(value);
     expect(result).toBeFalsy();
   });
@@ -1146,7 +1149,7 @@ describe('message.subject', () => {
   });
 
   it('should return false for object argument', () => {
-    const value = {value: 123};
+    const value = { value: 123 };
     const result = validators.message.subject(value);
     expect(result).toBeFalsy();
   });
@@ -1253,12 +1256,13 @@ describe('attachments list', () => {
 
   it('should return empty error list for valid attachments', async () => {
     const obj = {
-      attachments: [{
-        filename: 'file.pdf',
-        encoding: 'base64',
-        contentType: 'application/pdf',
-        content: smallFile.content
-      }]
+      attachments: [
+        {
+          filename: 'file.pdf',
+          encoding: 'base64',
+          contentType: 'application/pdf',
+          content: smallFile.content
+        }]
     };
     const result = await validators.attachments(obj);
     expect(result.length).toBe(0);
@@ -1267,9 +1271,9 @@ describe('attachments list', () => {
   it('should return an error for each attachment that is too large', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content},
-        {filename: 'file1.pdf', encoding: 'base64', contentType: 'application/pdf', content: smallFile.content},
-        {filename: 'file2.pdf', encoding: 'base64', contentType: 'application/pdf', content: smallFile.content}
+        { filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content },
+        { filename: 'file1.pdf', encoding: 'base64', contentType: 'application/pdf', content: smallFile.content },
+        { filename: 'file2.pdf', encoding: 'base64', contentType: 'application/pdf', content: smallFile.content }
       ]
     };
     const result = await validators.attachments(obj, realSmallFile.size);
@@ -1279,7 +1283,7 @@ describe('attachments list', () => {
   it('should return an error when attachment filename key not provided', async () => {
     const obj = {
       attachments: [
-        {encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}
+        { encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content }
       ]
     };
     const result = await validators.attachments(obj);
@@ -1290,7 +1294,7 @@ describe('attachments list', () => {
   it('should return an error when attachment filename value is bad', async () => {
     const obj = {
       attachments: [
-        {filename: '', encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}
+        { filename: '', encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content }
       ]
     };
     const result = await validators.attachments(obj);
@@ -1301,7 +1305,12 @@ describe('attachments list', () => {
   it('should return an error when attachment encoding value is bad', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', encoding: 'base64xxx', contentType: 'application/pdf', content: realSmallFile.content}
+        {
+          filename: 'fileOk.pdf',
+          encoding: 'base64xxx',
+          contentType: 'application/pdf',
+          content: realSmallFile.content
+        }
       ]
     };
     const result = await validators.attachments(obj);
@@ -1312,7 +1321,7 @@ describe('attachments list', () => {
   it('should return no error when attachment encoding key not provided', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', contentType: 'application/pdf', content: realSmallFile.content}
+        { filename: 'fileOk.pdf', contentType: 'application/pdf', content: realSmallFile.content }
       ]
     };
     const result = await validators.attachments(obj);
@@ -1322,7 +1331,7 @@ describe('attachments list', () => {
   it('should return an error when attachment contentType value is bad', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', encoding: 'base64', contentType: 123, content: realSmallFile.content}
+        { filename: 'fileOk.pdf', encoding: 'base64', contentType: 123, content: realSmallFile.content }
       ]
     };
     const result = await validators.attachments(obj);
@@ -1333,7 +1342,7 @@ describe('attachments list', () => {
   it('should return no error when attachment contentType key not provided', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', encoding: 'base64', content: realSmallFile.content}
+        { filename: 'fileOk.pdf', encoding: 'base64', content: realSmallFile.content }
       ]
     };
     const result = await validators.attachments(obj);
@@ -1343,7 +1352,7 @@ describe('attachments list', () => {
   it('should return an error when attachment has no content', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf', content: undefined}
+        { filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf', content: undefined }
       ]
     };
     const result = await validators.attachments(obj, realSmallFile.size);
@@ -1354,7 +1363,7 @@ describe('attachments list', () => {
   it('should return an error when attachment content key not provided', async () => {
     const obj = {
       attachments: [
-        {filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf'}
+        { filename: 'fileOk.pdf', encoding: 'base64', contentType: 'application/pdf' }
       ]
     };
     const result = await validators.attachments(obj, realSmallFile.size);
@@ -1378,23 +1387,24 @@ describe('email message', () => {
     encoding: 'utf-8',
     priority: 'normal',
     tag: 'this is a good tag',
-    attachments: [{
-      filename: 'fileOk.pdf',
-      encoding: 'base64',
-      contentType: 'application/pdf',
-      content: realSmallFile.content
-    }]
+    attachments: [
+      {
+        filename: 'fileOk.pdf',
+        encoding: 'base64',
+        contentType: 'application/pdf',
+        content: realSmallFile.content
+      }]
   };
 
   it('should return empty error list for a complete and valid email message', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message has invalid attachment', async () => {
-    const obj = {...goodEmail};
-    obj.attachments = [{encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}];
+    const obj = { ...goodEmail };
+    obj.attachments = [{ encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content }];
 
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1403,7 +1413,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no from', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.from;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1411,7 +1421,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid from', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.from = 'not a good from';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1419,7 +1429,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no to', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.to;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1427,7 +1437,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid to', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.to = 'not a good from';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1435,14 +1445,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no cc', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.cc;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid cc', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.cc = 'not a good to';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1450,14 +1460,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no bcc', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.bcc;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid bcc', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.bcc = 'not a good bcc';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1465,7 +1475,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no subject', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.subject;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1473,7 +1483,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid subject', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.subject = 123;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1481,7 +1491,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no bodyType', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.bodyType;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1489,7 +1499,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid bodyType', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.bodyType = 'xhtmlx';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1497,7 +1507,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message no body', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.body;
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1505,7 +1515,7 @@ describe('email message', () => {
   });
 
   it('should return an error when email message invalid body', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.body = {};
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1513,14 +1523,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no encoding', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.encoding;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid encoding', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.encoding = 'not a good encoding';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1528,14 +1538,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message no priority', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.priority;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid priority', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.priority = 'not a good priority';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1543,14 +1553,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message has no tag', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.tag;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid tag', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.tag = ['not a good tag'];
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1558,14 +1568,14 @@ describe('email message', () => {
   });
 
   it('should not return an error when email message has no delayTS', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     delete obj.delayTS;
     const result = await validators.email(obj);
     expect(result.length).toBe(0);
   });
 
   it('should return an error when email message invalid delayTS', async () => {
-    const obj = {...goodEmail};
+    const obj = { ...goodEmail };
     obj.delayTS = 'not a good delayTS';
     const result = await validators.email(obj);
     expect(result.length).toBe(1);
@@ -1578,12 +1588,13 @@ describe('email merge', () => {
 
   const goodMergeObject = () => {
     return {
-      attachments: [{
-        filename: 'fileOk.pdf',
-        encoding: 'base64',
-        contentType: 'application/pdf',
-        content: realSmallFile.content
-      }],
+      attachments: [
+        {
+          filename: 'fileOk.pdf',
+          encoding: 'base64',
+          contentType: 'application/pdf',
+          content: realSmallFile.content
+        }],
       bodyType: 'text',
       body: 'This is the email body.  It is plain text',
       contexts: [
@@ -1596,7 +1607,7 @@ describe('email merge', () => {
             keyB: 'valueB',
             stringArray: ['a', 'b', 'c'],
             intArray: [1, 2, 3],
-            objArray: [{a: 1, b: 2, c: 3}],
+            objArray: [{ a: 1, b: 2, c: 3 }],
             subObject: {
               a: 1,
               b: 2,
@@ -1622,7 +1633,7 @@ describe('email merge', () => {
 
   it('should return an error when merge has invalid attachment', async () => {
     const obj = goodMergeObject();
-    obj.attachments = [{encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content}];
+    obj.attachments = [{ encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content }];
 
     const result = await validators.merge(obj);
     expect(result.length).toBe(1);

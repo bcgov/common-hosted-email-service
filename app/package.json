@@ -116,7 +116,7 @@
       "src/**/*.js",
       "!src/docs/*.*",
       "!src/middleware/*.*",
-      "!src/services/**.*",
+      "!src/services/*.*",
       "!src/services/migrations/*.",
       "!src/services/models/*.*"
     ],

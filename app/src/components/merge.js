@@ -12,7 +12,7 @@ const merge = {
       subject,
       ...partialTemplate
     } = template;
-    
+
     return contexts.map(entry => {
       return Object.assign({
         body: merge.renderMerge(body, entry.context),
@@ -25,7 +25,7 @@ const merge = {
       }, partialTemplate);
     });
   },
-  
+
   /** Applies the context onto the template based on the template dialect
    *  @param {string} template A template string
    *  @param {object} context A key/value object store for template population

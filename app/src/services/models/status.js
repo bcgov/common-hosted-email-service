@@ -4,11 +4,11 @@ class Status extends Model {
   static get tableName () {
     return 'status';
   }
-  
+
   static get idColumn () {
     return 'statusId';
   }
-  
+
   static relationMappings () {
     const Message = require('./message');
     return {
@@ -22,7 +22,7 @@ class Status extends Model {
       }
     };
   }
-  
+
 }
 
 module.exports = Status;

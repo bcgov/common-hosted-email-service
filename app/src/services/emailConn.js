@@ -29,14 +29,14 @@ class EmailConnection {
       }
     };
   }
-  
+
   /** @function configuration
    *  Gets the current configuration
    */
   get configuration () {
     return this._configuration;
   }
-  
+
   /** @function configuration
    *  Sets the current configuration
    *  @param {object} v - a node mailer transport configuration.
@@ -46,21 +46,21 @@ class EmailConnection {
     this._mailer = nodemailer.createTransport(this._configuration);
     this._connected = false;
   }
-  
+
   /** @function connected
    *  True or false if connected.
    */
   get connected () {
     return this._connected;
   }
-  
+
   /** @function mailer
    *  Get the current nodemailer transport
    */
   get mailer () {
     return this._mailer;
   }
-  
+
   /** @function host
    *  Get the current host name for the connection
    */
@@ -71,7 +71,7 @@ class EmailConnection {
       return 'unknown';
     }
   }
-  
+
   /** @function getEtherealConnection
    *  Gets a connection to Ethereal
    *  Should only be used for local development/testing
@@ -94,7 +94,7 @@ class EmailConnection {
     }
     return etherealConnection;
   }
-  
+
   /** @function getTestMessageUrl
    *  Gets a test url for Ethereal
    *  Should only be used for local development/testing
@@ -105,10 +105,10 @@ class EmailConnection {
       return nodemailer.getTestMessageUrl(info);
       // eslint-disable-next-line no-empty
     } catch (err) {
-    
+
     }
   }
-  
+
   /** @function checkConnection
    *  Checks the current node mailer connection.
    */
@@ -116,7 +116,7 @@ class EmailConnection {
     this._connected = await this._mailer.verify();
     return this._connected;
   }
-  
+
 }
 
 module.exports = EmailConnection;

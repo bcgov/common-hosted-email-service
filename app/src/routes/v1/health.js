@@ -5,7 +5,7 @@ const checkComponent = require('../../components/health');
 /** Returns the status of correspondent APIs */
 checksRouter.get('/', async (_req, res, next) => {
   const statuses = await checkComponent.getStatus();
-  
+
   if (statuses instanceof Array) {
     res.status(200).json({
       endpoints: statuses

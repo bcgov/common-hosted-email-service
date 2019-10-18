@@ -6,7 +6,7 @@ const moment = require('moment');
  */
 
 class Transformer {
-  
+
   /** @function transaction
    *  @param {object} trxn - a Fully inflated Trxn
    *
@@ -27,7 +27,7 @@ class Transformer {
     });
     return result;
   }
-  
+
   /** @function status
    *  @param {object} msg - a Fully inflated Message
    *  @param {boolean} includeHistory - if true, return the status history array.

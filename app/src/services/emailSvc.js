@@ -24,14 +24,14 @@ class EmailService {
   constructor () {
     this.connection = new EmailConnection();
   }
-  
+
   /** @function connection
    *  Gets the current EmailConnection
    */
   get connection () {
     return this._connection;
   }
-  
+
   /** @function connection
    *  Sets the current EmailConnection
    *  @param {object} v - an EmailConnection
@@ -39,7 +39,7 @@ class EmailService {
   set connection (v) {
     this._connection = v;
   }
-  
+
   /** Create a nodemailer envelope from a Message
    *  @param {object} message - a Message (email)
    *  @returns {object} - the nodemailer message
@@ -54,7 +54,7 @@ class EmailService {
     delete envelope['bodyType'];
     return envelope;
   }
-  
+
   /** Delivers mail object through specified mailer
    *  Uses SMTP by default
    *  @param {object} mailer - a nodemailer transport
@@ -63,10 +63,10 @@ class EmailService {
   async sendMail (mailer, message) {
     try {
       const envelope = this.createEnvelope(message);
-      
+
       // Send mail with defined transport object
       const info = await mailer.sendMail(envelope);
-      
+
       log.debug('sendMail', info);
       return info;
     } catch (error) {
@@ -74,7 +74,7 @@ class EmailService {
       throw error;
     }
   }
-  
+
   /** Creates an email and sends it...
    *  Uses SMTP by default
    *  @param {object} message An email message object

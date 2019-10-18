@@ -25,21 +25,21 @@ class DataConnection {
   constructor () {
     this.knex = Knex(knexfile);
   }
-  
+
   /** @function connected
    *  True or false if connected.
    */
   get connected () {
     return this._connected;
   }
-  
+
   /** @function knex
    *  Gets the current knex binding
    */
   get knex () {
     return this._knex;
   }
-  
+
   /** @function knex
    *  Sets the current knex binding
    *  @param {object} v - a Knex object.
@@ -48,7 +48,7 @@ class DataConnection {
     this._knex = v;
     this._connected = false;
   }
-  
+
   /** @function checkConnection
    *  Checks the current knex connection.
    *  Will check for expected schema tables and binds this knex to the Objection Models.
@@ -81,7 +81,7 @@ class DataConnection {
     this._connected = connectOk && schemaOk && modelsOk;
     return this._connected;
   }
-  
+
 }
 
 module.exports = DataConnection;

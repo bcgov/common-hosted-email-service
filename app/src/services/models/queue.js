@@ -4,11 +4,11 @@ class Queue extends Model {
   static get tableName () {
     return 'queue';
   }
-  
+
   static get idColumn () {
     return 'queueId';
   }
-  
+
   static relationMappings () {
     const Message = require('./message');
     return {
@@ -22,7 +22,7 @@ class Queue extends Model {
       }
     };
   }
-  
+
 }
 
 module.exports = Queue;

@@ -38,11 +38,11 @@ const createMessage = async (transactionId, msg, db) => {
     email: msg,
     delayTimestamp: msg.delayTS
   });
-  
+
   await Status.query(db).insert({
     messageId: messageObj.messageId
   });
-  
+
   return messageObj;
 };
 
@@ -59,7 +59,7 @@ const queueToBusinessStatus = (queueStatus) => {
 };
 
 class DataService {
-  
+
   /**
    * Creates a new DataService with default connection.
    * @class
@@ -67,14 +67,14 @@ class DataService {
   constructor () {
     this.connection = new DataConnection();
   }
-  
+
   /** @function connection
    *  Gets the current DataConnection
    */
   get connection () {
     return this._connection;
   }
-  
+
   /** @function connection
    *  Sets the current DataConnection
    *  @param {object} v - an DataConnection
@@ -82,7 +82,7 @@ class DataService {
   set connection (v) {
     this._connection = v;
   }
-  
+
   /** @function createTransaction
    *  Creates a Trxn (transaction) record with associated messages
    *
@@ -98,12 +98,12 @@ class DataService {
     try {
       trx = await transaction.start(Trxn.knex());
       const transactionId = uuidv4();
-      
+
       await Trxn.query(trx).insert({
         transactionId: transactionId,
         client: client
       });
-      
+
       if (Array.isArray(msg)) {
         await Promise.all(msg.map(m => {
           return createMessage(transactionId, m, trx);
@@ -111,9 +111,9 @@ class DataService {
       } else {
         await createMessage(transactionId, msg, trx);
       }
-      
+
       await trx.commit();
-      
+
       return await this.readTransaction(client, transactionId);
     } catch (err) {
       log.error(`Error creating transaction record: ${err.message}. Rolling back,..`);
@@ -122,7 +122,7 @@ class DataService {
       throw err;
     }
   }
-  
+
   /** @function deleteMessageEmail
    *  Deletes the email data from a message.
    *  We don't want to retain any private-ish data longer than required to perform our task.
@@ -137,15 +137,15 @@ class DataService {
     try {
       // first query for message, throw not found if client/message not exist...
       await this.readMessage(client, messageId);
-      
+
       trx = await transaction.start(Message.knex());
       const cItems = await Message.query(trx)
         .patch({ email: null })
         .where('messageId', messageId);
       log.info(`Updated ${cItems} message email records...`);
-      
+
       await trx.commit();
-      
+
       return this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating message (email) record: ${err.message}. Rolling back,..`);
@@ -154,11 +154,11 @@ class DataService {
       throw err;
     }
   }
-  
+
   // find transactions (by id, by client, by message state)
   // find messages (by id, by client, by message state)
   // find messages (by id, by client, by message state)
-  
+
   /** @function readMessage
    *  Read a Message from the db
    *
@@ -171,7 +171,7 @@ class DataService {
     const trxnQuery = Trxn.query()
       .select('transactionId')
       .where('client', client);
-    
+
     return Message.query()
       .findById(messageId)
       .whereIn('transactionId', trxnQuery)
@@ -187,7 +187,7 @@ class DataService {
         builder.orderBy('createdAt', 'desc');
       }).throwIfNotFound();
   }
-  
+
   /** @function readTransaction
    *  Read a Transaction (Trxn) from the db
    *
@@ -214,7 +214,7 @@ class DataService {
         builder.orderBy('createdAt', 'desc');
       }).throwIfNotFound();
   }
-  
+
   /** @function updateMessageSendResult
    *  Updates the message's send result field.
    *  The send result is populated once the email has been sent.
@@ -230,15 +230,15 @@ class DataService {
     try {
       // first query for message, throw not found if client/message not exist...
       await this.readMessage(client, messageId);
-      
+
       trx = await transaction.start(Message.knex());
       const cItems = await Message.query(trx)
         .patch({ sendResult: sendResult })
         .where('messageId', messageId);
       log.info(`Updated ${cItems} message (result) records...`);
-      
+
       await trx.commit();
-      
+
       return await this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating message send result record: ${err.message}. Rolling back,..`);
@@ -247,7 +247,7 @@ class DataService {
       throw err;
     }
   }
-  
+
   /** @function updateStatus
    *  Updates the message's current status.
    *  Add a new queue processing status (Queue) record.
@@ -265,9 +265,9 @@ class DataService {
     try {
       // first query for message, throw not found if client/message not exist...
       const msg = await this.readMessage(client, messageId);
-      
+
       trx = await transaction.start(Message.knex());
-      
+
       const businessStatus = queueToBusinessStatus(status);
       if (msg.status !== businessStatus) {
         // we are changing business statuses... so update and add new status history
@@ -278,16 +278,16 @@ class DataService {
           description: description
         });
       }
-      
+
       // always add the queue status...
       await Queue.query(trx).insert({
         messageId: messageId,
         status: status,
         description: description
       });
-      
+
       await trx.commit();
-      
+
       return await this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating message statuses record: ${err.message}. Rolling back,..`);

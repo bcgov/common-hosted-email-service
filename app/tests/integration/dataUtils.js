@@ -19,15 +19,15 @@ async function deleteTransactionsByClient (client) {
   let trx;
   try {
     trx = await transaction.start(Trxn.knex());
-    
+
     const trxnQuery = Trxn.query(trx)
       .select('transactionId')
       .where('client', 'like', `%${client}%`);
-    
+
     const msgsQuery = Message.query(trx)
       .select('messageId')
       .whereIn('transactionId', trxnQuery);
-    
+
     const qItems = await Queue.query(trx).delete().whereIn('messageId', msgsQuery);
     log.info(`Deleted ${qItems} queue records...`);
     const sItems = await Status.query(trx).delete().whereIn('messageId', msgsQuery);
@@ -36,7 +36,7 @@ async function deleteTransactionsByClient (client) {
     log.info(`Deleted ${mItems} message records...`);
     const tItems = await Trxn.query(trx).delete().where('client', 'like', `%${client}%`);
     log.info(`Deleted ${tItems} transaction records...`);
-    
+
     await trx.commit();
   } catch (err) {
     log.error(`Error deleting transaction records: ${err.message}. Rolling back,..`);

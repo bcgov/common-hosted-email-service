@@ -5,11 +5,11 @@ class Message extends UpdatedAt(Model) {
   static get tableName () {
     return 'message';
   }
-  
+
   static get idColumn () {
     return 'messageId';
   }
-  
+
   static relationMappings () {
     const Queue = require('./queue');
     const Status = require('./status');
@@ -39,7 +39,7 @@ class Message extends UpdatedAt(Model) {
           to: 'queue.messageId'
         }
       }
-      
+
     };
   }
 }
