@@ -117,7 +117,7 @@
       "!src/docs/*.*",
       "!src/middleware/*.*",
       "!src/services/*.*",
-      "!src/services/migrations/*.",
+      "!src/services/migrations/*.*",
       "!src/services/models/*.*"
     ],
     "testResultsProcessor": "jest-sonar-reporter"
