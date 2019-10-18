@@ -1,45 +1,95 @@
+const Problem = require('api-problem');
 const request = require('supertest');
 
 const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/status');
-const statusComponent = require('../../../../src/components/status');
-
-jest.mock('bull');
 
 // Simple Express Server
 const basePath = '/api/v1/status';
 const app = helper.expressHelper(basePath, router);
 
-const id = 'id';
+const mockNotFound = jest.fn(() => {
+  throw new Problem(404);
+});
+
+jest.mock('../../../../src/services/chesSvc', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      getStatus: async (client, msgId, includeHistory) => {
+        if (msgId === 'notfound') {
+          mockNotFound();
+        }
+        const result = {
+          'msgId': msgId,
+          'delayTS': null,
+          'status': 'completed',
+          'updatedAt': 1571103671925,
+          'statuses': [
+            {
+              'status': 'completed',
+              'description': null,
+              'createdAt': 1571103671920
+            },
+            {
+              'status': 'delivered',
+              'description': null,
+              'createdAt': 1571103671898
+            },
+            {
+              'status': 'processing',
+              'description': null,
+              'createdAt': 1571103671680
+            },
+            {
+              'status': 'enqueued',
+              'description': null,
+              'createdAt': 1571103671672
+            },
+            {
+              'status': 'accepted',
+              'description': null,
+              'createdAt': 1571103671565
+            }
+          ]
+        };
+        if (!includeHistory) {
+          delete result.statuses;
+        }
+        return result;
+      }
+    };
+  });
+});
 
 describe(`POST ${basePath}/:msgId`, () => {
-  let spy;
-
-  beforeEach(() => {
-    spy = jest.spyOn(statusComponent, 'getMessageId');
-  });
-
-  afterEach(() => {
-    spy.mockRestore();
-  });
 
   it('should respond with the state of a message', async () => {
-    spy.mockResolvedValue('something');
-
+    const id = 'abcdefghi';
     const response = await request(app).get(`${basePath}/${id}`);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeTruthy();
-    expect(spy).toHaveBeenCalled();
+    expect(response.body.msgId).toMatch(id);
+    expect(response.body.status).toMatch('completed');
+    expect(response.body.statuses).toBeFalsy();
+
+  });
+
+  it('should respond with the state of a message and status history', async () => {
+    const id = 'abcdefghi';
+    const response = await request(app).get(`${basePath}/${id}?history=1`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toBeTruthy();
+    expect(response.body.msgId).toMatch(id);
+    expect(response.body.status).toMatch('completed');
+    expect(response.body.statuses).toHaveLength(5);
+
   });
 
   it('should respond with a not found error', async () => {
-    spy.mockResolvedValue(undefined);
-
+    const id = 'notfound';
     const response = await request(app).get(`${basePath}/${id}`);
-
     expect(response.statusCode).toBe(404);
-    expect(response.body).toBeTruthy();
-    expect(spy).toHaveBeenCalled();
   });
 });

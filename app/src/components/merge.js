@@ -1,49 +1,6 @@
 const nunjucks = require('nunjucks');
 
-const email = require('./email');
-const queue = require('./queue');
-const utils = require('./utils');
-
 const merge = {
-  /** Transforms a template into an array of email messages
-   *  and sends it to the Ethereal fake SMTP server for viewing
-   *  @param {object} template A mail merge template
-   *  @returns {string[]} An array of generated Ethereal email urls
-   */
-  mergeMailEthereal: async template => {
-    const contexts = merge.mergeTemplate(template);
-
-    // Send all mail messages with defined transport object
-    const results = await Promise.all(contexts.map(context => {
-      // Remove delay as we do not use the queue for Ethereal messages
-      delete context.delayTS;
-      return email.sendMailEthereal(context);
-    }));
-
-    return results;
-  },
-
-  /** Transforms a template into an array of email messages
-   *  and sends it to the SMTP server
-   *  @param {object} template A mail merge template
-   *  @returns {object[]} An array of nodemailer result objects
-   */
-  mergeMailSmtp: async template => {
-    const contexts = merge.mergeTemplate(template);
-
-    // Send all mail messages with defined transport object
-    const results = await Promise.all(contexts.map(context => {
-      const { delayTS, ...message } = context;
-      return {
-        msgId: queue.enqueue(message, {
-          delay: delayTS ? utils.calculateDelayMS(delayTS) : undefined
-        })
-      };
-    }));
-
-    return results;
-  },
-
   /** Transforms a template into an array of email messages
    *  @param {object} template A mail merge template
    *  @returns {object[]} messages An array of message objects
@@ -64,7 +21,7 @@ const merge = {
         delayTS: entry.delayTS,
         subject: merge.renderMerge(subject, entry.context),
         tag: entry.tag,
-        to: entry.to,
+        to: entry.to
       }, partialTemplate);
     });
   },

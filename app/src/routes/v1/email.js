@@ -1,27 +1,16 @@
-const emailComponent = require('../../components/email');
-const queueComponent = require('../../components/queue');
-const utilsComponent = require('../../components/utils');
-
 const emailRouter = require('express').Router();
-const {
-  validateEmail
-} = require('../../middleware/validation');
+const { validateEmail } = require('../../middleware/validation');
+
+const ChesService = require('../../services/chesSvc');
 
 /** Email sending endpoint */
 emailRouter.post('/', validateEmail, async (req, res, next) => {
   try {
-    if (req.query.devMode) {
-      const result = await emailComponent.sendMailEthereal(req.body);
-      res.status(201).json(result);
-    } else {
-      const { delayTS, ...message } = req.body;
-      const result = queueComponent.enqueue(message, {
-        delay: delayTS ? utilsComponent.calculateDelayMS(delayTS) : undefined
-      });
-      res.status(201).json({
-        msgId: result
-      });
-    }
+    const ethereal = (req.query.devMode !== undefined);
+
+    const chesService = new ChesService();
+    const result = await chesService.sendEmail(req.authorizedParty, req.body, ethereal);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

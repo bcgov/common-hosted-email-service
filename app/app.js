@@ -6,9 +6,13 @@ const morgan = require('morgan');
 const Problem = require('api-problem');
 
 const keycloak = require('./src/components/keycloak');
-const { queue } = require('./src/components/queue');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
+
+const DataConnection = require('./src/services/dataConn');
+const EmailConnection = require('./src/services/emailConn');
+const QueueConnection = require('./src/services/queueConn');
+const QueueListener = require('./src/services/queueListener');
 
 const apiRouter = express.Router();
 const state = {
@@ -41,43 +45,35 @@ if (process.env.NODE_ENV !== 'test') {
 
   // Check database connection and exit if unsuccessful
   (async () => {
-    const { Client } = require('pg');
-
-    const client = new Client({
-      user: config.get('db.username'),
-      host: config.get('db.host'),
-      database: config.get('db.database'),
-      password: config.get('db.password')
-    });
     try {
-      await client.connect();
-      await client.query('SELECT 1+1 AS result');
-      log.info('Connected to Database');
-      client.end();
+      const dataConnection = new DataConnection();
+      const dataConnectionOk = await dataConnection.checkConnection();
+
+      const queueConnection = new QueueConnection();
+      const queueConnectionOk = await queueConnection.checkConnection();
+      state.isRedisConnected = queueConnectionOk;
+
+      let emailConnectionOk = true;
+      if (process.env.NODE_ENV == 'production') {
+        const emailConnection = new EmailConnection();
+        emailConnectionOk = await emailConnection.checkConnection();
+      }
+
+      if (dataConnectionOk && queueConnectionOk && emailConnectionOk) {
+        // listen on the queue connection...
+        queueConnection.queue.process(QueueListener.onProcess);
+        queueConnection.queue.on('completed', QueueListener.onCompleted);
+        queueConnection.queue.on('error', QueueListener.onError);
+        queueConnection.queue.on('failed', QueueListener.onFailed);
+      } else {
+        log.error(`Error initializing infrastructure: dataConnectionOk = ${dataConnectionOk}, queueConnectionOk = ${queueConnectionOk}, emailConnectionOk = ${emailConnectionOk}`);
+        shutdown();
+      }
     } catch (error) {
-      log.error('Unable to connect to Database...');
-      client.end();
+      log.error('Unable to connect to infrastructure...');
       shutdown();
     }
   })();
-
-  // Check Redis connection
-  (async (connected) => {
-    for (let i = 0; i < 5; i++) {
-      if (queue.clients[0].status === 'ready') {
-        state.isRedisConnected = true;
-        log.info('Connected to Redis');
-        return;
-      }
-
-      await utils.wait(1000);
-    }
-
-    if (!connected) {
-      log.error('Unable to connect to Redis...');
-      shutdown();
-    }
-  })(state.isRedisConnected);
 }
 
 // Use Keycloak OIDC Middleware
@@ -139,10 +135,10 @@ process.on('unhandledRejection', err => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-function shutdown() {
+function shutdown () {
   log.info('Received kill signal. Shutting down...');
   state.isShutdown = true;
-  queue.close();
+  QueueConnection.close();
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
 }

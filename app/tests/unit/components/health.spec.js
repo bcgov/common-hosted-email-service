@@ -1,48 +1,30 @@
-const config = require('config');
-const nodemailer = require('nodemailer');
-
 const helper = require('../../common/helper');
 const health = require('../../../src/components/health');
 
 helper.logHelper();
 
-jest.mock('nodemailer');
+jest.mock('../../../src/services/emailConn', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      checkConnection: async () => {
+        return true;
+      },
+      host: 'https://thehost.ca'
+    };
+  });
+});
 
 describe('getSmtpStatus', () => {
-  const invalidHost = 'bad.url.com';
-  const validHost = config.get('server.smtpHost');
-  const name = 'SMTP Endpoint';
 
-  afterEach(() => {
-    nodemailer.createTransport.mockReset();
-  });
+  it('should return host on valid connection', async () => {
 
-  it('should connect to SMTP server successfully', async () => {
-    nodemailer.createTransport.mockReturnValue({
-      verify: jest.fn().mockResolvedValue()
-    });
-
-    const result = await health.getSmtpStatus(validHost);
+    const result = await health.getSmtpStatus();
     expect(result).toBeTruthy();
-    expect(result.name).toMatch(name);
-    expect(result.endpoint).toMatch(`https://${validHost}`);
+    expect(result.name).toMatch('SMTP Endpoint');
+    expect(result.endpoint).toMatch('https://thehost.ca');
     expect(result.authenticated).toBeTruthy();
     expect(result.authorized).toBeTruthy();
     expect(result.healthCheck).toBeTruthy();
-  });
-
-  it('should error when connecting to non-existent SMTP server', async () => {
-    nodemailer.createTransport.mockReturnValue({
-      'verify': jest.fn().mockRejectedValue({'message': `getaddrinfo ENOTFOUND ${invalidHost}`})
-    });
-
-    const result = await health.getSmtpStatus(invalidHost);
-    expect(result).toBeTruthy();
-    expect(result.name).toMatch(name);
-    expect(result.endpoint).toMatch(`https://${invalidHost}`);
-    expect(result.authenticated).toBeFalsy();
-    expect(result.authorized).toBeFalsy();
-    expect(result.healthCheck).toBeFalsy();
   });
 });
 

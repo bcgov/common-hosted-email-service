@@ -1,6 +1,6 @@
 const config = require('config');
 const Problem = require('api-problem');
-const {validators} = require('../components/validators');
+const { validators } = require('../components/validators');
 
 const validateEmail = async (req, res, next) => {
   const errors = await validators.email(req.body, config.get('server.attachmentLimit'));
@@ -24,4 +24,4 @@ const validateMerge = async (req, res, next) => {
   next();
 };
 
-module.exports = {validateEmail, validateMerge};
+module.exports = { validateEmail, validateMerge };

@@ -1,19 +1,11 @@
 const helper = require('../../common/helper');
-const email = require('../../../src/components/email');
 const merge = require('../../../src/components/merge');
-const queue = require('../../../src/components/queue');
 
 helper.logHelper();
 
-jest.mock('bull');
-jest.mock('nodemailer');
-jest.mock('../../../src/components/queue');
-
 // Constant Fixtures
 const body = 'body {{ foo }}';
-const errorMessage = 'failed';
 const subject = 'subject {{ foo }}';
-const url = 'https://example.com';
 
 // Object Fixtures
 const contextEntry = {
@@ -32,10 +24,7 @@ const contextEntry = {
   },
   delayTS: 1
 };
-const info = {
-  messageId: '<b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>',
-  url: url
-};
+
 const template = {
   attachments: undefined,
   bodyType: 'text',
@@ -49,69 +38,6 @@ const template = {
   priority: 'normal',
   subject: subject
 };
-
-describe('mergeMailEthereal', () => {
-  let spy;
-
-  beforeEach(() => {
-    spy = jest.spyOn(email, 'sendMailEthereal');
-  });
-
-  afterEach(() => {
-    spy.mockRestore();
-  });
-
-  it('should yield an array of Ethereal email urls', async () => {
-    spy.mockResolvedValue(url);
-
-    const result = await merge.mergeMailEthereal(template);
-    expect(result).toBeTruthy();
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual(url);
-    expect(spy).toHaveBeenCalledTimes(2);
-  });
-
-  it('should throw an error if any sending failed', async () => {
-    spy.mockResolvedValueOnce(url);
-    spy.mockImplementation(() => {
-      throw new Error(errorMessage);
-    });
-
-    expect(merge.mergeMailEthereal(template)).rejects.toThrow(errorMessage);
-  });
-});
-
-describe('mergeMailSmtp', () => {
-  let spy;
-
-  beforeEach(() => {
-    spy = jest.spyOn(queue, 'enqueue');
-  });
-
-  afterEach(() => {
-    spy.mockRestore();
-  });
-
-  it('should yield an array of nodemailer result objects', async () => {
-    spy.mockResolvedValue(info);
-
-    const result = await merge.mergeMailSmtp(template);
-    expect(result).toBeTruthy();
-    expect(result).toHaveLength(2);
-    expect(spy).toHaveBeenCalledTimes(2);
-  });
-
-  it('should throw an error if any sending failed', async () => {
-    const noDelay = Object.assign({}, template);
-    delete noDelay.contexts[0].delayTS;
-    spy.mockResolvedValueOnce(info);
-    spy.mockImplementation(() => {
-      throw new Error(errorMessage);
-    });
-
-    expect(merge.mergeMailSmtp(noDelay)).rejects.toThrow(errorMessage);
-  });
-});
 
 describe('mergeTemplate', () => {
   it('should yield an array of message objects', () => {

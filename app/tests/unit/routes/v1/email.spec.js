@@ -2,17 +2,27 @@ const request = require('supertest');
 
 const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/email');
-const emailComponent = require('../../../../src/components/email');
-const queueComponent = require('../../../../src/components/queue');
-
-jest.mock('bull');
 
 // Simple Express Server
 const basePath = '/api/v1/email';
 const app = helper.expressHelper(basePath, router);
 
-const errorMessage = 'broken';
-const url = 'https://example.com';
+jest.mock('../../../../src/services/chesSvc', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      sendEmail: async (client, message, ethereal) => {
+        if (ethereal) {
+          return 'https://example.com';
+        } else {
+          return {
+            txId: 'asdfasdfadsf',
+            messages: [{ msgId: 'qwerqwerqwerw', to: message.to }]
+          };
+        }
+      }
+    };
+  });
+});
 
 describe(`POST ${basePath}`, () => {
   it('should yield a validation error', async () => {
@@ -25,8 +35,6 @@ describe(`POST ${basePath}`, () => {
   });
 
   it('should push a message and yield an Ethereal url', async () => {
-    const spy = jest.spyOn(emailComponent, 'sendMailEthereal').mockResolvedValue(url);
-
     const response = await request(app).post(`${basePath}`)
       .query('devMode=true')
       .send({
@@ -39,17 +47,10 @@ describe(`POST ${basePath}`, () => {
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeTruthy();
-    expect(response.body).toMatch(url);
-    expect(spy).toHaveBeenCalled();
-
-    spy.mockRestore();
+    expect(response.body).toMatch('https://example.com');
   });
 
-  it('should queue a message and yield an uuid correspondence', async () => {
-    const id = 'id';
-    const spy = jest.spyOn(queueComponent, 'enqueue').mockImplementation(() => {
-      return id;
-    });
+  it('should queue a message and yield an transaction response', async () => {
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
@@ -63,31 +64,12 @@ describe(`POST ${basePath}`, () => {
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeTruthy();
-    expect(response.body.msgId).toMatch(id);
-    expect(spy).toHaveBeenCalled();
+    expect(response.body.txId).toBeTruthy();
+    expect(response.body.messages).toBeTruthy();
+    expect(response.body.messages).toHaveLength(1);
+    expect(response.body.messages[0].to).toHaveLength(1);
+    expect(response.body.messages[0].to[0]).toMatch('email@email.com');
 
-    spy.mockRestore();
   });
 
-  it('should respond when sending fails', async () => {
-    const spy = jest.spyOn(queueComponent, 'enqueue').mockImplementation(() => {
-      throw new Error(errorMessage);
-    });
-
-    const response = await request(app).post(`${basePath}`).send({
-      bodyType: 'text',
-      body: 'body',
-      delayTS: 0,
-      from: 'email@email.com',
-      to: ['email@email.com'],
-      subject: 'subject',
-      tag: 'tag'
-    });
-
-    expect(response.statusCode).toBe(500);
-    expect(response.body).toBeTruthy();
-    expect(spy).toHaveBeenCalled();
-
-    spy.mockRestore();
-  });
 });
