@@ -66,11 +66,11 @@ if (process.env.NODE_ENV !== 'test') {
         queueConnection.queue.on('error', QueueListener.onError);
         queueConnection.queue.on('failed', QueueListener.onFailed);
       } else {
-        log.error(`Error initializing infrastructure: dataConnectionOk = ${dataConnectionOk}, queueConnectionOk = ${queueConnectionOk}, emailConnectionOk = ${emailConnectionOk}`);
+        log.error('Infrastructure', `Initialization failed: Database OK = ${dataConnectionOk}, Queue OK = ${queueConnectionOk}, Email OK = ${emailConnectionOk}`);
         shutdown();
       }
     } catch (error) {
-      log.error('Unable to connect to infrastructure...');
+      log.error('Infrastructure', 'Connection failed...');
       shutdown();
     }
   })();
@@ -135,7 +135,7 @@ process.on('unhandledRejection', err => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
-function shutdown () {
+function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.isShutdown = true;
   QueueConnection.close();
