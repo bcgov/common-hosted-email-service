@@ -63,8 +63,6 @@ paths:
       security:
         - OpenID:
             - EMAILER
-      parameters:
-        - $ref: '#/components/parameters/QueryDevMode'
       requestBody:
         description: Fields required to perform a mail merge and send
         required: true
@@ -107,8 +105,6 @@ paths:
       security:
         - OpenID:
             - EMAILER
-      parameters:
-        - $ref: '#/components/parameters/QueryDevMode'
       requestBody:
         description: Fields required to perform a mail merge and send
         required: true
@@ -232,7 +228,6 @@ paths:
             - EMAILER
       parameters:
         - $ref: '#/components/parameters/PathMessageId'
-        - $ref: '#/components/parameters/QueryFields'
       responses:
         '200':
           description: Returns the status of the message
@@ -335,12 +330,6 @@ components:
         type: string
         format: uuid
         example: 00000000-0000-0000-0000-000000000000
-    QueryDevMode:
-      in: query
-      name: devMode
-      description: Send output to Ethereal for testing if true
-      schema:
-        type: boolean
     QueryFields:
       in: query
       name: fields

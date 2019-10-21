@@ -82,7 +82,7 @@ class ChesService {
     this._queueService = v;
   }
 
-  async getStatus (client, messageId, includeStatusHistory = false) {
+  async getStatus (client, messageId) {
     if (!messageId) {
       throw new Problem(400, { detail: 'Error getting status. Message Id cannot be null' });
     }
@@ -92,7 +92,7 @@ class ChesService {
       const msg = await this.dataService.readMessage(client, messageId);
 
       // transform message and statuses into API format...
-      const status = Transformer.status(msg, includeStatusHistory);
+      const status = Transformer.status(msg);
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {

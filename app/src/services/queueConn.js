@@ -63,28 +63,29 @@ class QueueConnection {
     if (globalQueue) {
       try {
         globalQueue.close();
-        // eslint-disable-next-line no-empty
+        log.info('Redis', 'Disconnected');
       } catch (e) {
-
+        log.error(e);
       }
     }
   }
 
   /** @function checkConnection
-   *  Checks the current QueueConnection and returns true if queue is connected.
+   *  Checks the current QueueConnection
+   *  @returns boolean True if queue is connected
    */
   async checkConnection () {
     this._connected = false;
     for (let i = 0; i < 5; i++) {
       if (this._queue.clients[0].status === 'ready') {
-        log.info('Connected to Redis');
+        log.info('Redis', 'Connected');
         this._connected = true;
         break;
       }
       await utils.wait(1000);
     }
     if (!this._connected) {
-      log.error('Unable to connect to Redis...');
+      log.error('Redis', 'Unable to connect...');
     }
     return this._connected;
   }

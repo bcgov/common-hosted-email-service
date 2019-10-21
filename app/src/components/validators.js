@@ -53,7 +53,7 @@ const validators = {
 
       try {
         tmpFile = tmp.fileSync();
-        await fs.promises.writeFile(tmpFile.name, new Buffer(content, encoding));
+        await fs.promises.writeFile(tmpFile.name, Buffer.from(content, encoding));
         // get the written file size
         const stats = fs.statSync(tmpFile.name);
         return stats.size <= attachmentLimit;
