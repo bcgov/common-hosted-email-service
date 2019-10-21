@@ -179,8 +179,9 @@ paths:
       description: >-
         This is a freeform query endpoint, and reasonably expects at least one
         of the parameters to be populated. To minimize response size, only
-        msgId, status, tag and txId properties will appear if no other fields
-        are explicitly requested.
+        msgId, status, tag and txId properties appear by default. Properties
+        createdTimestamp, delayTS and updatedTimestamp may be requested. The
+        statusHistory property will not appear from this specific endpoint.
       operationId: GetStatusQuery
       tags:
         - Message
@@ -250,6 +251,10 @@ paths:
   /cancel:
     delete:
       summary: Cancel multiple delayed messages
+      description: >-
+        This endpoint searches for and will cancel and terminate a set of
+        messages that are still in an enqueued/delayed state. Messages cannot be
+        cancelled once they are beyond the processing state.
       operationId: DeleteCancelQuery
       tags:
         - Message
@@ -287,6 +292,10 @@ paths:
   '/cancel/{msgId}':
     delete:
       summary: Cancel a single delayed message
+      description: >-
+        This endpoint will cancel and terminate the specified msgId if the
+        message is still in an enqueued/delayed state. Messages cannot be
+        cancelled once they are beyond the processing state.
       operationId: DeleteCancelMessage
       tags:
         - Message
@@ -341,9 +350,8 @@ components:
         enum:
           - createdTimestamp
           - delayTS
-          - statusHistory
           - updatedTimestamp
-      example: 'delayTS,statusHistory'
+      example: 'delayTS,updatedTimestamp'
     QueryMessageId:
       in: query
       name: msgId
@@ -735,6 +743,24 @@ components:
         detail:
           type: string
           description: Short description of why this problem was raised.
+    StatusHistoryObject:
+      type: array
+      description: A list of status changes to this message
+      items:
+        type: object
+        required:
+          - description
+          - status
+          - timestamp
+        properties:
+          description:
+            type: string
+            description: The status message description if applicable
+          status:
+            $ref: '#/components/schemas/StatusType'
+          timestamp:
+            type: integer
+            description: The moment in time this log event occured
     StatusObject:
       type: object
       required:
@@ -759,19 +785,7 @@ components:
         status:
           $ref: '#/components/schemas/StatusType'
         statusHistory:
-          type: array
-          description: A list of status changes to this message
-          items:
-            type: object
-            properties:
-              description:
-                type: string
-                description: The status message description if applicable
-              status:
-                $ref: '#/components/schemas/StatusType'
-              timestamp:
-                type: integer
-                description: The moment in time this log event occured
+          $ref: '#/components/schemas/StatusHistoryObject'
         tag:
           type: string
           description: A unique string which is associated with the message
