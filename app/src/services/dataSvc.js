@@ -157,7 +157,6 @@ class DataService {
 
   // find transactions (by id, by client, by message state)
   // find messages (by id, by client, by message state)
-  // find messages (by id, by client, by message state)
 
   /** @function readMessage
    *  Read a Message from the db

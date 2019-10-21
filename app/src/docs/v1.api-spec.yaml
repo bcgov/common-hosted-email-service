@@ -228,7 +228,6 @@ paths:
             - EMAILER
       parameters:
         - $ref: '#/components/parameters/PathMessageId'
-        - $ref: '#/components/parameters/QueryFields'
       responses:
         '200':
           description: Returns the status of the message

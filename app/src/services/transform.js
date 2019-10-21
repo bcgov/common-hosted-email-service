@@ -8,14 +8,12 @@ const moment = require('moment');
 class Transformer {
 
   /** @function transaction
+   *  @description Transforms a Trxn model from the db into TransactionResponse for the api
    *  @param {object} trxn - a Fully inflated Trxn
-   *
-   *  transform a Trxn model from the db into TransactionResponse for the api
-   *
-   *  Returns TransactionResponse
+   *  @returns TransactionResponse
    *  @see Trxn
    */
-  static transaction (trxn) {
+  static transaction(trxn) {
     const result = {
       txId: trxn.transactionId
     };
@@ -29,31 +27,29 @@ class Transformer {
   }
 
   /** @function status
+   *  @description Transforms a Message model from the db into StatusResponse for the api
    *  @param {object} msg - a Fully inflated Message
-   *  @param {boolean} includeHistory - if true, return the status history array.
-   *
-   *  transform a Message model from the db into StatusResponse for the api
-   *
-   *  Returns StatusResponse
+   *  @returns StatusResponse
    *  @see Message
    */
-  static status (msg, includeHistory = false) {
+  static status(msg) {
     const delayTS = msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : null;
     const result = {
-      msgId: msg.messageId,
+      createdTimestamp: moment.utc(msg.createdAt).valueOf(),
       delayTS: delayTS,
+      msgId: msg.messageId,
       status: msg.status,
-      updatedAt: moment.utc(msg.updatedAt).valueOf()
-    };
-    if (includeHistory) {
-      result.statuses = msg.statusHistory.map(h => {
+      statusHistory: msg.statusHistory.map(h => {
         return {
-          status: h.status,
           description: h.description,
-          createdAt: moment.utc(h.createdAt).valueOf()
+          status: h.status,
+          timestamp: moment.utc(h.createdAt).valueOf()
         };
-      });
-    }
+      }),
+      tag: msg.tag,
+      txId: msg.transactionId,
+      updatedTimestamp: moment.utc(msg.updatedAt).valueOf()
+    };
     return result;
   }
 }
