@@ -42,7 +42,34 @@ describe('calculateDelayTS', () => {
   });
 });
 
-describe('filterUndefinedAndEmpty', () => {
+describe('dropNullUndefined', () => {
+  const obj = {
+    foo: undefined,
+    bar: 'baz',
+    herp: {
+      lol: 'yes',
+      bad: null,
+      uh: undefined
+    }
+  };
+
+  it('should drop undefined and null properties', () => {
+    const result = utils.dropNullAndUndefinedObject(obj);
+
+    expect(result).toBeTruthy();
+    expect(result.foo).toBeUndefined();
+    expect(result.bar).toMatch('baz');
+    expect(Object.keys(result).length).toEqual(2);
+
+    expect(result.herp).toBeTruthy();
+    expect(result.herp.lol).toMatch('yes');
+    expect(result.herp.bad).toBeUndefined();
+    expect(result.herp.uh).toBeUndefined();
+    expect(Object.keys(result.herp).length).toEqual(1);
+  });
+});
+
+describe('filterUndefinedAndEmptyArray', () => {
   const obj = {
     foo: undefined,
     bar: [],
@@ -53,7 +80,7 @@ describe('filterUndefinedAndEmpty', () => {
   };
 
   it('should drop undefined properties', () => {
-    const result = utils.filterUndefinedAndEmpty(obj);
+    const result = utils.filterUndefinedAndEmptyArray(obj);
 
     expect(result).toBeTruthy();
     expect(result.foo).toBeUndefined();
@@ -62,7 +89,7 @@ describe('filterUndefinedAndEmpty', () => {
   });
 
   it('should drop empty array properties', () => {
-    const result = utils.filterUndefinedAndEmpty(obj);
+    const result = utils.filterUndefinedAndEmptyArray(obj);
 
     expect(result).toBeTruthy();
     expect(result.bar).toBeUndefined();

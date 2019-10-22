@@ -9,6 +9,7 @@ class Transformer {
 
   /** @function transaction
    *  @description Transforms a Trxn model from the db into TransactionResponse for the api
+   *
    *  @param {object} trxn - a Fully inflated Trxn
    *  @returns TransactionResponse
    *  @see Trxn
@@ -28,6 +29,7 @@ class Transformer {
 
   /** @function status
    *  @description Transforms a Message model from the db into StatusResponse for the api
+   *
    *  @param {object} msg - a Fully inflated Message
    *  @returns StatusResponse
    *  @see Message

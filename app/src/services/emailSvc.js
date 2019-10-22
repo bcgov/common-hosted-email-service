@@ -45,7 +45,7 @@ class EmailService {
    *  @returns {object} - the nodemailer message
    */
   createEnvelope (message) {
-    const envelope = utils.filterUndefinedAndEmpty(message);
+    const envelope = utils.filterUndefinedAndEmptyArray(message);
     // Reassign the body field into the type specified by bodyType
     delete Object.assign(envelope, {
       [message.bodyType]: envelope['body']
