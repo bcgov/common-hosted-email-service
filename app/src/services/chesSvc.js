@@ -31,7 +31,7 @@ class ChesService {
    * Creates a new ChesService with default Data, Email, Queue Services (all with default connections).
    * @class
    */
-  constructor () {
+  constructor() {
     this.dataService = new DataService();
     this.emailService = new EmailService();
     this.queueService = new QueueService();
@@ -40,7 +40,7 @@ class ChesService {
   /** @function dataService
    *  Gets the current DataService
    */
-  get dataService () {
+  get dataService() {
     return this._dataService;
   }
 
@@ -48,14 +48,14 @@ class ChesService {
    *  Sets the current DataService
    *  @param {object} v - a DataService object.
    */
-  set dataService (v) {
+  set dataService(v) {
     this._dataService = v;
   }
 
   /** @function emailService
    *  Gets the current EmailService
    */
-  get emailService () {
+  get emailService() {
     return this._emailService;
   }
 
@@ -63,14 +63,14 @@ class ChesService {
    *  Sets the current EmailService
    *  @param {object} v - am EmailService object.
    */
-  set emailService (v) {
+  set emailService(v) {
     this._emailService = v;
   }
 
   /** @function queueService
    *  Gets the current QueueService
    */
-  get queueService () {
+  get queueService() {
     return this._queueService;
   }
 
@@ -78,11 +78,29 @@ class ChesService {
    *  Sets the current QueueService
    *  @param {object} v - a QueueService.
    */
-  set queueService (v) {
+  set queueService(v) {
     this._queueService = v;
   }
 
-  async getStatus (client, messageId) {
+  async findStatuses(client, query, fields) {
+    let fieldArray;
+    if (fields) {
+      fieldArray = fields.split(',')
+        .map(field => {
+          switch (field) {
+            case 'createdTimestamp': return 'createdAt';
+            case 'delayTS': return 'delayTimestamp';
+            case 'updatedTimestamp': return 'updatedAt';
+            default: return;
+          }
+        })
+        .filter(field => field != null);
+    }
+
+    return await this.dataService.findMessagesByQuery(client, query.msgId, query.status, query.tag, query.txId, fieldArray);
+  }
+
+  async getStatus(client, messageId) {
     if (!messageId) {
       throw new Problem(400, { detail: 'Error getting status. Message Id cannot be null' });
     }
@@ -113,7 +131,7 @@ class ChesService {
    *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
    *  @returns {object} TransactionResponse
    */
-  async sendEmail (client, message, ethereal = false) {
+  async sendEmail(client, message, ethereal = false) {
     if (!message) {
       throw new Problem(400, { detail: 'Error sending email. Email message cannot be null' });
     }
@@ -154,7 +172,7 @@ class ChesService {
    *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
    *  @returns {object} TransactionResponse
    */
-  async sendEmailMerge (client, template, ethereal = false) {
+  async sendEmailMerge(client, template, ethereal = false) {
     if (!template) {
       throw new Problem(400, { detail: 'Error sending email merge. Email templates/contexts cannot be null' });
     }

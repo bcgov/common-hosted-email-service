@@ -189,8 +189,8 @@ class DataService {
     return Message.query()
       .column(columns)
       .whereIn('transactionId', trxnQuery)
-      .andWhere(parameters)
-      .throwIfNotFound();
+      .andWhere(parameters);
+    // .throwIfNotFound();
   }
 
   /** @function readMessage
