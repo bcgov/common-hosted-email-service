@@ -24,9 +24,14 @@ const validateMerge = async (req, res, next) => {
 
 };
 
+const validateStatusFetch = (req, res, next) => {
+  const errors = validators.statusFetch(req.params);
+  handleValidationErrors(res, next, errors);
+}
+
 const validateStatusQuery = (req, res, next) => {
   const errors = validators.statusQuery(req.query);
   handleValidationErrors(res, next, errors);
 };
 
-module.exports = { validateEmail, validateMerge, validateStatusQuery };
+module.exports = { validateEmail, validateMerge, validateStatusFetch, validateStatusQuery };

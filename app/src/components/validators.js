@@ -362,6 +362,16 @@ const validators = {
     }
   },
 
+  statusFetch: param => {
+    const errors = [];
+
+    if (!validators.queryParams.msgId(param.msgId)) {
+      errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
+    }
+
+    return errors;
+  },
+
   statusQuery: query => {
     const errors = [];
 
