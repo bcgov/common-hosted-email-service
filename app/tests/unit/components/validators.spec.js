@@ -1863,3 +1863,131 @@ describe('email merge', () => {
   });
 
 });
+
+describe('queryParams.msgId', () => {
+  const fn = validators.queryParams.msgId;
+
+  it('should return true for valid UUID strings', () => {
+    expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
+    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
+    expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
+    expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
+  });
+
+  it('should return true for valid UUID string object', () => {
+    expect(fn(String('00000000-0000-0000-0000-000000000000'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false on invalid UUID strings', () => {
+    expect(fn('66666666-6666-6666-6666-66666666')).toBeFalsy();
+    expect(fn('garbage')).toBeFalsy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('queryParams.status', () => {
+  const fn = validators.queryParams.status;
+
+  it('should return true for a string', () => {
+    expect(fn('this is a status')).toBeTruthy();
+  });
+
+  it('should return true for a string object', () => {
+    expect(fn(String('this is a status'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('queryParams.tag', () => {
+  const fn = validators.queryParams.tag;
+
+  it('should return true for a string', () => {
+    expect(fn('this is a tag')).toBeTruthy();
+  });
+
+  it('should return true for a string object', () => {
+    expect(fn(String('this is a tag'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('queryParams.txId', () => {
+  const fn = validators.queryParams.txId;
+
+  it('should return true for valid UUID strings', () => {
+    expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
+    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
+    expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
+    expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
+  });
+
+  it('should return true for valid UUID string object', () => {
+    expect(fn(String('00000000-0000-0000-0000-000000000000'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false on invalid UUID strings', () => {
+    expect(fn('66666666-6666-6666-6666-66666666')).toBeFalsy();
+    expect(fn('garbage')).toBeFalsy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});

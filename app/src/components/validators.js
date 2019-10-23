@@ -331,7 +331,7 @@ const validators = {
     /** @function msgId */
     msgId: value => {
       if (value) {
-        return validator.isUUID(value);
+        return validatorUtils.isString(value) && validator.isUUID(value);
       }
       return true;
     },
@@ -356,7 +356,7 @@ const validators = {
     /** @function txId */
     txId: value => {
       if (value) {
-        return validator.isUUID(value);
+        return validatorUtils.isString(value) && validator.isUUID(value);
       }
       return true;
     }

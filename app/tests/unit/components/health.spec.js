@@ -3,7 +3,7 @@ const health = require('../../../src/components/health');
 
 helper.logHelper();
 
-let mockConnFn = jest.fn();
+const mockConnFn = jest.fn();
 jest.mock('../../../src/services/emailConn', () => {
   return jest.fn(() => {
     return {
