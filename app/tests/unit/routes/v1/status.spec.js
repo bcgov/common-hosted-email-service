@@ -13,10 +13,10 @@ const mockNotFound = jest.fn(() => {
 });
 
 jest.mock('../../../../src/services/chesSvc', () => {
-  return jest.fn().mockImplementation(() => {
+  return jest.fn(() => {
     return {
       getStatus: async (client, msgId) => {
-        if (msgId === 'notfound') {
+        if (msgId === '00000000-0000-0000-0000-000000000000') {
           mockNotFound();
         }
         return {
@@ -79,9 +79,15 @@ describe(`POST ${basePath}/:msgId`, () => {
   });
 
   it('should respond with a not found error', async () => {
-    const id = 'notfound';
+    const id = '00000000-0000-0000-0000-000000000000';
     const response = await request(app).get(`${basePath}/${id}`);
     expect(response.statusCode).toBe(404);
+  });
+
+  it('should respond with a validation error', async () => {
+    const id = 'badId';
+    const response = await request(app).get(`${basePath}/${id}`);
+    expect(response.statusCode).toBe(422);
   });
 
 });
