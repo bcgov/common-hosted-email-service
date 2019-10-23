@@ -15,6 +15,8 @@ const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
 
+const utils = require('../components/utils');
+
 const DataConnection = require('./dataConn');
 
 const Message = require('./models/message');
@@ -64,14 +66,14 @@ class DataService {
    * Creates a new DataService with default connection.
    * @class
    */
-  constructor () {
+  constructor() {
     this.connection = new DataConnection();
   }
 
   /** @function connection
    *  Gets the current DataConnection
    */
-  get connection () {
+  get connection() {
     return this._connection;
   }
 
@@ -79,7 +81,7 @@ class DataService {
    *  Sets the current DataConnection
    *  @param {object} v - an DataConnection
    */
-  set connection (v) {
+  set connection(v) {
     this._connection = v;
   }
 
@@ -90,7 +92,7 @@ class DataService {
    *  @param {object} msg - the API email message or template.
    *  @returns {object} Trxn object, fully populated with child messages and status
    */
-  async createTransaction (client, msg) {
+  async createTransaction(client, msg) {
     if (!msg) {
       throw Error('Transaction cannot be created with email message(s)');
     }
@@ -132,7 +134,7 @@ class DataService {
    *  @throws NotFoundError if message for client not found
    *  @returns {object} Message object, fully populated.
    */
-  async deleteMessageEmail (client, messageId) {
+  async deleteMessageEmail(client, messageId) {
     let trx;
     try {
       // first query for message, throw not found if client/message not exist...
@@ -155,8 +157,41 @@ class DataService {
     }
   }
 
-  // find transactions (by id, by client, by message state)
-  // find messages (by id, by client, by message state)
+  /** @function findMessagesByQuery
+   *  @description Finds the set of messages that matches the search criteria
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} messageId - the id of the desired message
+   *  @param {string} status - the desired status of the messages
+   *  @param {string} tag - the desired tag of the messages
+   *  @param {string} transactionId - the id of the desired transaction
+   *  @param {string[]} [fields=[]] - a list of desired columns in addition to the defaults
+   *  @throws NotFoundError if no messages were found
+   *  @returns {object[]} Array of Message objects with a subset of properties
+   */
+  async findMessagesByQuery(client, messageId, status, tag, transactionId, fields = []) {
+    const parameters = utils.dropNullAndUndefinedObject({
+      messageId: messageId,
+      status: status,
+      tag: tag,
+      transactionId: transactionId
+    });
+
+    const columns = ['messageId', 'status', 'tag', 'transactionId']
+      .concat(fields.filter(field => {
+        return ['createdAt', 'delayTimestamp', 'updatedAt'].includes(field);
+      }));
+
+    const trxnQuery = Trxn.query()
+      .select('transactionId')
+      .where('client', client);
+
+    return Message.query()
+      .column(columns)
+      .whereIn('transactionId', trxnQuery)
+      .andWhere(parameters)
+      .throwIfNotFound();
+  }
 
   /** @function readMessage
    *  Read a Message from the db
@@ -166,7 +201,7 @@ class DataService {
    *  @throws NotFoundError if message for client not found
    *  @returns {object} Message object, fully populated.
    */
-  async readMessage (client, messageId) {
+  async readMessage(client, messageId) {
     const trxnQuery = Trxn.query()
       .select('transactionId')
       .where('client', client);
@@ -195,7 +230,7 @@ class DataService {
    *  @throws NotFoundError if transaction for client not found
    *  @returns {object} Trxn object, fully populated.
    */
-  async readTransaction (client, transactionId) {
+  async readTransaction(client, transactionId) {
     return Trxn.query()
       .findById(transactionId)
       .where('client', client)
@@ -224,7 +259,7 @@ class DataService {
    *  @throws NotFoundError if message for client not found
    *  @returns {object} Message object, fully populated.
    */
-  async updateMessageSendResult (client, messageId, sendResult) {
+  async updateMessageSendResult(client, messageId, sendResult) {
     let trx;
     try {
       // first query for message, throw not found if client/message not exist...
@@ -259,7 +294,7 @@ class DataService {
    *  @throws NotFoundError if message for client not found
    *  @returns {object} Message object, fully populated.
    */
-  async updateStatus (client, messageId, status, description) {
+  async updateStatus(client, messageId, status, description) {
     let trx;
     try {
       // first query for message, throw not found if client/message not exist...
