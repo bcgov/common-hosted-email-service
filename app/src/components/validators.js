@@ -325,6 +325,32 @@ const validators = {
       return validatorUtils.isEmailList(value) && value.length > 0;
     }
 
+  },
+
+  statusQuery: query => {
+    const errors = [];
+
+    const checkValidQuery = element => ['msgId', 'status', 'tag', 'txId'].includes(element);
+    if (!query || !Object.keys(query).some(checkValidQuery)) {
+      errors.push({
+        value: 'params',
+        message: 'At least one of `msgId`, `status`, `tag` or `txId` must be defined.'
+      });
+    }
+
+    const hasValidField = element => ['createdTimestamp', 'delayTS', 'updatedTimestamp'].includes(element);
+    if (!query && query.fields) {
+      query.fields.split(',').forEach(field => {
+        if (!hasValidField(field)) {
+          errors.push({
+            value: 'fields',
+            message: `Value "${field}" is not one of \`createdTimestamp\`, \`delayTS\`, or \`updatedTimestamp\`.`
+          });
+        }
+      });
+    }
+
+    return errors;
   }
 
 };
