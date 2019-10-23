@@ -327,46 +327,101 @@ const validators = {
 
   },
 
+  queryParams: {
+    /** @function msgId */
+    msgId: value => {
+      if (value) {
+        return validator.isUUID(value);
+      }
+      return true;
+    },
+
+    /** @function status */
+    // TODO: Change this to enforce an enumeration of valid states
+    status: value => {
+      if (value) {
+        return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
+      }
+      return true;
+    },
+
+    /** @function tag */
+    tag: value => {
+      if (value) {
+        return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
+      }
+      return true;
+    },
+
+    /** @function txId */
+    txId: value => {
+      if (value) {
+        return validator.isUUID(value);
+      }
+      return true;
+    }
+  },
+
   statusQuery: query => {
     const errors = [];
 
-    const checkValidQuery = element => ['msgId', 'status', 'tag', 'txId'].includes(element);
-    if (!query || !Object.keys(query).some(checkValidQuery)) {
+    if (!query || !Object.keys(query).some(param => validator.isIn(param, ['msgId', 'status', 'tag', 'txId']))) {
       errors.push({
         value: 'params',
         message: 'At least one of `msgId`, `status`, `tag` or `txId` must be defined.'
       });
     }
 
-    const hasValidField = element => ['createdTimestamp', 'delayTS', 'updatedTimestamp'].includes(element);
-    if (!query && query.fields) {
+    const queryErrors = validators.statusQueryFields(query, errors);
+    if (queryErrors) {
+      queryErrors.forEach(x => errors.push(x));
+    }
+
+    if (query && query.fields) {
       query.fields.split(',').forEach(field => {
-        if (!hasValidField(field)) {
+        if (!validator.isIn(field, ['createdTimestamp', 'delayTS', 'updatedTimestamp'])) {
           errors.push({
             value: 'fields',
-            message: `Value "${field}" is not one of \`createdTimestamp\`, \`delayTS\`, or \`updatedTimestamp\`.`
+            message: `Value \`${field}\` is not one of \`createdTimestamp\`, \`delayTS\`, or \`updatedTimestamp\`.`
           });
         }
       });
     }
 
     return errors;
-  }
+  },
+
+  statusQueryFields: (obj, errors) => {
+    if (!validators.queryParams.msgId(obj.msgId)) {
+      errors.push({ value: obj.msgId, message: 'Invalid value `msgId`.' });
+    }
+    if (!validators.queryParams.status(obj.status)) {
+      errors.push({ value: obj.status, message: 'Invalid value `status`.' });
+    }
+    if (!validators.queryParams.tag(obj.tag)) {
+      errors.push({ value: obj.tag, message: 'Invalid value `tag`.' });
+    }
+    if (!validators.queryParams.txId(obj.txId)) {
+      errors.push({ value: obj.txId, message: 'Invalid value `txId`.' });
+    }
+  },
 
 };
 
 const validatorUtils = {
-
+  /** @function isEmail */
   isEmail: x => {
     return validatorUtils.isString(x) && !validator.isEmpty(x, { ignore_whitespace: true }) && validator.isEmail(x, { allow_display_name: true });
   },
 
+  /** @function isEmailList */
   isEmailList: x => {
     return x && Array.isArray(x) && x.every(v => {
       return validatorUtils.isEmail(v);
     });
   },
 
+  /** @function isInt */
   isInt: x => {
     if (isNaN(x)) {
       return false;
@@ -376,9 +431,16 @@ const validatorUtils = {
     return num % 1 === 0;
   },
 
+  /** @function isString */
   isString: x => {
     return Object.prototype.toString.call(x) === '[object String]';
-  }
+  },
+
+  /** @function isValidUUIDString */
+  isUUIDString: uuid => {
+    const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return pattern.test(uuid);
+  },
 };
 
 module.exports = { validators, validatorUtils };

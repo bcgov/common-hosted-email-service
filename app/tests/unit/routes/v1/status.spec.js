@@ -63,7 +63,7 @@ jest.mock('../../../../src/services/chesSvc', () => {
 describe(`POST ${basePath}/:msgId`, () => {
 
   it('should respond with the state of a message', async () => {
-    const id = '11111111-1111-1111-1111-111111111111';
+    const id = '11111111-1111-1111-0111-111111111111';
     const response = await request(app).get(`${basePath}/${id}`);
 
     expect(response.statusCode).toBe(200);

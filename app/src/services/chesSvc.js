@@ -82,7 +82,7 @@ class ChesService {
     this._queueService = v;
   }
 
-  async findStatuses(client, query, fields) {
+  async findStatuses(client, msgId, status, tag, txId, fields) {
     let fieldArray;
     if (fields) {
       fieldArray = fields.split(',')
@@ -97,7 +97,7 @@ class ChesService {
         .filter(field => field != null);
     }
 
-    return await this.dataService.findMessagesByQuery(client, query.msgId, query.status, query.tag, query.txId, fieldArray);
+    return await this.dataService.findMessagesByQuery(client, msgId, status, tag, txId, fieldArray);
   }
 
   async getStatus(client, messageId) {

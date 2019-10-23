@@ -6,10 +6,9 @@ const chesService = new ChesService();
 
 statusRouter.get('/', validateStatusQuery, async (req, res, next) => {
   try {
-    const { fields, ...params } = req.query;
-
     // Find messages, transform message and statuses into API format
-    const status = await chesService.findStatuses(req.authorizedParty, params, fields);
+    const status = await chesService.findStatuses(req.authorizedParty, req.params.msgId,
+      req.params.status, req.query.tag, req.query.txId, req.query.fields);
 
     // Return
     res.status(200).json(status);
