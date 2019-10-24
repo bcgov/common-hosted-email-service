@@ -382,10 +382,7 @@ const validators = {
       });
     }
 
-    const queryErrors = validators.statusQueryFields(query, errors);
-    if (queryErrors) {
-      queryErrors.forEach(x => errors.push(x));
-    }
+    errors.concat(validators.statusQueryFields(query));
 
     if (query && query.fields) {
       query.fields.split(',').forEach(field => {
@@ -401,7 +398,9 @@ const validators = {
     return errors;
   },
 
-  statusQueryFields: (obj, errors) => {
+  statusQueryFields: obj => {
+    const errors = [];
+
     if (!validators.queryParams.msgId(obj.msgId)) {
       errors.push({ value: obj.msgId, message: 'Invalid value `msgId`.' });
     }
@@ -414,6 +413,8 @@ const validators = {
     if (!validators.queryParams.txId(obj.txId)) {
       errors.push({ value: obj.txId, message: 'Invalid value `txId`.' });
     }
+
+    return errors;
   },
 
 };
@@ -444,13 +445,7 @@ const validatorUtils = {
   /** @function isString */
   isString: x => {
     return Object.prototype.toString.call(x) === '[object String]';
-  },
-
-  /** @function isValidUUIDString */
-  isUUIDString: uuid => {
-    const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return pattern.test(uuid);
-  },
+  }
 };
 
 module.exports = { validators, validatorUtils };

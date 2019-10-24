@@ -1991,3 +1991,140 @@ describe('queryParams.txId', () => {
     expect(fn([])).toBeFalsy();
   });
 });
+
+describe('statusQuery', () => {
+  let query;
+
+  beforeEach(() => {
+    query = {
+      fields: 'createdTimestamp,delayTS,updatedTimestamp',
+      msgId: '00000000-0000-0000-0000-000000000000',
+      status: 'completed',
+      tag: 'tag',
+      txId: '00000000-0000-0000-0000-000000000000'
+    };
+  });
+
+  it('should return an empty error array when all valid', () => {
+    const result = validators.statusQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an empty error array with some missing parameters', () => {
+    delete query.status;
+    delete query.txId;
+
+    const result = validators.statusQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an error when all parameters are missing', () => {
+    const result = validators.statusQuery({});
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/At least one of/);
+    expect(result[0].value).toMatch(/params/);
+  });
+
+  it('should return an error with invalid field content', () => {
+    query.fields = 'garbage,delayTS';
+
+    const result = validators.statusQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/Value.*is not one of/);
+    expect(result[0].value).toMatch(/fields/);
+  });
+});
+
+describe('statusQueryFields', () => {
+  let query;
+
+  beforeEach(() => {
+    query = {
+      msgId: '00000000-0000-0000-0000-000000000000',
+      status: 'completed',
+      tag: 'tag',
+      txId: '00000000-0000-0000-0000-000000000000'
+    };
+  });
+
+  it('should return an empty error array when all valid', () => {
+    const result = validators.statusQueryFields(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an error when msgId is invalid', () => {
+    query.msgId = 'garbage';
+
+    const result = validators.statusQueryFields(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/msgId/);
+    expect(result[0].value).toBe(query.msgId);
+  });
+
+  it('should return an error when status is invalid', () => {
+    query.status = [];
+
+    const result = validators.statusQueryFields(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/status/);
+    expect(result[0].value).toBe(query.status);
+  });
+
+  it('should return an error when tag is invalid', () => {
+    query.tag = [];
+
+    const result = validators.statusQueryFields(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/tag/);
+    expect(result[0].value).toBe(query.tag);
+  });
+
+  it('should return an error when txId is invalid', () => {
+    query.txId = 'garbage';
+
+    const result = validators.statusQueryFields(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/txId/);
+    expect(result[0].value).toBe(query.txId);
+  });
+
+  it('should return multiple errors with multiple invalid values', () => {
+    const result = validators.statusQueryFields({
+      msgId: 'garbage',
+      status: [],
+      tag: [],
+      txId: 'garbage'
+    });
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(4);
+  });
+});
