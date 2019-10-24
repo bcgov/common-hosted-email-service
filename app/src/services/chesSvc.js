@@ -97,7 +97,8 @@ class ChesService {
         .filter(field => field != null);
     }
 
-    return await this.dataService.findMessagesByQuery(client, msgId, status, tag, txId, fieldArray);
+    const result = await this.dataService.findMessagesByQuery(client, msgId, status, tag, txId, fieldArray);
+    return result.map(msg => Transformer.status(msg));
   }
 
   async getStatus(client, messageId) {

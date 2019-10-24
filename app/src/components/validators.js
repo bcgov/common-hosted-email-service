@@ -382,7 +382,7 @@ const validators = {
       });
     }
 
-    errors.concat(validators.statusQueryFields(query));
+    validators.statusQueryFields(query).forEach(error => errors.push(error));
 
     if (query && query.fields) {
       query.fields.split(',').forEach(field => {

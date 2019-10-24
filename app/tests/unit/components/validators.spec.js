@@ -2024,6 +2024,16 @@ describe('statusQuery', () => {
     expect(result.length).toEqual(0);
   });
 
+  it('should return an error with some validation errors', () => {
+    query.txId = 'garbage';
+
+    const result = validators.statusQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+  });
+
   it('should return an error when all parameters are missing', () => {
     const result = validators.statusQuery({});
 
@@ -2031,7 +2041,7 @@ describe('statusQuery', () => {
     expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toEqual(1);
     expect(result[0].message).toMatch(/At least one of/);
-    expect(result[0].value).toMatch(/params/);
+    expect(result[0].value).toMatch('params');
   });
 
   it('should return an error with invalid field content', () => {
@@ -2043,7 +2053,7 @@ describe('statusQuery', () => {
     expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toEqual(1);
     expect(result[0].message).toMatch(/Value.*is not one of/);
-    expect(result[0].value).toMatch(/fields/);
+    expect(result[0].value).toMatch('fields');
   });
 });
 

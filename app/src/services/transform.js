@@ -28,29 +28,28 @@ class Transformer {
   }
 
   /** @function status
-   *  @description Transforms a Message model from the db into StatusResponse for the api
+   *  @description Transforms a Message model from the db into a StatusResponse API object
    *
-   *  @param {object} msg - a Fully inflated Message
-   *  @returns StatusResponse
+   *  @param {object} msg - a Message model object
+   *  @returns {object} StatusResponse
    *  @see Message
    */
   static status(msg) {
-    const delayTS = msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : null;
     const result = {
-      createdTimestamp: moment.utc(msg.createdAt).valueOf(),
-      delayTS: delayTS,
-      msgId: msg.messageId,
-      status: msg.status,
-      statusHistory: msg.statusHistory.map(h => {
+      createdTimestamp: msg.createdAt ? moment.utc(msg.createdAt).valueOf() : undefined,
+      delayTS: msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : undefined,
+      msgId: msg.messageId ? msg.messageId : undefined,
+      status: msg.status ? msg.status : undefined,
+      statusHistory: msg.statusHistory ? msg.statusHistory.map(h => {
         return {
           description: h.description,
           status: h.status,
           timestamp: moment.utc(h.createdAt).valueOf()
         };
-      }),
-      tag: msg.tag,
-      txId: msg.transactionId,
-      updatedTimestamp: moment.utc(msg.updatedAt).valueOf()
+      }) : undefined,
+      tag: msg.tag ? msg.tag : undefined,
+      txId: msg.transactionId ? msg.transactionId : undefined,
+      updatedTimestamp: msg.updatedAt ? moment.utc(msg.updatedAt).valueOf() : undefined
     };
     return result;
   }
