@@ -1,7 +1,7 @@
-const ChesService = require('../../services/chesSvc');
-const { validateStatusFetch, validateStatusQuery } = require('../../middleware/validation');
-
 const statusRouter = require('express').Router();
+const { validateStatusFetch, validateStatusQuery } = require('../../middleware/validation');
+const ChesService = require('../../services/chesSvc');
+
 const chesService = new ChesService();
 
 statusRouter.get('/', validateStatusQuery, async (req, res, next) => {

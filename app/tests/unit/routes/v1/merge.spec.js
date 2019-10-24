@@ -4,6 +4,8 @@ const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/merge');
 const mergeComponent = require('../../../../src/components/merge');
 
+const ChesService = require('../../../../src/services/chesSvc');
+
 // Simple Express Server
 const basePath = '/api/v1/merge';
 const app = helper.expressHelper(basePath, router);
@@ -15,24 +17,13 @@ const contexts = [
     to: ['email@email.org']
   }];
 
-jest.mock('../../../../src/services/chesSvc', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      sendEmailMerge: async (client, message, ethereal) => {
-        if (ethereal) {
-          return 'https://example.com';
-        } else {
-          return {
-            txId: 'asdfasdfadsf',
-            messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
-          };
-        }
-      }
-    };
-  });
-});
+jest.mock('../../../../src/services/chesSvc');
 
 describe(`POST ${basePath}`, () => {
+  afterEach(() => {
+    ChesService.prototype.sendEmailMerge.mockClear();
+  });
+
   it('should yield a validation error for to field', async () => {
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
@@ -72,6 +63,9 @@ describe(`POST ${basePath}`, () => {
   });
 
   it('should push a message and yield an Ethereal url', async () => {
+    ChesService.prototype.sendEmailMerge.mockImplementation(() => {
+      return 'https://example.com';
+    });
 
     const response = await request(app).post(`${basePath}`)
       .query('devMode=true')
@@ -89,6 +83,12 @@ describe(`POST ${basePath}`, () => {
   });
 
   it('should push a message and yield a transasction response', async () => {
+    ChesService.prototype.sendEmailMerge.mockImplementation(() => {
+      return {
+        txId: 'asdfasdfadsf',
+        messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
+      };
+    });
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
@@ -105,7 +105,25 @@ describe(`POST ${basePath}`, () => {
     expect(response.body.messages).toHaveLength(1);
     expect(response.body.messages[0].to).toHaveLength(1);
     expect(response.body.messages[0].to[0]).toMatch('email@email.org');
+  });
 
+  it('should fail gracefully when an error occurs', async () => {
+    const errorMsg = 'error';
+    ChesService.prototype.sendEmailMerge.mockImplementation(() => {
+      throw new Error(errorMsg);
+    });
+
+    const response = await request(app).post(`${basePath}`).send({
+      bodyType: 'text',
+      body: 'body',
+      contexts: contexts,
+      from: 'email@email.com',
+      subject: 'subject'
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.body).toBeTruthy();
+    expect(response.body.details).toBe(errorMsg);
   });
 });
 

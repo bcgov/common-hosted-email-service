@@ -2,7 +2,6 @@ const mergeComponent = require('../../components/merge');
 
 const mergeRouter = require('express').Router();
 const { validateMerge } = require('../../middleware/validation');
-
 const ChesService = require('../../services/chesSvc');
 
 /** Template mail merge & email sending endpoint */
