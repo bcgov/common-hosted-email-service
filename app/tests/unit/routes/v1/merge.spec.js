@@ -63,9 +63,7 @@ describe(`POST ${basePath}`, () => {
   });
 
   it('should push a message and yield an Ethereal url', async () => {
-    ChesService.prototype.sendEmailMerge.mockImplementation(() => {
-      return 'https://example.com';
-    });
+    ChesService.prototype.sendEmailMerge.mockResolvedValue('https://example.com');
 
     const response = await request(app).post(`${basePath}`)
       .query('devMode=true')
@@ -83,11 +81,9 @@ describe(`POST ${basePath}`, () => {
   });
 
   it('should push a message and yield a transasction response', async () => {
-    ChesService.prototype.sendEmailMerge.mockImplementation(() => {
-      return {
-        txId: 'asdfasdfadsf',
-        messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
-      };
+    ChesService.prototype.sendEmailMerge.mockResolvedValue({
+      txId: 'asdfasdfadsf',
+      messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
     });
 
     const response = await request(app).post(`${basePath}`).send({
@@ -167,7 +163,6 @@ describe(`POST ${basePath}/preview`, () => {
   });
 
   it('should yield a nodemailer message object', async () => {
-
     const response = await request(app).post(`${basePath}/preview`).send({
       bodyType: 'text',
       body: 'body',
