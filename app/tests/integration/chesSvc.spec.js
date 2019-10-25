@@ -198,9 +198,8 @@ describe('ches service', () => {
 
       expect(result).toBeTruthy();
       expect(result.msgId).toMatch(trxn.messages[0].messageId);
-      expect(result.statuses).toBeTruthy();
-      expect(result.statuses).toHaveLength(1);
-
+      expect(result.statusHistory).toBeTruthy();
+      expect(result.statusHistory).toHaveLength(1);
     });
 
   });

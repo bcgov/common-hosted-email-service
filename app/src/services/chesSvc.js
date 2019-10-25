@@ -18,12 +18,12 @@ const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
 
 const mergeComponent = require('../components/merge');
+const transformer = require('../components/transformer');
 const utils = require('../components/utils');
 
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
 const QueueService = require('./queueSvc');
-const Transformer = require('./transform');
 
 class ChesService {
 
@@ -111,7 +111,7 @@ class ChesService {
 
     try {
       const result = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId, fieldArray);
-      return result.map(msg => Transformer.status(msg));
+      return result.map(msg => transformer.toStatusResponse(msg));
     } catch (e) {
       if (e instanceof NotFoundError) {
         log.verbose('findStatuses', 'No messages found');
@@ -141,7 +141,7 @@ class ChesService {
       const msg = await this.dataService.readMessage(client, messageId);
 
       // transform message and statuses into API format...
-      const status = Transformer.status(msg);
+      const status = transformer.toStatusResponse(msg);
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
@@ -187,7 +187,7 @@ class ChesService {
         trxn = await this.dataService.readTransaction(client, trxn.transactionId);
 
         //return to caller in API format
-        return Transformer.transaction(trxn);
+        return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
       log.error(`Send Email error. ${e.message}`);
@@ -241,7 +241,7 @@ class ChesService {
         trxn = await this.dataService.readTransaction(client, trxn.transactionId);
 
         // return transaction in API format
-        return Transformer.transaction(trxn);
+        return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
       log.error(`Send Email Merge error. ${e.message}`);

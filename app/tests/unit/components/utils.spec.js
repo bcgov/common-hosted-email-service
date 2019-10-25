@@ -42,7 +42,7 @@ describe('calculateDelayTS', () => {
   });
 });
 
-describe('dropNullUndefined', () => {
+describe('dropNullAndUndefinedObject', () => {
   const obj = {
     foo: undefined,
     bar: 'baz',

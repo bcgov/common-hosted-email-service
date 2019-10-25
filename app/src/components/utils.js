@@ -31,9 +31,11 @@ const utils = {
    *  @returns {object} The object `obj` without null and undefined properties
    */
   dropNullAndUndefinedObject: obj => {
-    return Object.entries(obj).reduce((acc, [k, v]) => (
-      v == null ? acc : { ...acc, [k]: (typeof v === 'object' ? utils.dropNullAndUndefinedObject(v) : v) }
-    ), {});
+    Object.entries(obj).forEach(([key, val]) => {
+      if (val && typeof val === 'object') utils.dropNullAndUndefinedObject(val);
+      else if (val == null) delete obj[key];
+    });
+    return obj;
   },
 
   /** @function filterUndefinedAndEmptyArray

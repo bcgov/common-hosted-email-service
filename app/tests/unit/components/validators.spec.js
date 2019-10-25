@@ -1798,7 +1798,7 @@ describe('validators.statusFetch', () => {
 
   beforeEach(() => {
     param = {
-      fields: 'createdTimestamp,delayTS,updatedTimestamp'
+      msgId: '00000000-0000-0000-0000-000000000000',
     };
   });
 
