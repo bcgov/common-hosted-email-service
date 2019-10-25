@@ -82,7 +82,19 @@ class ChesService {
     this._queueService = v;
   }
 
-  async findStatuses(client, msgId, status, tag, txId, fields) {
+  /** @function findStatuses
+   *  @description Finds the set of message statuses that matches the search criteria
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} messageId - the id of the desired message
+   *  @param {string} status - the desired status of the messages
+   *  @param {string} tag - the desired tag of the messages
+   *  @param {string} transactionId - the id of the desired transaction
+   *  @param {string} fields - a comma separated list of desired columns in addition to the defaults
+   *  @throws Problem if an unexpected error occurs
+   *  @returns {object[]} Array of Status objects with a subset of properties
+   */
+  async findStatuses(client, messageId, status, tag, transactionId, fields) {
     let fieldArray;
     if (fields) {
       fieldArray = fields.split(',')
@@ -97,10 +109,28 @@ class ChesService {
         .filter(field => field != null);
     }
 
-    const result = await this.dataService.findMessagesByQuery(client, msgId, status, tag, txId, fieldArray);
-    return result.map(msg => Transformer.status(msg));
+    try {
+      const result = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId, fieldArray);
+      return result.map(msg => Transformer.status(msg));
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        log.verbose('findStatuses', 'No messages found');
+        return [];
+      } else {
+        log.error('findStatuses', e.message);
+        throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
+      }
+    }
   }
 
+  /** @function getStatus
+   *  @description Finds the message status of `messageId`
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} msgId - the id of the desired message
+   *  @throws Problem if an unexpected error occurs or if message is not found
+   *  @returns {object[]} The Status object for `messageId` if it exists
+   */
   async getStatus(client, messageId) {
     if (!messageId) {
       throw new Problem(400, { detail: 'Error getting status. Message Id cannot be null' });
