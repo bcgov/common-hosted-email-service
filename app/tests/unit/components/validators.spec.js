@@ -1,448 +1,249 @@
-const { validators, validatorUtils } = require('../../../src/components/validators');
+const helper = require('../../common/helper');
+
+const { models, validators, validatorUtils } = require('../../../src/components/validators');
 const { realSmallFile, smallFile } = require('../../fixtures/base64Files');
 
-describe('validatorUtils.isEmail', () => {
+helper.logHelper();
 
-  it('should return true for email address', () => {
-    const result = validatorUtils.isEmail('email@address.com');
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for email address with display name', () => {
-    const result = validatorUtils.isEmail('Email Address <email@address.com>');
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return false for non-email address value', () => {
-    const result = validatorUtils.isEmail('this is not an email');
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for empty value', () => {
-    const result = validatorUtils.isEmail('');
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for whitespace value', () => {
-    const result = validatorUtils.isEmail('            ');
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for undefined value', () => {
-    const result = validatorUtils.isEmail(undefined);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for non-string value', () => {
-    const result = validatorUtils.isEmail(123);
-
-    expect(result).toBeFalsy();
-  });
-
-});
-
-describe('validatorUtils.isEmailList', () => {
-
-  it('should return true for array of email addresses', () => {
-    const list = ['email@address.com', 'email2@address2.com'];
-    const result = validatorUtils.isEmailList(list);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for array of email addresses with display names', () => {
-    const list = ['Email Address <email@address.com>', 'Email Address II <email2@address2.com>'];
-    const result = validatorUtils.isEmailList(list);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for array of email addresses, some with display names', () => {
-    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validatorUtils.isEmailList(list);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for an empty array', () => {
-    const list = [];
-    const result = validatorUtils.isEmailList(list);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return false for non-array value', () => {
-    const result = validatorUtils.isEmailList({ field: 'value' });
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for string value', () => {
-    const result = validatorUtils.isEmailList('');
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for undefined value', () => {
-    const result = validatorUtils.isEmailList(undefined);
-
-    expect(result).toBeFalsy();
-  });
-
-});
-
-describe('validatorUtils.isInt', () => {
-
-  it('should return true for a int', () => {
-    const value = 123;
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for a integer as string ', () => {
-    const value = '123456';
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for a integer as string object ', () => {
-    const value = String(123456);
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return false for a non-numeric string ', () => {
-    const value = 'abcdefg1234567';
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for a float ', () => {
-    const value = 123.45;
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for a float string ', () => {
-    const value = '123.45';
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for an array', () => {
-    const result = validatorUtils.isInt([{ value: 123 }]);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for a function', () => {
-    const value = x => {
-      return String(x);
-    };
-    const result = validatorUtils.isInt(value);
-
-    expect(result).toBeFalsy();
-  });
-
-});
-
-describe('validatorUtils.isString', () => {
-
-  it('should return true for a string', () => {
-    const value = 'this is a string';
-    const result = validatorUtils.isString(value);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true for a string object ', () => {
-    const value = String(123456);
-    const result = validatorUtils.isString(value);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return false for a number ', () => {
-    const value = 123456;
-    const result = validatorUtils.isString(value);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for a non-string object ', () => {
-    const result = validatorUtils.isString({ value: 'string' });
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for an array', () => {
-    const result = validatorUtils.isString([{ value: 'string' }]);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false for a function', () => {
-    const value = x => {
-      return String(x);
-    };
-    const result = validatorUtils.isString(value);
-
-    expect(result).toBeFalsy();
-  });
-
-});
-
-describe('attachment.content', () => {
+describe('models.attachment.content', () => {
 
   it('should return true for populated string', () => {
     const value = 'this is a populated string';
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated string object', () => {
     const value = String('this is a populated string');
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for undefined', () => {
     const value = undefined;
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty string', () => {
     const value = '';
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '                     ';
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array argument', () => {
     const value = [];
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for number argument', () => {
     const value = 123;
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object argument', () => {
     const value = { value: 123 };
-    const result = validators.attachment.content(value);
+    const result = models.attachment.content(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('attachment.contentType', () => {
+describe('models.attachment.contentType', () => {
 
   it('should return true for populated string', () => {
     const value = 'this is the content type';
-    const result = validators.attachment.contentType(value);
+    const result = models.attachment.contentType(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated string object', () => {
     const value = String('this is the content type');
-    const result = validators.attachment.contentType(value);
+    const result = models.attachment.contentType(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.attachment.contentType(value);
+    const result = models.attachment.contentType(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty string', () => {
     const value = '';
-    const result = validators.attachment.contentType(value);
+    const result = models.attachment.contentType(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for all whitespace string', () => {
     const value = '           ';
-    const result = validators.attachment.contentType(value);
+    const result = models.attachment.contentType(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-string value', () => {
     const value = 123;
-    const result = validators.attachment.contentType(value);
+    const result = models.attachment.contentType(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('attachment.encoding', () => {
+describe('models.attachment.encoding', () => {
 
   it('should return true for "base64"', () => {
     const value = 'base64';
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "binary"', () => {
     const value = 'binary';
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "hex"', () => {
     const value = 'hex';
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty string', () => {
     const value = '';
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for all whitespace string', () => {
     const value = '           ';
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for invalid value', () => {
     const value = 'xhexx';
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-string value', () => {
     const value = 123;
-    const result = validators.attachment.encoding(value);
+    const result = models.attachment.encoding(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('attachment.filename', () => {
+describe('models.attachment.filename', () => {
 
   it('should return true for populated string', () => {
     const value = 'this is a populated string';
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated string object', () => {
     const value = String('this is a populated string');
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for undefined', () => {
     const value = undefined;
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty string', () => {
     const value = '';
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '                     ';
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array argument', () => {
     const value = [];
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for number argument', () => {
     const value = 123;
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object argument', () => {
     const value = { value: 123 };
-    const result = validators.attachment.filename(value);
+    const result = models.attachment.filename(value);
     expect(result).toBeFalsy();
   });
 
   it('should return true for file size equal to limit', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64', smallFile.size);
+    const result = await models.attachment.size(content, 'base64', smallFile.size);
     expect(result).toBeTruthy();
   });
 
   it('should return true for file smaller than limit', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64', smallFile.size + 1);
+    const result = await models.attachment.size(content, 'base64', smallFile.size + 1);
     expect(result).toBeTruthy();
   });
 
   it('should return false for file larger than limit', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64', smallFile.size - 1);
+    const result = await models.attachment.size(content, 'base64', smallFile.size - 1);
     expect(result).toBeFalsy();
   });
 
   it('should return false for no content', async () => {
     const content = '';
-    const result = await validators.attachment.size(content, 'base64', smallFile.size);
+    const result = await models.attachment.size(content, 'base64', smallFile.size);
     expect(result).toBeFalsy();
   });
 
   it('should return false for invalid encoding', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64xxx', smallFile.size);
+    const result = await models.attachment.size(content, 'base64xxx', smallFile.size);
     expect(result).toBeFalsy();
   });
 
   it('should return true for bytes parseable limit', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64', '1mb');
+    const result = await models.attachment.size(content, 'base64', '1mb');
     expect(result).toBeTruthy();
   });
 
   it('should return false for invalid limit', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64', 'bad limit cannot parse');
+    const result = await models.attachment.size(content, 'base64', 'bad limit cannot parse');
     expect(result).toBeFalsy();
   });
 
   it('should return false for limit less than 1 byte', async () => {
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64', 0);
+    const result = await models.attachment.size(content, 'base64', 0);
     expect(result).toBeFalsy();
   });
 
@@ -454,161 +255,161 @@ describe('attachment.filename', () => {
     });
 
     const content = smallFile.content;
-    const result = await validators.attachment.size(content, 'base64');
+    const result = await models.attachment.size(content, 'base64');
     expect(result).toBeFalsy();
 
     spy.mockRestore();
   });
 });
 
-describe('context.bcc', () => {
+describe('models.context.bcc', () => {
 
   it('should return true for undefined', () => {
     const list = undefined;
-    const result = validators.context.bcc(list);
+    const result = models.context.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty array', () => {
     const list = [];
-    const result = validators.context.bcc(list);
+    const result = models.context.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for array of email addresses', () => {
     const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.context.bcc(list);
+    const result = models.context.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
     const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.context.bcc(list);
+    const result = models.context.bcc(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-array argument', () => {
     const value = '"Email Address Jr." <email2@address2.com>';
-    const result = validators.context.bcc(value);
+    const result = models.context.bcc(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('context.cc', () => {
+describe('models.context.cc', () => {
 
   it('should return true for undefined', () => {
     const list = undefined;
-    const result = validators.context.cc(list);
+    const result = models.context.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty array', () => {
     const list = [];
-    const result = validators.context.cc(list);
+    const result = models.context.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for array of email addresses', () => {
     const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.context.cc(list);
+    const result = models.context.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
     const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.context.cc(list);
+    const result = models.context.cc(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-array argument', () => {
     const value = '"Email Address Jr." <email2@address2.com>';
-    const result = validators.context.cc(value);
+    const result = models.context.cc(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('context.delayTS', () => {
+describe('models.context.delayTS', () => {
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for int', () => {
     const value = 123;
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty string', () => {
     const value = '';
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for int string', () => {
     const value = '123';
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated int string object', () => {
     const value = String('123');
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for float', () => {
     const value = 123.45;
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '                     ';
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array argument', () => {
     const value = [];
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object argument', () => {
     const value = { value: 123 };
-    const result = validators.context.delayTS(value);
+    const result = models.context.delayTS(value);
     expect(result).toBeFalsy();
   });
 });
 
-describe('context.keys', () => {
+describe('models.context.keys', () => {
 
   it('should return false for undefined', () => {
     const value = undefined;
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for string', () => {
     const value = 'this is a string';
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for number', () => {
     const value = 123;
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array', () => {
     const value = ['this is a string'];
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeFalsy();
   });
 
@@ -618,7 +419,7 @@ describe('context.keys', () => {
       'this_is_a_valid_key_from_json_123': 'pass',
       'subObject': { 'good': 'good key name' }
     };
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeTruthy();
   });
 
@@ -629,7 +430,7 @@ describe('context.keys', () => {
       'subObject': { 'good': 'good key name' },
       'a1_&': 'bad key'
     };
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeFalsy();
   });
 
@@ -639,598 +440,726 @@ describe('context.keys', () => {
       'this_is_a_valid_key_from_json_123': 'pass',
       'subObject': { 'good': 'good key name', 'a1_&': 'bad key' }
     };
-    const result = validators.context.keys(value);
+    const result = models.context.keys(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('context.tag', () => {
+describe('models.context.tag', () => {
 
   it('should return true for string', () => {
     const value = 'this is a tag';
-    const result = validators.context.tag(value);
+    const result = models.context.tag(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for string object', () => {
     const value = String('this is a tag');
-    const result = validators.context.tag(value);
+    const result = models.context.tag(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.context.tag(value);
+    const result = models.context.tag(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for number', () => {
     const value = 123;
-    const result = validators.context.tag(value);
+    const result = models.context.tag(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object', () => {
     const value = {};
-    const result = validators.context.tag(value);
+    const result = models.context.tag(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array', () => {
     const value = [];
-    const result = validators.context.tag(value);
+    const result = models.context.tag(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('contexts.to', () => {
+describe('models.contexts.to', () => {
 
   it('should return false for undefined', () => {
     const list = undefined;
-    const result = validators.context.to(list);
+    const result = models.context.to(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty array', () => {
     const list = [];
-    const result = validators.context.to(list);
+    const result = models.context.to(list);
     expect(result).toBeFalsy();
   });
 
   it('should return true for array of email addresses', () => {
     const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.context.to(list);
+    const result = models.context.to(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
     const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.context.to(list);
+    const result = models.context.to(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-array argument', () => {
     const value = '"Email Address Jr." <email2@address2.com>';
-    const result = validators.context.to(value);
+    const result = models.context.to(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.bcc', () => {
+describe('models.message.bcc', () => {
 
   it('should return true for undefined', () => {
     const list = undefined;
-    const result = validators.message.bcc(list);
+    const result = models.message.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty array', () => {
     const list = [];
-    const result = validators.message.bcc(list);
+    const result = models.message.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for array of email addresses', () => {
     const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.message.bcc(list);
+    const result = models.message.bcc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
     const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.message.bcc(list);
+    const result = models.message.bcc(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-array argument', () => {
     const value = '"Email Address Jr." <email2@address2.com>';
-    const result = validators.message.bcc(value);
+    const result = models.message.bcc(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.body', () => {
+describe('models.message.body', () => {
 
   it('should return true for populated string', () => {
     const value = 'this is a populated string';
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated string object', () => {
     const value = String('this is a populated string');
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for undefined', () => {
     const value = undefined;
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty string', () => {
     const value = '';
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '                     ';
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array argument', () => {
     const value = [];
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for number argument', () => {
     const value = 123;
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object argument', () => {
     const value = { value: 123 };
-    const result = validators.message.body(value);
+    const result = models.message.body(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.bodyType', () => {
+describe('models.message.bodyType', () => {
 
   it('should return true for "html"', () => {
     const value = 'html';
-    const result = validators.message.bodyType(value);
+    const result = models.message.bodyType(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "text"', () => {
     const value = 'text';
-    const result = validators.message.bodyType(value);
+    const result = models.message.bodyType(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for undefined value', () => {
     const value = undefined;
-    const result = validators.message.bodyType(value);
+    const result = models.message.bodyType(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty value', () => {
     const value = '';
-    const result = validators.message.bodyType(value);
+    const result = models.message.bodyType(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for invalid value', () => {
     const value = 'xhtmlx';
-    const result = validators.message.bodyType(value);
+    const result = models.message.bodyType(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.cc', () => {
+describe('models.message.cc', () => {
 
   it('should return true for undefined', () => {
     const list = undefined;
-    const result = validators.message.cc(list);
+    const result = models.message.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty array', () => {
     const list = [];
-    const result = validators.message.cc(list);
+    const result = models.message.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return true for array of email addresses', () => {
     const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.message.cc(list);
+    const result = models.message.cc(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
     const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.message.cc(list);
+    const result = models.message.cc(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-array argument', () => {
     const value = '"Email Address Jr." <email2@address2.com>';
-    const result = validators.message.cc(value);
+    const result = models.message.cc(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.delayTS', () => {
+describe('models.message.delayTS', () => {
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for int', () => {
     const value = 123;
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for large integers', () => {
     const value = 1569878107287;
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for unix epoch ts', () => {
     const value = 1569879623;
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty string', () => {
     const value = '';
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for int string', () => {
     const value = '123';
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated int string object', () => {
     const value = String('123');
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for float', () => {
     const value = 123.45;
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '                     ';
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array argument', () => {
     const value = [];
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object argument', () => {
     const value = { value: 123 };
-    const result = validators.message.delayTS(value);
+    const result = models.message.delayTS(value);
     expect(result).toBeFalsy();
   });
 });
 
-describe('message.encoding', () => {
+describe('models.message.encoding', () => {
 
   it('should return true for "base64"', () => {
     const value = 'base64';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "binary"', () => {
     const value = 'binary';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "hex"', () => {
     const value = 'hex';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "utf-8"', () => {
     const value = 'utf-8';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty string', () => {
     const value = '';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for all whitespace string', () => {
     const value = '           ';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for invalid value', () => {
     const value = 'xhexx';
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-string value', () => {
     const value = 123;
-    const result = validators.message.encoding(value);
+    const result = models.message.encoding(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.from', () => {
+describe('models.message.from', () => {
 
   it('should return true for email address', () => {
     const value = 'email@address.com';
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for email address with display name', () => {
     const value = 'Email Address <email@address.com>';
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for non-email address', () => {
     const value = 'this is not an email address';
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for undefined', () => {
     const value = undefined;
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty string', () => {
     const value = '';
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '     ';
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array', () => {
     const value = ['email@address.com'];
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object', () => {
     const value = { from: 'email@address.com' };
-    const result = validators.message.from(value);
+    const result = models.message.from(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.priority', () => {
+describe('models.message.priority', () => {
 
   it('should return true for "normal"', () => {
     const value = 'normal';
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "low"', () => {
     const value = 'low';
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for "high"', () => {
     const value = 'high';
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for empty string', () => {
     const value = '';
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for all whitespace string', () => {
     const value = '           ';
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for invalid value', () => {
     const value = 'xhighx';
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-string value', () => {
     const value = 123;
-    const result = validators.message.priority(value);
+    const result = models.message.priority(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.subject', () => {
+describe('models.message.subject', () => {
 
   it('should return true for populated string', () => {
     const value = 'this is a populated string';
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for populated string object', () => {
     const value = String('this is a populated string');
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for undefined', () => {
     const value = undefined;
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty string', () => {
     const value = '';
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for whitespace string', () => {
     const value = '                     ';
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array argument', () => {
     const value = [];
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for number argument', () => {
     const value = 123;
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object argument', () => {
     const value = { value: 123 };
-    const result = validators.message.subject(value);
+    const result = models.message.subject(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.tag', () => {
+describe('models.message.tag', () => {
 
   it('should return true for string', () => {
     const value = 'this is a tag';
-    const result = validators.message.tag(value);
+    const result = models.message.tag(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for string object', () => {
     const value = String('this is a tag');
-    const result = validators.message.tag(value);
+    const result = models.message.tag(value);
     expect(result).toBeTruthy();
   });
 
   it('should return true for undefined', () => {
     const value = undefined;
-    const result = validators.message.tag(value);
+    const result = models.message.tag(value);
     expect(result).toBeTruthy();
   });
 
   it('should return false for number', () => {
     const value = 123;
-    const result = validators.message.tag(value);
+    const result = models.message.tag(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for object', () => {
     const value = {};
-    const result = validators.message.tag(value);
+    const result = models.message.tag(value);
     expect(result).toBeFalsy();
   });
 
   it('should return false for array', () => {
     const value = [];
-    const result = validators.message.tag(value);
+    const result = models.message.tag(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('message.to', () => {
+describe('models.message.to', () => {
 
   it('should return false for undefined', () => {
     const list = undefined;
-    const result = validators.message.to(list);
+    const result = models.message.to(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for empty array', () => {
     const list = [];
-    const result = validators.message.to(list);
+    const result = models.message.to(list);
     expect(result).toBeFalsy();
   });
 
   it('should return true for array of email addresses', () => {
     const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.message.to(list);
+    const result = models.message.to(list);
     expect(result).toBeTruthy();
   });
 
   it('should return false for array where a value is not an email address', () => {
     const list = ['this is not a valid email value', 'email@address.com', '"Email Address Jr." <email2@address2.com>'];
-    const result = validators.message.to(list);
+    const result = models.message.to(list);
     expect(result).toBeFalsy();
   });
 
   it('should return false for non-array argument', () => {
     const value = '"Email Address Jr." <email2@address2.com>';
-    const result = validators.message.to(value);
+    const result = models.message.to(value);
     expect(result).toBeFalsy();
   });
 
 });
 
-describe('attachments list', () => {
+describe('models.queryParams.msgId', () => {
+  const fn = models.queryParams.msgId;
+
+  it('should return true for valid UUID strings', () => {
+    expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
+    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
+    expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
+    expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
+  });
+
+  it('should return true for valid UUID string object', () => {
+    expect(fn(String('00000000-0000-0000-0000-000000000000'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false on invalid UUID strings', () => {
+    expect(fn('66666666-6666-6666-6666-66666666')).toBeFalsy();
+    expect(fn('garbage')).toBeFalsy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('models.queryParams.status', () => {
+  const fn = models.queryParams.status;
+
+  it('should return true for a string', () => {
+    expect(fn('this is a status')).toBeTruthy();
+  });
+
+  it('should return true for a string object', () => {
+    expect(fn(String('this is a status'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('models.queryParams.tag', () => {
+  const fn = models.queryParams.tag;
+
+  it('should return true for a string', () => {
+    expect(fn('this is a tag')).toBeTruthy();
+  });
+
+  it('should return true for a string object', () => {
+    expect(fn(String('this is a tag'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('models.queryParams.txId', () => {
+  const fn = models.queryParams.txId;
+
+  it('should return true for valid UUID strings', () => {
+    expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
+    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
+    expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
+    expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
+  });
+
+  it('should return true for valid UUID string object', () => {
+    expect(fn(String('00000000-0000-0000-0000-000000000000'))).toBeTruthy();
+  });
+
+  it('should return true for undefined', () => {
+    expect(fn(undefined)).toBeTruthy();
+  });
+
+  it('should return false on invalid UUID strings', () => {
+    expect(fn('66666666-6666-6666-6666-66666666')).toBeFalsy();
+    expect(fn('garbage')).toBeFalsy();
+  });
+
+  it('should return false for a number', () => {
+    expect(fn(123)).toBeFalsy();
+  });
+
+  it('should return false for an object', () => {
+    expect(fn({})).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    expect(fn([])).toBeFalsy();
+  });
+});
+
+describe('validators.attachments', () => {
 
   it('should return empty error list for undefined attachments', async () => {
     const obj = {};
@@ -1373,7 +1302,7 @@ describe('attachments list', () => {
 
 });
 
-describe('email message', () => {
+describe('validators.email', () => {
 
   const goodEmail = {
     from: '"Email Sender" <email@sender.org>',
@@ -1584,7 +1513,7 @@ describe('email message', () => {
 
 });
 
-describe('email merge', () => {
+describe('validators.merge', () => {
 
   const goodMergeObject = () => {
     return {
@@ -1864,135 +1793,37 @@ describe('email merge', () => {
 
 });
 
-describe('queryParams.msgId', () => {
-  const fn = validators.queryParams.msgId;
+describe('validators.statusFetch', () => {
+  let param;
 
-  it('should return true for valid UUID strings', () => {
-    expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
-    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
-    expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
-    expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
+  beforeEach(() => {
+    param = {
+      fields: 'createdTimestamp,delayTS,updatedTimestamp'
+    };
   });
 
-  it('should return true for valid UUID string object', () => {
-    expect(fn(String('00000000-0000-0000-0000-000000000000'))).toBeTruthy();
+  it('should return an empty error array when valid', () => {
+    const result = validators.statusFetch(param);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
   });
 
-  it('should return true for undefined', () => {
-    expect(fn(undefined)).toBeTruthy();
-  });
+  it('should return an error with validation error when invalid', () => {
+    param.msgId = 'garbage';
 
-  it('should return false on invalid UUID strings', () => {
-    expect(fn('66666666-6666-6666-6666-66666666')).toBeFalsy();
-    expect(fn('garbage')).toBeFalsy();
-  });
+    const result = validators.statusFetch(param);
 
-  it('should return false for a number', () => {
-    expect(fn(123)).toBeFalsy();
-  });
-
-  it('should return false for an object', () => {
-    expect(fn({})).toBeFalsy();
-  });
-
-  it('should return false for an array', () => {
-    expect(fn([])).toBeFalsy();
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].value).toMatch('garbage');
+    expect(result[0].message).toMatch('Invalid value `msgId`.');
   });
 });
 
-describe('queryParams.status', () => {
-  const fn = validators.queryParams.status;
-
-  it('should return true for a string', () => {
-    expect(fn('this is a status')).toBeTruthy();
-  });
-
-  it('should return true for a string object', () => {
-    expect(fn(String('this is a status'))).toBeTruthy();
-  });
-
-  it('should return true for undefined', () => {
-    expect(fn(undefined)).toBeTruthy();
-  });
-
-  it('should return false for a number', () => {
-    expect(fn(123)).toBeFalsy();
-  });
-
-  it('should return false for an object', () => {
-    expect(fn({})).toBeFalsy();
-  });
-
-  it('should return false for an array', () => {
-    expect(fn([])).toBeFalsy();
-  });
-});
-
-describe('queryParams.tag', () => {
-  const fn = validators.queryParams.tag;
-
-  it('should return true for a string', () => {
-    expect(fn('this is a tag')).toBeTruthy();
-  });
-
-  it('should return true for a string object', () => {
-    expect(fn(String('this is a tag'))).toBeTruthy();
-  });
-
-  it('should return true for undefined', () => {
-    expect(fn(undefined)).toBeTruthy();
-  });
-
-  it('should return false for a number', () => {
-    expect(fn(123)).toBeFalsy();
-  });
-
-  it('should return false for an object', () => {
-    expect(fn({})).toBeFalsy();
-  });
-
-  it('should return false for an array', () => {
-    expect(fn([])).toBeFalsy();
-  });
-});
-
-describe('queryParams.txId', () => {
-  const fn = validators.queryParams.txId;
-
-  it('should return true for valid UUID strings', () => {
-    expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
-    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
-    expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
-    expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
-  });
-
-  it('should return true for valid UUID string object', () => {
-    expect(fn(String('00000000-0000-0000-0000-000000000000'))).toBeTruthy();
-  });
-
-  it('should return true for undefined', () => {
-    expect(fn(undefined)).toBeTruthy();
-  });
-
-  it('should return false on invalid UUID strings', () => {
-    expect(fn('66666666-6666-6666-6666-66666666')).toBeFalsy();
-    expect(fn('garbage')).toBeFalsy();
-  });
-
-  it('should return false for a number', () => {
-    expect(fn(123)).toBeFalsy();
-  });
-
-  it('should return false for an object', () => {
-    expect(fn({})).toBeFalsy();
-  });
-
-  it('should return false for an array', () => {
-    expect(fn([])).toBeFalsy();
-  });
-});
-
-describe('statusQuery', () => {
+describe('validators.statusQuery', () => {
   let query;
 
   beforeEach(() => {
@@ -2057,7 +1888,7 @@ describe('statusQuery', () => {
   });
 });
 
-describe('statusQueryFields', () => {
+describe('validators.searchQueryFields', () => {
   let query;
 
   beforeEach(() => {
@@ -2070,7 +1901,7 @@ describe('statusQueryFields', () => {
   });
 
   it('should return an empty error array when all valid', () => {
-    const result = validators.statusQueryFields(query);
+    const result = validators.searchQueryFields(query);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -2080,7 +1911,7 @@ describe('statusQueryFields', () => {
   it('should return an error when msgId is invalid', () => {
     query.msgId = 'garbage';
 
-    const result = validators.statusQueryFields(query);
+    const result = validators.searchQueryFields(query);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -2092,7 +1923,7 @@ describe('statusQueryFields', () => {
   it('should return an error when status is invalid', () => {
     query.status = [];
 
-    const result = validators.statusQueryFields(query);
+    const result = validators.searchQueryFields(query);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -2104,7 +1935,7 @@ describe('statusQueryFields', () => {
   it('should return an error when tag is invalid', () => {
     query.tag = [];
 
-    const result = validators.statusQueryFields(query);
+    const result = validators.searchQueryFields(query);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -2116,7 +1947,7 @@ describe('statusQueryFields', () => {
   it('should return an error when txId is invalid', () => {
     query.txId = 'garbage';
 
-    const result = validators.statusQueryFields(query);
+    const result = validators.searchQueryFields(query);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -2126,7 +1957,7 @@ describe('statusQueryFields', () => {
   });
 
   it('should return multiple errors with multiple invalid values', () => {
-    const result = validators.statusQueryFields({
+    const result = validators.searchQueryFields({
       msgId: 'garbage',
       status: [],
       tag: [],
@@ -2137,4 +1968,207 @@ describe('statusQueryFields', () => {
     expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toEqual(4);
   });
+});
+
+describe('validatorUtils.isEmail', () => {
+
+  it('should return true for email address', () => {
+    const result = validatorUtils.isEmail('email@address.com');
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for email address with display name', () => {
+    const result = validatorUtils.isEmail('Email Address <email@address.com>');
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for non-email address value', () => {
+    const result = validatorUtils.isEmail('this is not an email');
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for empty value', () => {
+    const result = validatorUtils.isEmail('');
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for whitespace value', () => {
+    const result = validatorUtils.isEmail('            ');
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for undefined value', () => {
+    const result = validatorUtils.isEmail(undefined);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for non-string value', () => {
+    const result = validatorUtils.isEmail(123);
+
+    expect(result).toBeFalsy();
+  });
+
+});
+
+describe('validatorUtils.isEmailList', () => {
+
+  it('should return true for array of email addresses', () => {
+    const list = ['email@address.com', 'email2@address2.com'];
+    const result = validatorUtils.isEmailList(list);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for array of email addresses with display names', () => {
+    const list = ['Email Address <email@address.com>', 'Email Address II <email2@address2.com>'];
+    const result = validatorUtils.isEmailList(list);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for array of email addresses, some with display names', () => {
+    const list = ['email@address.com', '"Email Address Jr." <email2@address2.com>'];
+    const result = validatorUtils.isEmailList(list);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for an empty array', () => {
+    const list = [];
+    const result = validatorUtils.isEmailList(list);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for non-array value', () => {
+    const result = validatorUtils.isEmailList({ field: 'value' });
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for string value', () => {
+    const result = validatorUtils.isEmailList('');
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for undefined value', () => {
+    const result = validatorUtils.isEmailList(undefined);
+
+    expect(result).toBeFalsy();
+  });
+
+});
+
+describe('validatorUtils.isInt', () => {
+
+  it('should return true for a int', () => {
+    const value = 123;
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for a integer as string ', () => {
+    const value = '123456';
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for a integer as string object ', () => {
+    const value = String(123456);
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for a non-numeric string ', () => {
+    const value = 'abcdefg1234567';
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a float ', () => {
+    const value = 123.45;
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a float string ', () => {
+    const value = '123.45';
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    const result = validatorUtils.isInt([{ value: 123 }]);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a function', () => {
+    const value = x => {
+      return String(x);
+    };
+    const result = validatorUtils.isInt(value);
+
+    expect(result).toBeFalsy();
+  });
+
+});
+
+describe('validatorUtils.isString', () => {
+
+  it('should return true for a string', () => {
+    const value = 'this is a string';
+    const result = validatorUtils.isString(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true for a string object ', () => {
+    const value = String(123456);
+    const result = validatorUtils.isString(value);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false for a number ', () => {
+    const value = 123456;
+    const result = validatorUtils.isString(value);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a non-string object ', () => {
+    const result = validatorUtils.isString({ value: 'string' });
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for an array', () => {
+    const result = validatorUtils.isString([{ value: 'string' }]);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false for a function', () => {
+    const value = x => {
+      return String(x);
+    };
+    const result = validatorUtils.isString(value);
+
+    expect(result).toBeFalsy();
+  });
+
 });

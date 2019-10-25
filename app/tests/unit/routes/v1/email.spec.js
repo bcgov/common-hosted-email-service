@@ -88,8 +88,6 @@ describe(`POST ${basePath}`, () => {
       tag: 'tag'
     });
 
-    console.log(response.body);
-
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
     expect(response.body.details).toBe(errorMsg);

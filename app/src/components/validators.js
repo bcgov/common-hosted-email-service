@@ -12,13 +12,14 @@ const asyncForEach = async (array, callback) => {
   }
 };
 
-const validators = {
-
+const models = {
   attachment: {
+    /** @function content */
     content: value => {
       return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
     },
 
+    /** @function contentType */
     contentType: value => {
       if (value) {
         return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
@@ -26,6 +27,7 @@ const validators = {
       return true;
     },
 
+    /** @function encoding */
     encoding: value => {
       if (value) {
         return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true }) && validator.isIn(value, ['base64', 'binary', 'hex']);
@@ -33,12 +35,14 @@ const validators = {
       return true;
     },
 
+    /** @function filename */
     filename: value => {
       return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
     },
 
+    /** @function size */
     size: async (content, encoding, limit = DEFAULT_ATTACHMENT_SIZE) => {
-      if (!(validators.attachment.content(content) && validators.attachment.encoding(encoding))) {
+      if (!(models.attachment.content(content) && models.attachment.encoding(encoding))) {
         return false;
       }
 
@@ -65,66 +69,26 @@ const validators = {
         // delete tmp file
         if (tmpFile) tmpFile.removeCallback();
       }
-
     }
-  },
-
-  attachments: async (obj, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
-    const errors = [];
-    if (obj.attachments) {
-      if (!Array.isArray(obj.attachments)) {
-        errors.push({ value: undefined, message: 'Invalid value `attachments`. Expect an array of attachments.' });
-      } else {
-        // eslint-disable-next-line no-unused-vars
-        await asyncForEach(obj.attachments, async (a, i, r) => {
-          let validateSize = true;
-          if (!validators.attachment.filename(a['filename'])) {
-            errors.push({ value: a['filename'], message: `Attachments[${i}] invalid value \`filename\`.` });
-            validateSize = false;
-          }
-          if (!validators.attachment.encoding(a['encoding'])) {
-            errors.push({ value: a['encoding'], message: `Attachments[${i}] invalid value \`encoding\`.` });
-            validateSize = false;
-          }
-          if (!validators.attachment.contentType(a['contentType'])) {
-            errors.push({ value: a['contentType'], message: `Attachments[${i}] invalid value \`contentType\`.` });
-            validateSize = false;
-          }
-          if (!validators.attachment.content(a['content'])) {
-            errors.push({
-              value: 'Attachment purposefully omitted',
-              message: `Attachments[${i}] invalid value \`content\`.`
-            });
-            validateSize = false;
-          }
-          if (validateSize) {
-            const validSize = await validators.attachment.size(a.content, a.encoding, attachmentSizeLimit);
-            if (!validSize) {
-              errors.push({
-                value: 'Attachment purposefully omitted',
-                message: `Attachments[${i}] exceeds size limit of ${bytes.format(attachmentSizeLimit, 'MB')}.`
-              });
-            }
-          }
-        });
-      }
-    }
-    return errors;
   },
 
   context: {
+    /** @function bcc */
     bcc: value => {
-      return validators.message.bcc(value);
+      return models.message.bcc(value);
     },
 
+    /** @function cc */
     cc: value => {
-      return validators.message.cc(value);
+      return models.message.cc(value);
     },
 
+    /** @function delayTS */
     delayTS: value => {
-      return validators.message.delayTS(value);
+      return models.message.delayTS(value);
     },
 
+    /** @function keys */
     keys: obj => {
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
         return false;
@@ -132,7 +96,7 @@ const validators = {
       // only pass an object if all keys in the object or child objects pass...
       let result = Object.keys(obj).every(k => {
         if (!Array.isArray(obj[k]) && obj[k] === Object(obj[k])) {
-          return validators.context.keys(obj[k]);
+          return models.context.keys(obj[k]);
         }
         // only pass alphanumeric or underscore keys, fail anything else.
         return (/^\w+$/.test(k));
@@ -140,129 +104,19 @@ const validators = {
       return result;
     },
 
+    /** @function tag */
     tag: value => {
-      return validators.message.tag(value);
+      return models.message.tag(value);
     },
 
+    /** @function to */
     to: value => {
-      return validators.message.to(value);
+      return models.message.to(value);
     }
-  },
-
-  contexts: (obj) => {
-    const errors = [];
-    if (obj.contexts) {
-      if (!Array.isArray(obj.contexts)) {
-        errors.push({ value: undefined, message: 'Invalid value `contexts`. Expect an array of contexts.' });
-      } else {
-        obj.contexts.forEach((c, i) => {
-          if (!validators.context.to(c['to'])) {
-            errors.push({ value: c['to'], message: `Contexts[${i}] invalid value \`to\`.` });
-          }
-          if (!validators.context.cc(c['cc'])) {
-            errors.push({ value: c['cc'], message: `Contexts[${i}] invalid value \`cc\`.` });
-          }
-          if (!validators.context.bcc(c['bcc'])) {
-            errors.push({ value: c['bcc'], message: `Contexts[${i}] invalid value \`bcc\`.` });
-          }
-          if (!validators.context.tag(c['tag'])) {
-            errors.push({ value: c['tag'], message: `Contexts[${i}] invalid value \`tag\`.` });
-          }
-          if (!validators.context.delayTS(c['delayTS'])) {
-            errors.push({ value: c['delayTS'], message: `Contexts[${i}] invalid value \`delayTS\`.` });
-          }
-          if (!c['context']) {
-            // let's just return a separate error when context is not passed in...
-            errors.push({ value: c['context'], message: `Contexts[${i}] invalid value \`context\`.` });
-          } else if (!validators.context.keys(c['context'])) {
-            // and here we can just show error on improperly named keys.
-            errors.push({
-              value: c['context'],
-              message: `Contexts[${i}] \`context\` is invalid. Names can only contain alphanumeric or underscore characters.`
-            });
-          }
-        });
-      }
-    } else {
-      errors.push({ value: undefined, message: 'Invalid value `contexts`. Contexts array not provided.' });
-    }
-    return errors;
-  },
-
-  email: async (obj, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
-    // validate the email object
-    // completely valid object will return an empty array of errors.
-    // an invalid object will return a populated array of errors.
-    const errors = [];
-
-    validators.messageFields(obj, errors);
-
-    if (!validators.message.to(obj['to'])) {
-      errors.push({ value: obj['to'], message: 'Invalid value `to`.' });
-    }
-    if (!validators.message.cc(obj['cc'])) {
-      errors.push({ value: obj['cc'], message: 'Invalid value `cc`.' });
-    }
-    if (!validators.message.bcc(obj['bcc'])) {
-      errors.push({ value: obj['bcc'], message: 'Invalid value `bcc`.' });
-    }
-    if (!validators.message.tag(obj['tag'])) {
-      errors.push({ value: obj['tag'], message: 'Invalid value `tag`.' });
-    }
-    if (!validators.message.delayTS(obj['delayTS'])) {
-      errors.push({ value: obj['delayTS'], message: 'Invalid value `delayTS`.' });
-    }
-    const attachmentErrors = await validators.attachments(obj, attachmentSizeLimit);
-    if (attachmentErrors) {
-      attachmentErrors.forEach(x => errors.push(x));
-    }
-
-    return errors;
-  },
-
-  messageFields: function (obj, errors) {
-    if (!validators.message.from(obj['from'])) {
-      errors.push({ value: obj['from'], message: 'Invalid value `from`.' });
-    }
-    if (!validators.message.subject(obj['subject'])) {
-      errors.push({ value: obj['subject'], message: 'Invalid value `subject`.' });
-    }
-    if (!validators.message.bodyType(obj['bodyType'])) {
-      errors.push({ value: obj['bodyType'], message: 'Invalid value `bodyType`.' });
-    }
-    if (!validators.message.body(obj['body'])) {
-      errors.push({ value: 'Body purposefully omitted', message: 'Invalid value `body`.' });
-    }
-    if (!validators.message.encoding(obj['encoding'])) {
-      errors.push({ value: obj['encoding'], message: 'Invalid value `encoding`.' });
-    }
-    if (!validators.message.priority(obj['priority'])) {
-      errors.push({ value: obj['priority'], message: 'Invalid value `priority`.' });
-    }
-  },
-
-  merge: async (merge, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
-    // validate the merge object
-    // completely valid object will return an empty array of errors.
-    // an invalid object will return a populated array of errors.
-    const errors = [];
-    validators.messageFields(merge, errors);
-
-    const contextErrors = validators.contexts(merge);
-    if (contextErrors) {
-      contextErrors.forEach(x => errors.push(x));
-    }
-
-    const attachmentErrors = await validators.attachments(merge, attachmentSizeLimit);
-    if (attachmentErrors) {
-      attachmentErrors.forEach(x => errors.push(x));
-    }
-
-    return errors;
   },
 
   message: {
-
+    /** @function bcc */
     bcc: value => {
       if (value) {
         return validatorUtils.isEmailList(value);
@@ -270,14 +124,17 @@ const validators = {
       return true;
     },
 
+    /** @function body */
     body: value => {
       return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
     },
 
+    /** @function bodyType */
     bodyType: value => {
       return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true }) && validator.isIn(value, ['html', 'text']);
     },
 
+    /** @function cc */
     cc: value => {
       if (value) {
         return validatorUtils.isEmailList(value);
@@ -285,6 +142,7 @@ const validators = {
       return true;
     },
 
+    /** @function delayTS */
     delayTS: value => {
       if (value) {
         return validatorUtils.isInt(value);
@@ -292,6 +150,7 @@ const validators = {
       return true;
     },
 
+    /** @function encoding */
     encoding: value => {
       if (value) {
         return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true }) && validator.isIn(value, ['base64', 'binary', 'hex', 'utf-8']);
@@ -299,10 +158,12 @@ const validators = {
       return true;
     },
 
+    /** @function from */
     from: value => {
       return validatorUtils.isEmail(value);
     },
 
+    /** @function priority */
     priority: value => {
       if (value) {
         return validatorUtils.isString(value) && validator.isIn(value, ['normal', 'low', 'high']);
@@ -310,10 +171,12 @@ const validators = {
       return true;
     },
 
+    /** @function subject */
     subject: value => {
       return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
     },
 
+    /** @function tag */
     tag: value => {
       if (value) {
         return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
@@ -321,10 +184,10 @@ const validators = {
       return true;
     },
 
+    /** @function to */
     to: value => {
       return validatorUtils.isEmailList(value) && value.length > 0;
     }
-
   },
 
   queryParams: {
@@ -361,11 +224,165 @@ const validators = {
       return true;
     }
   },
+};
+
+const validators = {
+  attachments: async (obj, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
+    const errors = [];
+    if (obj.attachments) {
+      if (!Array.isArray(obj.attachments)) {
+        errors.push({ value: undefined, message: 'Invalid value `attachments`. Expect an array of attachments.' });
+      } else {
+        // eslint-disable-next-line no-unused-vars
+        await asyncForEach(obj.attachments, async (a, i, r) => {
+          let validateSize = true;
+          if (!models.attachment.filename(a['filename'])) {
+            errors.push({ value: a['filename'], message: `Attachments[${i}] invalid value \`filename\`.` });
+            validateSize = false;
+          }
+          if (!models.attachment.encoding(a['encoding'])) {
+            errors.push({ value: a['encoding'], message: `Attachments[${i}] invalid value \`encoding\`.` });
+            validateSize = false;
+          }
+          if (!models.attachment.contentType(a['contentType'])) {
+            errors.push({ value: a['contentType'], message: `Attachments[${i}] invalid value \`contentType\`.` });
+            validateSize = false;
+          }
+          if (!models.attachment.content(a['content'])) {
+            errors.push({
+              value: 'Attachment purposefully omitted',
+              message: `Attachments[${i}] invalid value \`content\`.`
+            });
+            validateSize = false;
+          }
+          if (validateSize) {
+            const validSize = await models.attachment.size(a.content, a.encoding, attachmentSizeLimit);
+            if (!validSize) {
+              errors.push({
+                value: 'Attachment purposefully omitted',
+                message: `Attachments[${i}] exceeds size limit of ${bytes.format(attachmentSizeLimit, 'MB')}.`
+              });
+            }
+          }
+        });
+      }
+    }
+    return errors;
+  },
+
+  contexts: obj => {
+    const errors = [];
+    if (obj.contexts) {
+      if (!Array.isArray(obj.contexts)) {
+        errors.push({ value: undefined, message: 'Invalid value `contexts`. Expect an array of contexts.' });
+      } else {
+        obj.contexts.forEach((c, i) => {
+          if (!models.context.to(c['to'])) {
+            errors.push({ value: c['to'], message: `Contexts[${i}] invalid value \`to\`.` });
+          }
+          if (!models.context.cc(c['cc'])) {
+            errors.push({ value: c['cc'], message: `Contexts[${i}] invalid value \`cc\`.` });
+          }
+          if (!models.context.bcc(c['bcc'])) {
+            errors.push({ value: c['bcc'], message: `Contexts[${i}] invalid value \`bcc\`.` });
+          }
+          if (!models.context.tag(c['tag'])) {
+            errors.push({ value: c['tag'], message: `Contexts[${i}] invalid value \`tag\`.` });
+          }
+          if (!models.context.delayTS(c['delayTS'])) {
+            errors.push({ value: c['delayTS'], message: `Contexts[${i}] invalid value \`delayTS\`.` });
+          }
+          if (!c['context']) {
+            // let's just return a separate error when context is not passed in...
+            errors.push({ value: c['context'], message: `Contexts[${i}] invalid value \`context\`.` });
+          } else if (!models.context.keys(c['context'])) {
+            // and here we can just show error on improperly named keys.
+            errors.push({
+              value: c['context'],
+              message: `Contexts[${i}] \`context\` is invalid. Names can only contain alphanumeric or underscore characters.`
+            });
+          }
+        });
+      }
+    } else {
+      errors.push({ value: undefined, message: 'Invalid value `contexts`. Contexts array not provided.' });
+    }
+    return errors;
+  },
+
+  email: async (obj, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
+    // validate the email object
+    // completely valid object will return an empty array of errors.
+    // an invalid object will return a populated array of errors.
+    const errors = [];
+
+    validators.messageFields(obj, errors);
+
+    if (!models.message.to(obj['to'])) {
+      errors.push({ value: obj['to'], message: 'Invalid value `to`.' });
+    }
+    if (!models.message.cc(obj['cc'])) {
+      errors.push({ value: obj['cc'], message: 'Invalid value `cc`.' });
+    }
+    if (!models.message.bcc(obj['bcc'])) {
+      errors.push({ value: obj['bcc'], message: 'Invalid value `bcc`.' });
+    }
+    if (!models.message.tag(obj['tag'])) {
+      errors.push({ value: obj['tag'], message: 'Invalid value `tag`.' });
+    }
+    if (!models.message.delayTS(obj['delayTS'])) {
+      errors.push({ value: obj['delayTS'], message: 'Invalid value `delayTS`.' });
+    }
+    const attachmentErrors = await validators.attachments(obj, attachmentSizeLimit);
+    if (attachmentErrors) {
+      attachmentErrors.forEach(x => errors.push(x));
+    }
+
+    return errors;
+  },
+
+  messageFields: (obj, errors) => {
+    if (!models.message.from(obj['from'])) {
+      errors.push({ value: obj['from'], message: 'Invalid value `from`.' });
+    }
+    if (!models.message.subject(obj['subject'])) {
+      errors.push({ value: obj['subject'], message: 'Invalid value `subject`.' });
+    }
+    if (!models.message.bodyType(obj['bodyType'])) {
+      errors.push({ value: obj['bodyType'], message: 'Invalid value `bodyType`.' });
+    }
+    if (!models.message.body(obj['body'])) {
+      errors.push({ value: 'Body purposefully omitted', message: 'Invalid value `body`.' });
+    }
+    if (!models.message.encoding(obj['encoding'])) {
+      errors.push({ value: obj['encoding'], message: 'Invalid value `encoding`.' });
+    }
+    if (!models.message.priority(obj['priority'])) {
+      errors.push({ value: obj['priority'], message: 'Invalid value `priority`.' });
+    }
+  },
+
+  merge: async (merge, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
+    // validate the merge object
+    // completely valid object will return an empty array of errors.
+    // an invalid object will return a populated array of errors.
+    const errors = [];
+    validators.messageFields(merge, errors);
+
+    validators.contexts(merge).forEach(x => errors.push(x));
+
+    const attachmentErrors = await validators.attachments(merge, attachmentSizeLimit);
+    if (attachmentErrors) {
+      attachmentErrors.forEach(x => errors.push(x));
+    }
+
+    return errors;
+  },
 
   statusFetch: param => {
     const errors = [];
 
-    if (!validators.queryParams.msgId(param.msgId)) {
+    if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
     }
 
@@ -382,7 +399,7 @@ const validators = {
       });
     }
 
-    validators.statusQueryFields(query).forEach(error => errors.push(error));
+    validators.searchQueryFields(query).forEach(error => errors.push(error));
 
     if (query && query.fields) {
       query.fields.split(',').forEach(field => {
@@ -398,25 +415,24 @@ const validators = {
     return errors;
   },
 
-  statusQueryFields: obj => {
+  searchQueryFields: obj => {
     const errors = [];
 
-    if (!validators.queryParams.msgId(obj.msgId)) {
+    if (!models.queryParams.msgId(obj.msgId)) {
       errors.push({ value: obj.msgId, message: 'Invalid value `msgId`.' });
     }
-    if (!validators.queryParams.status(obj.status)) {
+    if (!models.queryParams.status(obj.status)) {
       errors.push({ value: obj.status, message: 'Invalid value `status`.' });
     }
-    if (!validators.queryParams.tag(obj.tag)) {
+    if (!models.queryParams.tag(obj.tag)) {
       errors.push({ value: obj.tag, message: 'Invalid value `tag`.' });
     }
-    if (!validators.queryParams.txId(obj.txId)) {
+    if (!models.queryParams.txId(obj.txId)) {
       errors.push({ value: obj.txId, message: 'Invalid value `txId`.' });
     }
 
     return errors;
-  },
-
+  }
 };
 
 const validatorUtils = {
@@ -448,4 +464,4 @@ const validatorUtils = {
   }
 };
 
-module.exports = { validators, validatorUtils };
+module.exports = { models, validators, validatorUtils };
