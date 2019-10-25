@@ -5,6 +5,7 @@ const path = require('path');
 const keycloak = require('../components/keycloak');
 const authorizedParty = require('../middleware/authorizedParty');
 
+const cancelRouter = require('./v1/cancel');
 const emailRouter = require('./v1/email');
 const healthRouter = require('./v1/health');
 const mergeRouter = require('./v1/merge');
@@ -48,5 +49,8 @@ router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), authorizedPar
 
 /** Status Router */
 router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, statusRouter);
+
+/** Cancel Router */
+router.use('/cancel', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, cancelRouter);
 
 module.exports = router;

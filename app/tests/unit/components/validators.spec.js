@@ -1302,6 +1302,36 @@ describe('validators.attachments', () => {
 
 });
 
+describe('validators.cancelMsg', () => {
+  let param;
+
+  beforeEach(() => {
+    param = {
+      msgId: '00000000-0000-0000-0000-000000000000',
+    };
+  });
+
+  it('should return an empty error array when valid', () => {
+    const result = validators.cancelMsg(param);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an error with validation error when invalid', () => {
+    param.msgId = 'garbage';
+
+    const result = validators.cancelMsg(param);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].value).toMatch('garbage');
+    expect(result[0].message).toMatch('Invalid value `msgId`.');
+  });
+});
+
 describe('validators.email', () => {
 
   const goodEmail = {
