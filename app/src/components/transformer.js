@@ -18,17 +18,17 @@ const transformer = {
     const result = {
       createdTS: msg.createdAt ? moment.utc(msg.createdAt).valueOf() : null,
       delayTS: msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : null,
-      msgId: msg.messageId,
-      status: msg.status,
+      msgId: msg.messageId ? msg.messageId : null,
+      status: msg.status ? msg.status : null,
       statusHistory: msg.statusHistory ? msg.statusHistory.map(h => {
         return {
           description: h.description,
           status: h.status,
           timestamp: moment.utc(h.createdAt).valueOf()
         };
-      }) : undefined,
+      }) : [],
       tag: msg.tag ? msg.tag : null,
-      txId: msg.transactionId,
+      txId: msg.transactionId ? msg.transactionId : null,
       updatedTS: msg.updatedAt ? moment.utc(msg.updatedAt).valueOf() : null
     };
 

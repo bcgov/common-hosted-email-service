@@ -1164,7 +1164,7 @@ describe('validators.attachments', () => {
   it('should return empty error list for undefined attachments', async () => {
     const obj = {};
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return empty error list for attachments as array', async () => {
@@ -1172,7 +1172,7 @@ describe('validators.attachments', () => {
       attachments: []
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return error list when attachments is not array', async () => {
@@ -1180,7 +1180,7 @@ describe('validators.attachments', () => {
       attachments: {}
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
   });
 
   it('should return empty error list for valid attachments', async () => {
@@ -1194,7 +1194,7 @@ describe('validators.attachments', () => {
         }]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error for each attachment that is too large', async () => {
@@ -1206,7 +1206,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj, realSmallFile.size);
-    expect(result.length).toBe(2);
+    expect(result).toHaveLength(2);
   });
 
   it('should return an error when attachment filename key not provided', async () => {
@@ -1216,7 +1216,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/filename/);
   });
 
@@ -1227,7 +1227,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/filename/);
   });
 
@@ -1243,7 +1243,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/encoding/);
   });
 
@@ -1254,7 +1254,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when attachment contentType value is bad', async () => {
@@ -1264,7 +1264,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/contentType/);
   });
 
@@ -1275,7 +1275,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when attachment has no content', async () => {
@@ -1285,7 +1285,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj, realSmallFile.size);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/content/);
   });
 
@@ -1296,7 +1296,7 @@ describe('validators.attachments', () => {
       ]
     };
     const result = await validators.attachments(obj, realSmallFile.size);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/content/);
   });
 
@@ -1328,7 +1328,7 @@ describe('validators.email', () => {
   it('should return empty error list for a complete and valid email message', async () => {
     const obj = { ...goodEmail };
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message has invalid attachment', async () => {
@@ -1336,7 +1336,7 @@ describe('validators.email', () => {
     obj.attachments = [{ encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content }];
 
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Attachments/);
     expect(result[0].message).toMatch(/filename/);
   });
@@ -1345,7 +1345,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.from;
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/from/);
   });
 
@@ -1353,7 +1353,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     obj.from = 'not a good from';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/from/);
   });
 
@@ -1361,7 +1361,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.to;
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/to/);
   });
 
@@ -1369,7 +1369,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     obj.to = 'not a good from';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/to/);
   });
 
@@ -1377,14 +1377,14 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.cc;
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid cc', async () => {
     const obj = { ...goodEmail };
     obj.cc = 'not a good to';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/cc/);
   });
 
@@ -1392,14 +1392,14 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.bcc;
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid bcc', async () => {
     const obj = { ...goodEmail };
     obj.bcc = 'not a good bcc';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/bcc/);
   });
 
@@ -1407,7 +1407,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.subject;
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/subject/);
   });
 
@@ -1415,7 +1415,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     obj.subject = 123;
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/subject/);
   });
 
@@ -1423,7 +1423,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.bodyType;
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/bodyType/);
   });
 
@@ -1431,7 +1431,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     obj.bodyType = 'xhtmlx';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/bodyType/);
   });
 
@@ -1439,7 +1439,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.body;
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/body/);
   });
 
@@ -1447,7 +1447,7 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     obj.body = {};
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/body/);
   });
 
@@ -1455,14 +1455,14 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.encoding;
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid encoding', async () => {
     const obj = { ...goodEmail };
     obj.encoding = 'not a good encoding';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/encoding/);
   });
 
@@ -1470,14 +1470,14 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.priority;
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid priority', async () => {
     const obj = { ...goodEmail };
     obj.priority = 'not a good priority';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/priority/);
   });
 
@@ -1485,14 +1485,14 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.tag;
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid tag', async () => {
     const obj = { ...goodEmail };
     obj.tag = ['not a good tag'];
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/tag/);
   });
 
@@ -1500,14 +1500,14 @@ describe('validators.email', () => {
     const obj = { ...goodEmail };
     delete obj.delayTS;
     const result = await validators.email(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid delayTS', async () => {
     const obj = { ...goodEmail };
     obj.delayTS = 'not a good delayTS';
     const result = await validators.email(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/delayTS/);
   });
 
@@ -1557,7 +1557,7 @@ describe('validators.merge', () => {
   it('should return empty error list for a complete and valid merge message', async () => {
     const obj = goodMergeObject();
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when merge has invalid attachment', async () => {
@@ -1565,7 +1565,7 @@ describe('validators.merge', () => {
     obj.attachments = [{ encoding: 'base64', contentType: 'application/pdf', content: realSmallFile.content }];
 
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Attachments/);
     expect(result[0].message).toMatch(/filename/);
   });
@@ -1574,7 +1574,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.from;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/from/);
   });
 
@@ -1582,7 +1582,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     obj.from = 'not a good from';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/from/);
   });
 
@@ -1590,7 +1590,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.subject;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/subject/);
   });
 
@@ -1598,7 +1598,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     obj.subject = 123;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/subject/);
   });
 
@@ -1606,7 +1606,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.bodyType;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/bodyType/);
   });
 
@@ -1614,7 +1614,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     obj.bodyType = 'xhtmlx';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/bodyType/);
   });
 
@@ -1622,7 +1622,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.body;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/body/);
   });
 
@@ -1630,7 +1630,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     obj.body = {};
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/body/);
   });
 
@@ -1638,14 +1638,14 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.encoding;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when merge has invalid encoding', async () => {
     const obj = goodMergeObject();
     obj.encoding = 'not a good encoding';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/encoding/);
   });
 
@@ -1653,14 +1653,14 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.priority;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when merge has invalid priority', async () => {
     const obj = goodMergeObject();
     obj.priority = 'not a good priority';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/priority/);
   });
 
@@ -1669,7 +1669,7 @@ describe('validators.merge', () => {
     delete obj.contexts;
 
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
   });
 
@@ -1678,7 +1678,7 @@ describe('validators.merge', () => {
     obj.contexts = {};
 
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/contexts/);
     expect(result[0].message).toMatch(/array/);
   });
@@ -1687,7 +1687,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.contexts[0].to;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/to/);
   });
@@ -1696,7 +1696,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     obj.contexts[0].to = 'not a good value';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/to/);
   });
@@ -1705,14 +1705,14 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.contexts[0].cc;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when merges contexts invalid cc', async () => {
     const obj = goodMergeObject();
     obj.contexts[0].cc = 'not a good value';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/cc/);
   });
@@ -1721,14 +1721,14 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.contexts[0].bcc;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when merges contexts invalid bcc', async () => {
     const obj = goodMergeObject();
     obj.contexts[0].bcc = 'not a good value';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/bcc/);
   });
@@ -1737,14 +1737,14 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.contexts[0].tag;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when merges contexts invalid tag', async () => {
     const obj = goodMergeObject();
     obj.contexts[0].tag = ['tag', 'tag'];
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/tag/);
   });
@@ -1753,14 +1753,14 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.contexts[0].delayTS;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(0);
+    expect(result).toHaveLength(0);
   });
 
   it('should return an error when email message invalid delayTS', async () => {
     const obj = goodMergeObject();
     obj.contexts[0].delayTS = 'not a good delayTS';
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/delayTS/);
   });
 
@@ -1768,7 +1768,7 @@ describe('validators.merge', () => {
     const obj = goodMergeObject();
     delete obj.contexts[0].context;
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/context/);
   });
@@ -1786,7 +1786,7 @@ describe('validators.merge', () => {
     };
     obj.contexts.push(badContext);
     const result = await validators.merge(obj);
-    expect(result.length).toBe(1);
+    expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/alphanumeric/);
   });

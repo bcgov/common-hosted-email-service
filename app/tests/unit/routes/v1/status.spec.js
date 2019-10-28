@@ -57,7 +57,7 @@ const getMessageStatusHistory = msgId => {
   return status;
 };
 
-describe(`POST ${basePath}`, () => {
+describe(`GET ${basePath}`, () => {
   afterEach(() => {
     ChesService.prototype.findStatuses.mockClear();
   });
@@ -69,7 +69,6 @@ describe(`POST ${basePath}`, () => {
     ]);
 
     const response = await request(app).get(`${basePath}`).query({
-      fields: 'createdTimestamp,delayTS,updatedTimestamp',
       msgId: '00000000-0000-0000-0000-000000000000',
       status: 'completed',
       tag: 'tag',
@@ -92,7 +91,6 @@ describe(`POST ${basePath}`, () => {
     ChesService.prototype.findStatuses.mockResolvedValue([]);
 
     const response = await request(app).get(`${basePath}`).query({
-      fields: 'createdTimestamp,delayTS,updatedTimestamp',
       msgId: '00000000-0000-0000-0000-000000000000',
       status: 'completed',
       tag: 'tag',
@@ -102,7 +100,7 @@ describe(`POST ${basePath}`, () => {
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeTruthy();
     expect(Array.isArray(response.body)).toBeTruthy();
-    expect(response.body.length).toBe(0);
+    expect(response.body).toHaveLength(0);
   });
 
   it('should respond with an internal server error', async () => {
@@ -112,7 +110,6 @@ describe(`POST ${basePath}`, () => {
     });
 
     const response = await request(app).get(`${basePath}`).query({
-      fields: 'createdTimestamp,delayTS,updatedTimestamp',
       msgId: '00000000-0000-0000-0000-000000000000',
       status: 'completed',
       tag: 'tag',
@@ -134,7 +131,7 @@ describe(`POST ${basePath}`, () => {
   });
 });
 
-describe(`POST ${basePath}/:msgId`, () => {
+describe(`GET ${basePath}/:msgId`, () => {
   afterEach(() => {
     ChesService.prototype.getStatus.mockClear();
   });
@@ -177,5 +174,7 @@ describe(`POST ${basePath}/:msgId`, () => {
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
     expect(response.body.errors).toHaveLength(1);
+    expect(response.body.errors[0].value).toBe(id);
+    expect(response.body.errors[0].message).toMatch('Invalid value `msgId`.');
   });
 });

@@ -178,8 +178,8 @@ paths:
       summary: Queryable message transaction status
       description: >-
         This is a freeform query endpoint, and reasonably expects at least one
-        of the parameters to be populated. The statusHistory property will not
-        appear from this specific endpoint.
+        of the parameters to be populated. The statusHistory property will
+        always be an empty array from this specific endpoint.
       operationId: GetStatusQuery
       tags:
         - Message
@@ -760,6 +760,7 @@ components:
         - delayTS
         - msgId
         - status
+        - statusHistory
         - tag
         - txId
         - updatedTS
