@@ -170,7 +170,7 @@ class DataService {
    *  @returns {object[]} Array of Message objects with a subset of properties
    */
   async findMessagesByQuery(client, messageId, status, tag, transactionId, fields = []) {
-    const parameters = utils.dropNullAndUndefinedObject({
+    const parameters = utils.dropUndefinedObject({
       messageId: messageId,
       status: status,
       tag: tag,

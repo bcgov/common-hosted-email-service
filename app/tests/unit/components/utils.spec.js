@@ -42,7 +42,7 @@ describe('calculateDelayTS', () => {
   });
 });
 
-describe('dropNullAndUndefinedObject', () => {
+describe('dropUndefinedObject', () => {
   const obj = {
     foo: undefined,
     bar: 'baz',
@@ -53,8 +53,8 @@ describe('dropNullAndUndefinedObject', () => {
     }
   };
 
-  it('should drop undefined and null properties', () => {
-    const result = utils.dropNullAndUndefinedObject(obj);
+  it('should only drop undefined properties', () => {
+    const result = utils.dropUndefinedObject(obj);
 
     expect(result).toBeTruthy();
     expect(result.foo).toBeUndefined();
@@ -63,9 +63,9 @@ describe('dropNullAndUndefinedObject', () => {
 
     expect(result.herp).toBeTruthy();
     expect(result.herp.lol).toMatch('yes');
-    expect(result.herp.bad).toBeUndefined();
+    expect(result.herp.bad).toBeNull();
     expect(result.herp.uh).toBeUndefined();
-    expect(Object.keys(result.herp).length).toEqual(1);
+    expect(Object.keys(result.herp).length).toEqual(2);
   });
 });
 

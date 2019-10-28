@@ -24,16 +24,16 @@ const utils = {
    */
   calculateDelayTS: (delay, timestamp) => timestamp + delay,
 
-  /** @function dropNullAndUndefinedObject
-   *  @description Recursively removes any null or undefined properties in an object
+  /** @function dropUndefinedObject
+   *  @description Recursively removes any undefined properties in an object
    *
    *  @param {object} obj - The object to operate on
-   *  @returns {object} The object `obj` without null and undefined properties
+   *  @returns {object} The object `obj` without undefined properties
    */
-  dropNullAndUndefinedObject: obj => {
-    Object.entries(obj).forEach(([key, val]) => {
-      if (val && typeof val === 'object') utils.dropNullAndUndefinedObject(val);
-      else if (val == null) delete obj[key];
+  dropUndefinedObject: obj => {
+    Object.keys(obj).forEach(key => {
+      if (obj[key] && typeof obj[key] === 'object') utils.dropUndefinedObject(obj[key]);
+      else if (obj[key] === undefined) delete obj[key];
     });
     return obj;
   },

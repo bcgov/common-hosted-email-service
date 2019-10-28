@@ -178,10 +178,8 @@ paths:
       summary: Queryable message transaction status
       description: >-
         This is a freeform query endpoint, and reasonably expects at least one
-        of the parameters to be populated. To minimize response size, only
-        msgId, status, tag and txId properties appear by default. Properties
-        createdTimestamp, delayTS and updatedTimestamp may be requested. The
-        statusHistory property will not appear from this specific endpoint.
+        of the parameters to be populated. The statusHistory property will not
+        appear from this specific endpoint.
       operationId: GetStatusQuery
       tags:
         - Message
@@ -189,7 +187,6 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - $ref: '#/components/parameters/QueryFields'
         - $ref: '#/components/parameters/QueryMessageId'
         - $ref: '#/components/parameters/QueryStatus'
         - $ref: '#/components/parameters/QueryTag'
@@ -343,19 +340,6 @@ components:
         type: string
         format: uuid
         example: 00000000-0000-0000-0000-000000000000
-    QueryFields:
-      in: query
-      name: fields
-      description: >-
-        Explicitly request for additional data fields related to the messages.
-        Entries should be comma separated.
-      schema:
-        type: string
-        enum:
-          - createdTimestamp
-          - delayTS
-          - updatedTimestamp
-      example: 'delayTS,updatedTimestamp'
     QueryMessageId:
       in: query
       name: msgId
@@ -481,7 +465,9 @@ components:
             someone: user
         delayTS:
           type: integer
-          description: Desired UTC time for sending the message
+          description: >-
+            Desired UTC time for sending the message. 0 = Queue to send
+            immediately
           example: 1570000000
         tag:
           type: string
@@ -670,7 +656,9 @@ components:
             - bar@gov.bc.ca
         delayTS:
           type: integer
-          description: Desired UTC time for sending the message
+          description: >-
+            Desired UTC time for sending the message. 0 = Queue to send
+            immediately
           example: 1570000000
         encoding:
           type: string
@@ -768,18 +756,23 @@ components:
     StatusObject:
       type: object
       required:
+        - createdTS
+        - delayTS
         - msgId
         - status
         - tag
         - txId
+        - updatedTS
       properties:
-        createdTimestamp:
+        createdTS:
           type: integer
           description: UTC time this service first received this message queue request
           example: 1560000000
         delayTS:
           type: integer
-          description: Desired UTC time for sending the message
+          description: >-
+            Desired UTC time for sending the message. 0 = Queue to send
+            immediately
           example: 1570000000
         msgId:
           type: string
@@ -799,7 +792,7 @@ components:
           description: The associated transaction uuid
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
-        updatedTimestamp:
+        updatedTS:
           type: integer
           description: UTC time this message queue request was last updated
           example: 1570000000

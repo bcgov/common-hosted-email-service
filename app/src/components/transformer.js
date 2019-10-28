@@ -16,8 +16,8 @@ const transformer = {
    */
   toStatusResponse: msg => {
     const result = {
-      createdTimestamp: msg.createdAt ? moment.utc(msg.createdAt).valueOf() : undefined,
-      delayTS: msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : undefined,
+      createdTS: msg.createdAt ? moment.utc(msg.createdAt).valueOf() : null,
+      delayTS: msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : null,
       msgId: msg.messageId,
       status: msg.status,
       statusHistory: msg.statusHistory ? msg.statusHistory.map(h => {
@@ -27,12 +27,12 @@ const transformer = {
           timestamp: moment.utc(h.createdAt).valueOf()
         };
       }) : undefined,
-      tag: msg.tag,
+      tag: msg.tag ? msg.tag : null,
       txId: msg.transactionId,
-      updatedTimestamp: msg.updatedAt ? moment.utc(msg.updatedAt).valueOf() : undefined
+      updatedTS: msg.updatedAt ? moment.utc(msg.updatedAt).valueOf() : null
     };
 
-    return utils.dropNullAndUndefinedObject(result);
+    return utils.dropUndefinedObject(result);
   },
 
   /** @function transaction

@@ -4,21 +4,25 @@ const transformer = require('../../../src/components/transformer');
 helper.logHelper();
 
 describe('toStatusResponse', () => {
-  it('should return an empty object if all properties are undefined', () => {
+  it('should return a null populated object', () => {
     const result = transformer.toStatusResponse({});
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(0);
+    expect(Object.keys(result).length).toBe(4);
+    expect(result.createdTS).toBeNull();
+    expect(result.delayTS).toBeNull();
+    expect(result.tag).toBeNull();
+    expect(result.updatedTS).toBeNull();
   });
 
-  it('should return an object with createdTimestamp', () => {
+  it('should return an object with createdTS', () => {
     const result = transformer.toStatusResponse({
       createdAt: '2019-10-21T17:42:01.833Z'
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
-    expect(result.createdTimestamp).toBe(1571679721833);
+    expect(Object.keys(result).length).toBe(4);
+    expect(result.createdTS).toBe(1571679721833);
   });
 
   it('should return an object with delayTS', () => {
@@ -27,7 +31,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
+    expect(Object.keys(result).length).toBe(4);
     expect(result.delayTS).toBe(0);
   });
 
@@ -37,7 +41,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
+    expect(Object.keys(result).length).toBe(5);
     expect(result.msgId).toBe('00000000-0000-0000-0000-000000000000');
   });
 
@@ -47,7 +51,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
+    expect(Object.keys(result).length).toBe(5);
     expect(result.status).toBe('completed');
   });
 
@@ -66,7 +70,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
+    expect(Object.keys(result).length).toBe(5);
     expect(result.statusHistory.length).toBe(2);
     expect(result.statusHistory[0].description).toBe('text');
     expect(result.statusHistory[0].status).toBe('stuff');
@@ -79,7 +83,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
+    expect(Object.keys(result).length).toBe(4);
     expect(result.tag).toBe('tag');
   });
 
@@ -89,18 +93,18 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
+    expect(Object.keys(result).length).toBe(5);
     expect(result.txId).toBe('00000000-0000-0000-0000-000000000000');
   });
 
-  it('should return an object with updatedTimestamp', () => {
+  it('should return an object with updatedTS', () => {
     const result = transformer.toStatusResponse({
       updatedAt: '2019-10-21T17:42:01.833Z'
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result).length).toBe(1);
-    expect(result.updatedTimestamp).toBe(1571679721833);
+    expect(Object.keys(result).length).toBe(4);
+    expect(result.updatedTS).toBe(1571679721833);
   });
 });
 
