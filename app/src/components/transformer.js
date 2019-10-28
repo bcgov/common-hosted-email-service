@@ -44,13 +44,13 @@ const transformer = {
    */
   toTransactionResponse: trxn => {
     const result = {
-      messages: trxn.messages.map(m => {
+      messages: trxn.messages ? trxn.messages.map(m => {
         return {
-          msgId: m.messageId,
-          to: m.email.to
+          msgId: m.messageId ? m.messageId : null,
+          to: (m.email && m.email.to) ? m.email.to : null
         };
-      }),
-      txId: trxn.transactionId
+      }) : [],
+      txId: trxn.transactionId ? trxn.transactionId : null
     };
 
     return result;

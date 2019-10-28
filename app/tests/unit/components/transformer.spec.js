@@ -4,9 +4,7 @@ const transformer = require('../../../src/components/transformer');
 helper.logHelper();
 
 describe('toStatusResponse', () => {
-  it('should return a null populated object', () => {
-    const result = transformer.toStatusResponse({});
-
+  const nullPopulatedExpectations = result => {
     expect(result).toBeTruthy();
     expect(Object.keys(result)).toHaveLength(8);
     expect(result.createdTS).toBeNull();
@@ -18,6 +16,30 @@ describe('toStatusResponse', () => {
     expect(result.tag).toBeNull();
     expect(result.txId).toBeNull();
     expect(result.updatedTS).toBeNull();
+  };
+
+  it('should return a null populated object with a number', () => {
+    const result = transformer.toStatusResponse(3);
+
+    nullPopulatedExpectations(result);
+  });
+
+  it('should return a null populated object with a string', () => {
+    const result = transformer.toStatusResponse('string');
+
+    nullPopulatedExpectations(result);
+  });
+
+  it('should return a null populated object with an empty array', () => {
+    const result = transformer.toStatusResponse([]);
+
+    nullPopulatedExpectations(result);
+  });
+
+  it('should return a null populated object with an empty object', () => {
+    const result = transformer.toStatusResponse({});
+
+    nullPopulatedExpectations(result);
   });
 
   it('should return an object with createdTS', () => {
@@ -114,6 +136,66 @@ describe('toStatusResponse', () => {
 });
 
 describe('toTransactionResponse', () => {
+  it('should return a null populated object with a number', () => {
+    const result = transformer.toTransactionResponse(3);
+
+    expect(result).toBeTruthy();
+    expect(Object.keys(result)).toHaveLength(2);
+    expect(result.txId).toBeNull();
+    expect(result.messages).toBeTruthy();
+    expect(Array.isArray(result.messages)).toBeTruthy();
+    expect(result.messages).toHaveLength(0);
+  });
+
+  it('should return a null populated object with a string', () => {
+    const result = transformer.toTransactionResponse('string');
+
+    expect(result).toBeTruthy();
+    expect(Object.keys(result)).toHaveLength(2);
+    expect(result.txId).toBeNull();
+    expect(result.messages).toBeTruthy();
+    expect(Array.isArray(result.messages)).toBeTruthy();
+    expect(result.messages).toHaveLength(0);
+  });
+
+  it('should return a null populated object with an empty array', () => {
+    const result = transformer.toTransactionResponse([]);
+
+    expect(result).toBeTruthy();
+    expect(Object.keys(result)).toHaveLength(2);
+    expect(result.txId).toBeNull();
+    expect(result.messages).toBeTruthy();
+    expect(Array.isArray(result.messages)).toBeTruthy();
+    expect(result.messages).toHaveLength(0);
+  });
+
+  it('should return a null populated object with an empty object', () => {
+    const result = transformer.toTransactionResponse({});
+
+    expect(result).toBeTruthy();
+    expect(Object.keys(result)).toHaveLength(2);
+    expect(result.txId).toBeNull();
+    expect(result.messages).toBeTruthy();
+    expect(Array.isArray(result.messages)).toBeTruthy();
+    expect(result.messages).toHaveLength(0);
+  });
+
+  it('should return an object with an empty message', () => {
+    const result = transformer.toTransactionResponse({
+      messages: [{}],
+      transactionId: '00000000-0000-0000-0000-000000000000'
+    });
+
+    expect(result).toBeTruthy();
+    expect(Object.keys(result)).toHaveLength(2);
+    expect(result.txId).toBe('00000000-0000-0000-0000-000000000000');
+    expect(result.messages).toBeTruthy();
+    expect(Array.isArray(result.messages)).toBeTruthy();
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].msgId).toBeNull();
+    expect(result.messages[0].to).toBeNull();
+  });
+
   it('should return an object with all properties populated', () => {
     const result = transformer.toTransactionResponse({
       messages: [
@@ -137,6 +219,7 @@ describe('toTransactionResponse', () => {
     expect(Object.keys(result)).toHaveLength(2);
     expect(result.txId).toBe('00000000-0000-0000-0000-000000000000');
     expect(result.messages).toBeTruthy();
+    expect(Array.isArray(result.messages)).toBeTruthy();
     expect(result.messages).toHaveLength(2);
     expect(result.messages[0].msgId).toBe('00000000-0000-0000-0000-000000000001');
     expect(result.messages[0].to).toBe('foo@example.com');
