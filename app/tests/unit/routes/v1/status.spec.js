@@ -128,6 +128,8 @@ describe(`GET ${basePath}`, () => {
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
     expect(response.body.errors).toHaveLength(1);
+    expect(response.body.errors[0].value).toMatch('params');
+    expect(response.body.errors[0].message).toMatch('At least one of `msgId`, `status`, `tag` or `txId` must be defined.');
   });
 });
 

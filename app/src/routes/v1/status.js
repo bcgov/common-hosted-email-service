@@ -8,7 +8,7 @@ statusRouter.get('/', validateStatusQuery, async (req, res, next) => {
   try {
     // Find messages, transform message and statuses into API format
     const status = await chesService.findStatuses(req.authorizedParty, req.query.msgId,
-      req.query.status, req.query.tag, req.query.txId, req.query.fields);
+      req.query.status, req.query.tag, req.query.txId);
 
     // Return
     res.status(200).json(status);

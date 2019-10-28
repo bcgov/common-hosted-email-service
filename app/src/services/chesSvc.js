@@ -90,27 +90,12 @@ class ChesService {
    *  @param {string} status - the desired status of the messages
    *  @param {string} tag - the desired tag of the messages
    *  @param {string} transactionId - the id of the desired transaction
-   *  @param {string} fields - a comma separated list of desired columns in addition to the defaults
    *  @throws Problem if an unexpected error occurs
    *  @returns {object[]} Array of Status objects with a subset of properties
    */
-  async findStatuses(client, messageId, status, tag, transactionId, fields) {
-    let fieldArray;
-    if (fields) {
-      fieldArray = fields.split(',')
-        .map(field => {
-          switch (field) {
-            case 'createdTimestamp': return 'createdAt';
-            case 'delayTS': return 'delayTimestamp';
-            case 'updatedTimestamp': return 'updatedAt';
-            default: return;
-          }
-        })
-        .filter(field => field != null);
-    }
-
+  async findStatuses(client, messageId, status, tag, transactionId) {
     try {
-      const result = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId, fieldArray);
+      const result = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
       return result.map(msg => transformer.toStatusResponse(msg));
     } catch (e) {
       if (e instanceof NotFoundError) {
