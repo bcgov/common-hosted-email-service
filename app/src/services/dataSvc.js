@@ -170,6 +170,15 @@ class DataService {
    *  @returns {object[]} Array of Message objects with a subset of properties
    */
   async findMessagesByQuery(client, messageId, status, tag, transactionId, fields = []) {
+    const validColumns = [
+      'createdAt',
+      'delayTimestamp',
+      'messageId',
+      'status',
+      'tag',
+      'transactionId',
+      'updatedAt'
+    ];
     const parameters = utils.dropUndefinedObject({
       messageId: messageId,
       status: status,
@@ -177,10 +186,9 @@ class DataService {
       transactionId: transactionId
     });
 
-    const columns = ['messageId', 'status', 'tag', 'transactionId']
-      .concat(fields.filter(field => {
-        return ['createdAt', 'delayTimestamp', 'updatedAt'].includes(field);
-      }));
+    const columns = [... new Set(validColumns.concat(fields.filter(field => {
+      return validColumns.includes(field);
+    })))];
 
     const trxnQuery = Trxn.query()
       .select('transactionId')
