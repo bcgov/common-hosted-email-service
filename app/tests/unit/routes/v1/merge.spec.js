@@ -4,6 +4,8 @@ const helper = require('../../../common/helper');
 const router = require('../../../../src/routes/v1/merge');
 const mergeComponent = require('../../../../src/components/merge');
 
+const ChesService = require('../../../../src/services/chesSvc');
+
 // Simple Express Server
 const basePath = '/api/v1/merge';
 const app = helper.expressHelper(basePath, router);
@@ -15,80 +17,66 @@ const contexts = [
     to: ['email@email.org']
   }];
 
-jest.mock('../../../../src/services/chesSvc', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      sendEmailMerge: async (client, message, ethereal) => {
-        if (ethereal) {
-          return 'https://example.com';
-        } else {
-          return {
-            txId: 'asdfasdfadsf',
-            messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
-          };
-        }
-      }
-    };
-  });
-});
+jest.mock('../../../../src/services/chesSvc');
 
 describe(`POST ${basePath}`, () => {
-  it('should yield a validation error for to field', async () => {
-    const response = await request(app).post(`${basePath}`).send({
+  const spy = ChesService.prototype.sendEmailMerge;
+  let body;
+
+  beforeEach(() => {
+    body = {
       bodyType: 'text',
       body: 'body',
+      contexts: contexts,
       from: 'email@email.com',
-      subject: 'subject',
-      contexts: [
-        {
-          to: undefined,
-          context: { good: 'bad' }
-        }]
-    });
+      subject: 'subject'
+    };
+  });
+
+  afterEach(() => {
+    spy.mockClear();
+  });
+
+  it('should yield a validation error for to field', async () => {
+    body.contexts = [{ to: undefined, context: { good: 'bad' }}];
+    const response = await request(app).post(`${basePath}`).send(body);
 
     expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
     expect(response.body.errors).toHaveLength(1);
+    expect(spy).toHaveBeenCalledTimes(0);
   });
 
   it('should yield a validation error for context field', async () => {
-    const response = await request(app).post(`${basePath}`).send({
-      bodyType: 'text',
-      body: 'body',
-      from: 'email@email.com',
-      subject: 'subject',
-      contexts: [
-        {
-          to: ['email@email.com'],
-          context: 'undefined'
-        }]
-    });
+    body.contexts = [{ to: ['email@email.com'], context: 'undefined' }];
+    const response = await request(app).post(`${basePath}`).send(body);
 
     expect(response.statusCode).toBe(422);
     expect(response.body).toBeTruthy();
     expect(response.body.detail).toMatch('Validation failed');
     expect(response.body.errors).toHaveLength(1);
+    expect(spy).toHaveBeenCalledTimes(0);
   });
 
   it('should push a message and yield an Ethereal url', async () => {
+    spy.mockResolvedValue('https://example.com');
 
     const response = await request(app).post(`${basePath}`)
-      .query('devMode=true')
-      .send({
-        bodyType: 'text',
-        body: 'body',
-        contexts: contexts,
-        from: 'email@email.com',
-        subject: 'subject'
-      });
+      .query('devMode=true').send(body);
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeTruthy();
     expect(response.body).toMatch('https://example.com');
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(undefined, body, true);
   });
 
   it('should push a message and yield a transasction response', async () => {
+    spy.mockResolvedValue({
+      txId: 'asdfasdfadsf',
+      messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
+    });
 
     const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
@@ -105,71 +93,17 @@ describe(`POST ${basePath}`, () => {
     expect(response.body.messages).toHaveLength(1);
     expect(response.body.messages[0].to).toHaveLength(1);
     expect(response.body.messages[0].to[0]).toMatch('email@email.org');
-
-  });
-});
-
-describe(`POST ${basePath}/preview`, () => {
-  it('should yield a validation error for to field', async () => {
-    const response = await request(app).post(`${basePath}/preview`).send({
-      bodyType: 'text',
-      body: 'body',
-      from: 'email@email.com',
-      subject: 'subject',
-      contexts: [
-        {
-          to: undefined,
-          context: { good: 'bad' }
-        }]
-    });
-
-    expect(response.statusCode).toBe(422);
-    expect(response.body).toBeTruthy();
-    expect(response.body.detail).toMatch('Validation failed');
-    expect(response.body.errors).toHaveLength(1);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(undefined, body, false);
   });
 
-  it('should yield a validation error for context field', async () => {
-    const response = await request(app).post(`${basePath}/preview`).send({
-      bodyType: 'text',
-      body: 'body',
-      from: 'email@email.com',
-      subject: 'subject',
-      contexts: [
-        {
-          to: ['email@email.com'],
-          context: 'undefined'
-        }]
+  it('should fail gracefully when an error occurs', async () => {
+    const errorMsg = 'error';
+    spy.mockImplementation(() => {
+      throw new Error(errorMsg);
     });
 
-    expect(response.statusCode).toBe(422);
-    expect(response.body).toBeTruthy();
-    expect(response.body.detail).toMatch('Validation failed');
-    expect(response.body.errors).toHaveLength(1);
-  });
-
-  it('should yield a nodemailer message object', async () => {
-
-    const response = await request(app).post(`${basePath}/preview`).send({
-      bodyType: 'text',
-      body: 'body',
-      contexts: contexts,
-      from: 'email@email.com',
-      subject: 'subject'
-    });
-
-    expect(response.statusCode).toBe(201);
-    expect(response.body).toBeTruthy();
-    expect(response.body).toHaveLength(1);
-    expect(response.body[0]).toBeTruthy();
-  });
-
-  it('should respond when sending fails', async () => {
-    const spy = jest.spyOn(mergeComponent, 'mergeTemplate').mockImplementation(() => {
-      throw new Error(errorMessage);
-    });
-
-    const response = await request(app).post(`${basePath}/preview`).send({
+    const response = await request(app).post(`${basePath}`).send({
       bodyType: 'text',
       body: 'body',
       contexts: contexts,
@@ -179,8 +113,73 @@ describe(`POST ${basePath}/preview`, () => {
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
-    expect(spy).toHaveBeenCalled();
+    expect(response.body.details).toBe(errorMsg);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(undefined, body, false);
+  });
+});
 
-    spy.mockRestore();
+describe(`POST ${basePath}/preview`, () => {
+  const spy = jest.spyOn(mergeComponent, 'mergeTemplate');
+  let body;
+
+  beforeEach(() => {
+    body = {
+      bodyType: 'text',
+      body: 'body',
+      contexts: contexts,
+      from: 'email@email.com',
+      subject: 'subject'
+    };
+  });
+
+  afterEach(() => {
+    spy.mockClear();
+  });
+
+  it('should yield a validation error for to field', async () => {
+    body.contexts = [{ to: undefined, context: { good: 'bad' }}];
+    const response = await request(app).post(`${basePath}/preview`).send(body);
+
+    expect(response.statusCode).toBe(422);
+    expect(response.body).toBeTruthy();
+    expect(response.body.detail).toMatch('Validation failed');
+    expect(response.body.errors).toHaveLength(1);
+    expect(spy).toHaveBeenCalledTimes(0);
+  });
+
+  it('should yield a validation error for context field', async () => {
+    body.contexts = [{ to: ['email@email.com'], context: 'undefined' }];
+    const response = await request(app).post(`${basePath}/preview`).send(body);
+
+    expect(response.statusCode).toBe(422);
+    expect(response.body).toBeTruthy();
+    expect(response.body.detail).toMatch('Validation failed');
+    expect(response.body.errors).toHaveLength(1);
+    expect(spy).toHaveBeenCalledTimes(0);
+  });
+
+  it('should yield a nodemailer message object', async () => {
+    const response = await request(app).post(`${basePath}/preview`).send(body);
+
+    expect(response.statusCode).toBe(201);
+    expect(response.body).toBeTruthy();
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0]).toBeTruthy();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(body);
+  });
+
+  it('should respond when sending fails', async () => {
+    spy.mockImplementation(() => {
+      throw new Error(errorMessage);
+    });
+
+    const response = await request(app).post(`${basePath}/preview`).send(body);
+
+    expect(response.statusCode).toBe(500);
+    expect(response.body).toBeTruthy();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(body);
   });
 });

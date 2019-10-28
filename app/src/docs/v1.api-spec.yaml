@@ -178,9 +178,8 @@ paths:
       summary: Queryable message transaction status
       description: >-
         This is a freeform query endpoint, and reasonably expects at least one
-        of the parameters to be populated. To minimize response size, only
-        msgId, status, tag and txId properties will appear if no other fields
-        are explicitly requested.
+        of the parameters to be populated. The statusHistory property will
+        always be an empty array from this specific endpoint.
       operationId: GetStatusQuery
       tags:
         - Message
@@ -188,7 +187,6 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - $ref: '#/components/parameters/QueryFields'
         - $ref: '#/components/parameters/QueryMessageId'
         - $ref: '#/components/parameters/QueryStatus'
         - $ref: '#/components/parameters/QueryTag'
@@ -207,6 +205,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         default:
           description: Unexpected error
           content:
@@ -241,6 +241,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         default:
           description: Unexpected error
           content:
@@ -250,6 +252,10 @@ paths:
   /cancel:
     delete:
       summary: Cancel multiple delayed messages
+      description: >-
+        This endpoint searches for and will cancel and terminate a set of
+        messages that are still in an enqueued/delayed state. Messages cannot be
+        cancelled once they are beyond the processing state.
       operationId: DeleteCancelQuery
       tags:
         - Message
@@ -287,6 +293,10 @@ paths:
   '/cancel/{msgId}':
     delete:
       summary: Cancel a single delayed message
+      description: >-
+        This endpoint will cancel and terminate the specified msgId if the
+        message is still in an enqueued/delayed state. Messages cannot be
+        cancelled once they are beyond the processing state.
       operationId: DeleteCancelMessage
       tags:
         - Message
@@ -330,20 +340,6 @@ components:
         type: string
         format: uuid
         example: 00000000-0000-0000-0000-000000000000
-    QueryFields:
-      in: query
-      name: fields
-      description: >-
-        Explicitly request for additional data fields related to the messages.
-        Entries should be comma separated.
-      schema:
-        type: string
-        enum:
-          - createdTimestamp
-          - delayTS
-          - statusHistory
-          - updatedTimestamp
-      example: 'delayTS,statusHistory'
     QueryMessageId:
       in: query
       name: msgId
@@ -469,7 +465,9 @@ components:
             someone: user
         delayTS:
           type: integer
-          description: Desired UTC time for sending the message
+          description: >-
+            Desired UTC time for sending the message. 0 = Queue to send
+            immediately
           example: 1570000000
         tag:
           type: string
@@ -658,7 +656,9 @@ components:
             - bar@gov.bc.ca
         delayTS:
           type: integer
-          description: Desired UTC time for sending the message
+          description: >-
+            Desired UTC time for sending the message. 0 = Queue to send
+            immediately
           example: 1570000000
         encoding:
           type: string
@@ -735,21 +735,45 @@ components:
         detail:
           type: string
           description: Short description of why this problem was raised.
+    StatusHistoryObject:
+      type: array
+      description: A list of status changes to this message
+      items:
+        type: object
+        required:
+          - description
+          - status
+          - timestamp
+        properties:
+          description:
+            type: string
+            description: The status message description if applicable
+          status:
+            $ref: '#/components/schemas/StatusType'
+          timestamp:
+            type: integer
+            description: The moment in time this log event occured
     StatusObject:
       type: object
       required:
+        - createdTS
+        - delayTS
         - msgId
         - status
+        - statusHistory
         - tag
         - txId
+        - updatedTS
       properties:
-        createdTimestamp:
+        createdTS:
           type: integer
           description: UTC time this service first received this message queue request
           example: 1560000000
         delayTS:
           type: integer
-          description: Desired UTC time for sending the message
+          description: >-
+            Desired UTC time for sending the message. 0 = Queue to send
+            immediately
           example: 1570000000
         msgId:
           type: string
@@ -759,19 +783,7 @@ components:
         status:
           $ref: '#/components/schemas/StatusType'
         statusHistory:
-          type: array
-          description: A list of status changes to this message
-          items:
-            type: object
-            properties:
-              description:
-                type: string
-                description: The status message description if applicable
-              status:
-                $ref: '#/components/schemas/StatusType'
-              timestamp:
-                type: integer
-                description: The moment in time this log event occured
+          $ref: '#/components/schemas/StatusHistoryObject'
         tag:
           type: string
           description: A unique string which is associated with the message
@@ -781,7 +793,7 @@ components:
           description: The associated transaction uuid
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
-        updatedTimestamp:
+        updatedTS:
           type: integer
           description: UTC time this message queue request was last updated
           example: 1570000000

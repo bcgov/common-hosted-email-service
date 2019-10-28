@@ -18,12 +18,12 @@ const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
 
 const mergeComponent = require('../components/merge');
+const transformer = require('../components/transformer');
 const utils = require('../components/utils');
 
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
 const QueueService = require('./queueSvc');
-const Transformer = require('./transform');
 
 class ChesService {
 
@@ -31,7 +31,7 @@ class ChesService {
    * Creates a new ChesService with default Data, Email, Queue Services (all with default connections).
    * @class
    */
-  constructor () {
+  constructor() {
     this.dataService = new DataService();
     this.emailService = new EmailService();
     this.queueService = new QueueService();
@@ -40,7 +40,7 @@ class ChesService {
   /** @function dataService
    *  Gets the current DataService
    */
-  get dataService () {
+  get dataService() {
     return this._dataService;
   }
 
@@ -48,14 +48,14 @@ class ChesService {
    *  Sets the current DataService
    *  @param {object} v - a DataService object.
    */
-  set dataService (v) {
+  set dataService(v) {
     this._dataService = v;
   }
 
   /** @function emailService
    *  Gets the current EmailService
    */
-  get emailService () {
+  get emailService() {
     return this._emailService;
   }
 
@@ -63,14 +63,14 @@ class ChesService {
    *  Sets the current EmailService
    *  @param {object} v - am EmailService object.
    */
-  set emailService (v) {
+  set emailService(v) {
     this._emailService = v;
   }
 
   /** @function queueService
    *  Gets the current QueueService
    */
-  get queueService () {
+  get queueService() {
     return this._queueService;
   }
 
@@ -78,11 +78,45 @@ class ChesService {
    *  Sets the current QueueService
    *  @param {object} v - a QueueService.
    */
-  set queueService (v) {
+  set queueService(v) {
     this._queueService = v;
   }
 
-  async getStatus (client, messageId) {
+  /** @function findStatuses
+   *  @description Finds the set of message statuses that matches the search criteria
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} messageId - the id of the desired message
+   *  @param {string} status - the desired status of the messages
+   *  @param {string} tag - the desired tag of the messages
+   *  @param {string} transactionId - the id of the desired transaction
+   *  @throws Problem if an unexpected error occurs
+   *  @returns {object[]} Array of Status objects with a subset of properties
+   */
+  async findStatuses(client, messageId, status, tag, transactionId) {
+    try {
+      const result = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
+      return result.map(msg => transformer.toStatusResponse(msg));
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        log.verbose('findStatuses', 'No messages found');
+        return [];
+      } else {
+        log.error('findStatuses', e.message);
+        throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
+      }
+    }
+  }
+
+  /** @function getStatus
+   *  @description Finds the message status of `messageId`
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} msgId - the id of the desired message
+   *  @throws Problem if an unexpected error occurs or if message is not found
+   *  @returns {object[]} The Status object for `messageId` if it exists
+   */
+  async getStatus(client, messageId) {
     if (!messageId) {
       throw new Problem(400, { detail: 'Error getting status. Message Id cannot be null' });
     }
@@ -92,7 +126,7 @@ class ChesService {
       const msg = await this.dataService.readMessage(client, messageId);
 
       // transform message and statuses into API format...
-      const status = Transformer.status(msg);
+      const status = transformer.toStatusResponse(msg);
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
@@ -113,7 +147,7 @@ class ChesService {
    *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
    *  @returns {object} TransactionResponse
    */
-  async sendEmail (client, message, ethereal = false) {
+  async sendEmail(client, message, ethereal = false) {
     if (!message) {
       throw new Problem(400, { detail: 'Error sending email. Email message cannot be null' });
     }
@@ -138,7 +172,7 @@ class ChesService {
         trxn = await this.dataService.readTransaction(client, trxn.transactionId);
 
         //return to caller in API format
-        return Transformer.transaction(trxn);
+        return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
       log.error(`Send Email error. ${e.message}`);
@@ -154,7 +188,7 @@ class ChesService {
    *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
    *  @returns {object} TransactionResponse
    */
-  async sendEmailMerge (client, template, ethereal = false) {
+  async sendEmailMerge(client, template, ethereal = false) {
     if (!template) {
       throw new Problem(400, { detail: 'Error sending email merge. Email templates/contexts cannot be null' });
     }
@@ -192,7 +226,7 @@ class ChesService {
         trxn = await this.dataService.readTransaction(client, trxn.transactionId);
 
         // return transaction in API format
-        return Transformer.transaction(trxn);
+        return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
       log.error(`Send Email Merge error. ${e.message}`);
