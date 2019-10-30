@@ -82,6 +82,33 @@ class ChesService {
     this._queueService = v;
   }
 
+  /** @function cancelMessage
+   *  @description Cancels message `messageId` if it is still waiting to send
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} msgId - the id of the desired message
+   *  @throws Problem if an unexpected error occurs or if message is not found
+   */
+  async cancelMessage(client, messageId) {
+    if (!messageId) {
+      throw new Problem(400, { detail: 'Error cancelling message. Message Id cannot be null' });
+    }
+
+    try {
+      // Cancel and remove a delayed message... (throws error if not found)
+      return await this.dataService.cancelMessage(client, messageId);
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        log.error('cancelMessage', `Message ${messageId} from client ${client} not found.`);
+        throw new Problem(404, { detail: `Message ${messageId} not found.` });
+      } else {
+        log.error('cancelMessage', `Unable to cancel message ${messageId} from client ${client}. ${e.message}`);
+        log.error(utils.prettyStringify(e));
+        throw new Problem(500, { detail: `Unable to cancel message ${messageId}. ${e.message}` });
+      }
+    }
+  }
+
   /** @function findStatuses
    *  @description Finds the set of message statuses that matches the search criteria
    *
@@ -130,12 +157,12 @@ class ChesService {
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.error(`Get Status for client = ${client} & messageId = ${messageId} error. Message not found`);
-        throw new Problem(404, { detail: `Error getting status for message ${messageId} (Client ${client}). Message not found.` });
+        log.error('getStatus', `Message ${messageId} from client ${client} not found.`);
+        throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else {
-        log.error(`Get Status for client = ${client} & messageId = ${messageId} error. ${e.message}`);
-        log.error(JSON.stringify(e, null, 2));
-        throw new Problem(500, { detail: `Error getting status for client = ${client} & messageId = ${messageId}. ${e.message}` });
+        log.error('getStatus', `Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`);
+        log.error(utils.prettyStringify(e));
+        throw new Problem(500, { detail: `Unable retrieve status of message ${messageId}. ${e.message}` });
       }
     }
   }
@@ -176,7 +203,7 @@ class ChesService {
       }
     } catch (e) {
       log.error(`Send Email error. ${e.message}`);
-      log.error(JSON.stringify(e, null, 2));
+      log.error(utils.prettyStringify(e));
       throw new Problem(500, { detail: `Error sending email. ${e.message}` });
     }
   }
@@ -230,7 +257,7 @@ class ChesService {
       }
     } catch (e) {
       log.error(`Send Email Merge error. ${e.message}`);
-      log.error(JSON.stringify(e, null, 2));
+      log.error(utils.prettyStringify(e));
       throw new Problem(500, { detail: `Error sending email merge. ${e.message}` });
     }
   }

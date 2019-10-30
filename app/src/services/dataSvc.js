@@ -48,6 +48,18 @@ const createMessage = async (transactionId, msg, db) => {
   return messageObj;
 };
 
+/** @function getClientTrxnQuery
+ *  @description Gets a list of all transactions created by `client`
+ *
+ *  @param {string} client - the client
+ *  @returns An array of transactionIds
+ */
+const getClientTrxnQuery = client => {
+  return Trxn.query()
+    .select('transactionId')
+    .where('client', client);
+};
+
 /** @function queueToBusinessStatus
  *  Not all transitions in the queue processing are relevant to business.
  *  Translate a queue processing status into a  business status.
@@ -55,7 +67,7 @@ const createMessage = async (transactionId, msg, db) => {
  *  @param {string} queueStatus - status message from queue
  *  @returns {string} a business status (stored in Status)
  */
-const queueToBusinessStatus = (queueStatus) => {
+const queueToBusinessStatus = queueStatus => {
   // we have no mapping yet, so just track them all...
   return queueStatus;
 };
@@ -83,6 +95,22 @@ class DataService {
    */
   set connection(v) {
     this._connection = v;
+  }
+
+  /** @function cancelMessage
+   *  Cancels a Message from the db
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} messageId - the id of the message we want
+   *  @throws NotFoundError if message for client not found
+   *  @returns {object} Message object, fully populated.
+   */
+  async cancelMessage(client, messageId) {
+    this.isMessageDelayed(client, messageId);
+    return Message.query()
+      .findById(messageId)
+      .whereIn('transactionId', getClientTrxnQuery(client))
+      .throwIfNotFound();
   }
 
   /** @function createTransaction
@@ -176,14 +204,29 @@ class DataService {
       transactionId: transactionId
     });
 
-    const trxnQuery = Trxn.query()
-      .select('transactionId')
-      .where('client', client);
-
     return Message.query()
-      .whereIn('transactionId', trxnQuery)
+      .whereIn('transactionId', getClientTrxnQuery(client))
       .andWhere(parameters)
       .throwIfNotFound();
+  }
+
+  /** @function isMessageDelayed
+   *  Determines if a Message is delayed
+   *
+   *  @param {string} client - the authorized party / client
+   *  @param {string} messageId - the id of the message we want
+   *  @throws NotFoundError if message for client not found
+   *  @returns {boolean} True if `messageId` is enqueued state
+   */
+  async isMessageDelayed(client, messageId) {
+    const { status } = await Message.query()
+      .findById(messageId)
+      .columns(['delayTimestamp', 'status'])
+      .whereIn('transactionId', getClientTrxnQuery(client))
+      .throwIfNotFound();
+
+    // TODO: Check delayTimeStamp as well
+    return status === 'enqueued';
   }
 
   /** @function readMessage
@@ -195,24 +238,17 @@ class DataService {
    *  @returns {object} Message object, fully populated.
    */
   async readMessage(client, messageId) {
-    const trxnQuery = Trxn.query()
-      .select('transactionId')
-      .where('client', client);
-
     return Message.query()
       .findById(messageId)
-      .whereIn('transactionId', trxnQuery)
+      .whereIn('transactionId', getClientTrxnQuery(client))
       .eagerAlgorithm(Model.JoinEagerAlgorithm)
       .eager({
-        statusHistory: true,
-        queueHistory: true
+        statusHistory: true
       })
       .modifyEager('statusHistory', builder => {
         builder.orderBy('createdAt', 'desc');
       })
-      .modifyEager('queueHistory', builder => {
-        builder.orderBy('createdAt', 'desc');
-      }).throwIfNotFound();
+      .throwIfNotFound();
   }
 
   /** @function readTransaction
@@ -227,19 +263,7 @@ class DataService {
     return Trxn.query()
       .findById(transactionId)
       .where('client', client)
-      .eagerAlgorithm(Model.JoinEagerAlgorithm)
-      .eager({
-        messages: {
-          statusHistory: true,
-          queueHistory: true
-        }
-      })
-      .modifyEager('messages.statusHistory', builder => {
-        builder.orderBy('createdAt', 'desc');
-      })
-      .modifyEager('messages.queueHistory', builder => {
-        builder.orderBy('createdAt', 'desc');
-      }).throwIfNotFound();
+      .throwIfNotFound();
   }
 
   /** @function updateMessageSendResult

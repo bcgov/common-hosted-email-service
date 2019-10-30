@@ -4,7 +4,7 @@ const ChesService = require('../../services/chesSvc');
 
 const chesService = new ChesService();
 
-/** Email sending endpoint */
+/** Send an email endpoint */
 emailRouter.post('/', validateEmail, async (req, res, next) => {
   try {
     const ethereal = (req.query.devMode !== undefined);

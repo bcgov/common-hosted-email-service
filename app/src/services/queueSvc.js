@@ -18,6 +18,8 @@
  */
 const log = require('npmlog');
 
+const utils = require('../components/utils');
+
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
 const QueueConnection = require('./queueConn');
@@ -148,7 +150,7 @@ class QueueService {
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
         log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
-        log.error(JSON.stringify(e, null, 2));
+        log.error(utils.prettyStringify(e));
       }
     }
     return null;
