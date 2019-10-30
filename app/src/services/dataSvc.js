@@ -88,7 +88,7 @@ class DataService {
   /** @function createTransaction
    *  Creates a Trxn (transaction) record with associated messages
    *
-   *  @param {string} client- the authorized party / client
+   *  @param {string} client - the authorized party / client
    *  @param {object} msg - the API email message or template.
    *  @returns {object} Trxn object, fully populated with child messages and status
    */
@@ -118,7 +118,7 @@ class DataService {
 
       return await this.readTransaction(client, transactionId);
     } catch (err) {
-      log.error(`Error creating transaction record: ${err.message}. Rolling back,..`);
+      log.error(`Error creating transaction record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;

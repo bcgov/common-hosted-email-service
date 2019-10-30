@@ -23,6 +23,10 @@ class QueueConnection {
    */
   constructor () {
     const configuration = {
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: true
+      },
       redis: {
         host: config.get('redis.host'),
         password: config.get('redis.password')

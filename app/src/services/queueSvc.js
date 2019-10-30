@@ -119,7 +119,6 @@ class QueueService {
     if (job && job.data && job.data.messageId && job.data.client) {
       await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
     }
-    await job.update(null); // Scrub out client and message id
   }
 
   /** @function updateStatus
