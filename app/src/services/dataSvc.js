@@ -165,20 +165,10 @@ class DataService {
    *  @param {string} status - the desired status of the messages
    *  @param {string} tag - the desired tag of the messages
    *  @param {string} transactionId - the id of the desired transaction
-   *  @param {string[]} [fields=[]] - a list of desired columns in addition to the defaults
    *  @throws NotFoundError if no messages were found
    *  @returns {object[]} Array of Message objects with a subset of properties
    */
-  async findMessagesByQuery(client, messageId, status, tag, transactionId, fields = []) {
-    const validColumns = [
-      'createdAt',
-      'delayTimestamp',
-      'messageId',
-      'status',
-      'tag',
-      'transactionId',
-      'updatedAt'
-    ];
+  async findMessagesByQuery(client, messageId, status, tag, transactionId) {
     const parameters = utils.dropUndefinedObject({
       messageId: messageId,
       status: status,
@@ -186,16 +176,11 @@ class DataService {
       transactionId: transactionId
     });
 
-    const columns = [... new Set(validColumns.concat(fields.filter(field => {
-      return validColumns.includes(field);
-    })))];
-
     const trxnQuery = Trxn.query()
       .select('transactionId')
       .where('client', client);
 
     return Message.query()
-      .column(columns)
       .whereIn('transactionId', trxnQuery)
       .andWhere(parameters)
       .throwIfNotFound();
