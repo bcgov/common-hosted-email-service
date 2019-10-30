@@ -2,41 +2,28 @@ const log = require('npmlog');
 
 const EmailConnection = require('../services/emailConn');
 
-const checks = {
+const healthCheck = {
   /** Checks the connectivity of the SMTP host
    *  @returns A result object
    */
-  getSmtpStatus: async () => {
-
-    const emailConnection = new EmailConnection();
-
-    const result = {
-      authenticated: false,
-      authorized: false,
-      endpoint: `https://${emailConnection.host}`,
-      healthCheck: false,
-      name: 'SMTP Endpoint'
-    };
-
+  getSmtpHealth: async () => {
+    const result = {name: 'smtp', healthy: false, info: null};
     try {
-      const emailConnectionOk = await emailConnection.checkConnection();
-
-      result.authenticated = true;
-      result.authorized = true;
-      result.healthCheck = emailConnectionOk;
+      const emailConnection = new EmailConnection();
+      result.healthy = await emailConnection.checkConnection();
+      result.info = 'SMTP Service connected successfully.';
     } catch (error) {
-      log.error('getSmtpStatus', error.message);
+      log.error('getSmtpHealth', error.message);
+      result.info = error.message;
     }
-
     return result;
   },
 
   /** Returns a list of all endpoint connectivity states
    * @returns {object[]} An array of result objects
    */
-  getStatus: () => Promise.all([
-    checks.getSmtpStatus()
-  ])
+  getAll: () => Promise.all([healthCheck.getSmtpHealth()])
+
 };
 
-module.exports = checks;
+module.exports = healthCheck;
