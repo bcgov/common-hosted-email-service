@@ -17,8 +17,12 @@ describe('GET /api/v1', () => {
     expect(response.body).toBeTruthy();
     expect(response.body).toEqual({
       endpoints: [
-        '/checks',
-        '/email'
+        '/api-spec.yaml',
+        '/docs',
+        '/email',
+        '/emailMerge',
+        '/health',
+        '/status'
       ]
     });
   });

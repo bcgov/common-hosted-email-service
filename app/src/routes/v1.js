@@ -16,8 +16,12 @@ const clientId = config.get('keycloak.clientId');
 router.get('/', (_req, res) => {
   res.status(200).json({
     endpoints: [
-      '/checks',
-      '/email'
+      '/api-spec.yaml',
+      '/docs',
+      '/email',
+      '/emailMerge',
+      '/health',
+      '/status'
     ]
   });
 });

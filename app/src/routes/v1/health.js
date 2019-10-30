@@ -1,17 +1,16 @@
 const checksRouter = require('express').Router();
 
-const checkComponent = require('../../components/health');
+const healthCheck = require('../../components/health');
 
 /** Returns the status of correspondent APIs */
 checksRouter.get('/', async (_req, res, next) => {
-  const statuses = await checkComponent.getStatus();
-
-  if (statuses instanceof Array) {
+  try {
+    const dependencies = await healthCheck.getAll();
     res.status(200).json({
-      endpoints: statuses
+      dependencies: dependencies
     });
-  } else {
-    next(new Error('Unable to get API status list'));
+  } catch (error) {
+    next(error);
   }
 });
 

@@ -18,26 +18,26 @@ security:
 paths:
   /health:
     get:
-      summary: (DRAFT) Returns status of correspondent APIs
+      summary: Returns status of external dependencies
       description: >-
         This endpoint returns the state and connectivity of any external
-        services this service depends on.
+        services CHES depends on.
       operationId: getHealth
       tags:
         - Health
       responses:
         '200':
-          description: Returns the healthiness of API endpoint(s) this service depends on
+          description: Returns the healthiness of the service dependencies
           content:
             application/json:
               schema:
                 type: object
                 required:
-                  - endpoints
+                  - dependencies
                 properties:
-                  endpoints:
+                  dependencies:
                     type: array
-                    description: A list of endpoint Health states
+                    description: A list of Health states
                     items:
                       $ref: '#/components/schemas/Health'
         '401':
@@ -497,28 +497,19 @@ components:
       type: object
       required:
         - name
-        - endpoint
-        - healthCheck
-        - authenticated
-        - authorized
+        - healthy
+        - info
       properties:
         name:
           type: string
-          description: The name of the endpoint
-          example: Example API
-        endpoint:
+          description: The name of the dependency
+          example: smtp
+        healthy:
+          type: boolean
+          description: Is the dependency reachable/alive
+        info:
           type: string
-          description: Base endpoint URL
-          example: 'https://example.com/v1/'
-        healthCheck:
-          type: boolean
-          description: Is the endpoint reachable
-        authenticated:
-          type: boolean
-          description: Are credentials valid to access endpoint
-        authorized:
-          type: boolean
-          description: Do the credentials have the right permissions
+          description: Any extra information, generally useful when dependency is unreachable
     MergeRequest:
       type: object
       required:
