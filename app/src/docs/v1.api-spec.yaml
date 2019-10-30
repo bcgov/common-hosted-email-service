@@ -18,7 +18,7 @@ security:
 paths:
   /health:
     get:
-      summary: Returns status of external dependencies
+      summary: Returns health checks of external service dependencies.
       description: >-
         This endpoint returns the state and connectivity of any external
         services CHES depends on.
@@ -510,6 +510,7 @@ components:
         info:
           type: string
           description: Any extra information, generally useful when dependency is unreachable
+          example: 'SMTP Service connected successfully.'
     MergeRequest:
       type: object
       required:

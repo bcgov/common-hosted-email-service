@@ -7,7 +7,7 @@ const healthCheck = {
    *  @returns A result object
    */
   getSmtpHealth: async () => {
-    let result = {name: 'smtp', healthy: false, info: null};
+    const result = {name: 'smtp', healthy: false, info: null};
     try {
       const emailConnection = new EmailConnection();
       result.healthy = await emailConnection.checkConnection();
