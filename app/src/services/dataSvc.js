@@ -11,6 +11,7 @@
  * @exports DataService
  */
 const log = require('npmlog');
+const moment = require('moment');
 const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
@@ -106,11 +107,18 @@ class DataService {
    *  @returns {object} Message object, fully populated.
    */
   async cancelMessage(client, messageId) {
-    this.isMessageDelayed(client, messageId);
+    const delayed = await this.isMessageDelayed(client, messageId);
+
+    if (delayed) {
+      // Cancel the message
+      // Update status tables
+    }
+
     return Message.query()
       .findById(messageId)
       .whereIn('transactionId', getClientTrxnQuery(client))
-      .throwIfNotFound();
+      .andWhere('status', 'enqueued');
+    // .throwIfNotFound();
   }
 
   /** @function createTransaction
@@ -219,14 +227,13 @@ class DataService {
    *  @returns {boolean} True if `messageId` is enqueued state
    */
   async isMessageDelayed(client, messageId) {
-    const { status } = await Message.query()
+    const { delayTimestamp, status } = await Message.query()
       .findById(messageId)
       .columns(['delayTimestamp', 'status'])
       .whereIn('transactionId', getClientTrxnQuery(client))
       .throwIfNotFound();
 
-    // TODO: Check delayTimeStamp as well
-    return status === 'enqueued';
+    return status === 'enqueued' && moment().isBefore(moment.unix(delayTimestamp).utc());
   }
 
   /** @function readMessage
