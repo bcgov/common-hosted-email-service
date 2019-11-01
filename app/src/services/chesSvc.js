@@ -95,8 +95,13 @@ class ChesService {
     }
 
     try {
+      // Check redis for ownership and cancelability first
+      await this.queueService.removeJob(client, messageId);
+      // Remove from redis if possible
+      // Update DB as needed for consistency
+
       // Cancel and remove a delayed message... (throws error if not found)
-      return await this.dataService.cancelMessage(client, messageId);
+      // return await this.dataService.cancelMessage(client, messageId);
     } catch (e) {
       if (e instanceof NotFoundError) {
         log.error('cancelMessage', `Message ${messageId} from client ${client} not found.`);
@@ -188,21 +193,18 @@ class ChesService {
         return result;
       } else {
         // create the transaction...
-        let trxn = await this.dataService.createTransaction(client, message);
+        const trxn = await this.dataService.createTransaction(client, message);
 
         // queue up the messages...
         const delayTS = trxn.messages[0].delayTimestamp;
         const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
         await this.queueService.enqueue(client, trxn.messages[0], { delay: delay });
 
-        // fetch the transaction/messages/statuses...
-        trxn = await this.dataService.readTransaction(client, trxn.transactionId);
-
         //return to caller in API format
         return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
-      log.error(`Send Email error. ${e.message}`);
+      log.error('sendEmail', e.message);
       log.error(utils.prettyStringify(e));
       throw new Problem(500, { detail: `Error sending email. ${e.message}` });
     }
@@ -248,9 +250,6 @@ class ChesService {
           const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
           this.queueService.enqueue(client, msg, { delay: delay });
         }));
-
-        // fetch the updated transaction/messages/statuses...
-        trxn = await this.dataService.readTransaction(client, trxn.transactionId);
 
         // return transaction in API format
         return transformer.toTransactionResponse(trxn);

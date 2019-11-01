@@ -3,13 +3,14 @@
  *
  * Listens to Bull queue events, calls QueueService to perform tasks.
  *
- * @see QueueService
- *
  * @see Bull
+ * @see QueueService
  *
  * @exports QueueListener
  */
 const log = require('npmlog');
+
+const { queueState } = require('../components/state');
 
 const QueueService = require('./queueSvc');
 
@@ -22,67 +23,82 @@ class QueueListener {
    * Get the default QueueService.
    * This is the QueueService that will be told to run tasks when events fire.
    */
-  static get queueService () {
+  static get queueService() {
     if (!queueService) {
       queueService = new QueueService();
     }
     return queueService;
   }
 
-  /** Cleanup message data upon job completion
-   *  @param {object} job A Bull Queue Job object
+  /**
+   * @function onCompleted
+   * Cleanup message data upon job completion
+   * @param {object} job A Bull Queue Job object
    */
-  static async onCompleted (job) {
-    log.info('queue', `Job ${job.id} completed`);
-    await QueueListener.queueService.updateStatus(job, 'completed');
+  static async onCompleted(job) {
+    log.info('onCompleted', `Job ${job.id} completed`);
+    await QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
     await QueueListener.queueService.updateContent(job);
   }
 
-  /** Log the job error upon encountering an error
-   *  @param {object} job A Bull Queue Job object
+  /**
+   * @function onError
+   * Log the job error upon encountering an error
+   * @param {object} job A Bull Queue Job object
    */
-  static async onError (job) {
+  static async onError(job) {
     if (typeof job.id !== 'undefined') {
-      await QueueListener.queueService.updateStatus(job, 'errored');
-      log.error('queue', `Job ${job.id} errored`);
+      log.error('onError', `Job ${job.id} errored`);
+      await QueueListener.queueService.updateStatus(job, queueState.ERRORED);
     } else {
-      log.error('queue', 'A Job failed');
+      log.error('onError', 'A Job failed');
     }
   }
 
-  /** Cleanup message data upon job failure
-   *  @param {object} job A Bull Queue Job object
+  /**
+   * @function onFailed
+   * Cleanup message data upon job failure
+   * @param {object} job A Bull Queue Job object
    */
-  static async onFailed (job) {
-    log.error('queue', `Job ${job.id} failed`);
-    await QueueListener.queueService.updateStatus(job, 'failed', job.failedReason);
+  static async onFailed(job) {
+    log.error('onFailed', `Job ${job.id} failed`);
+    await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
     await QueueListener.queueService.updateContent(job);
   }
 
-  /** Execute the message job task
-   *  @param {object} job A Bull Queue Job object
+  /**
+   * @function onProcess
+   * Execute the message job task
+   * @param {object} job A Bull Queue Job object
    */
-  static async onProcess (job) {
-    log.info('queue', `Job ${job.id} is processing...`);
+  static async onProcess(job) {
+    log.info('onProcess', `Job ${job.id} is processing...`);
 
     try {
       if (job.data.messageId && job.data.client) {
-        await QueueListener.queueService.updateStatus(job, 'processing');
-        const result = await QueueListener.queueService.sendMessage(job);
-        await QueueListener.queueService.updateStatus(job, 'delivered');
-        await job.log(JSON.stringify(result));
-        return result;
+        await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
+        await QueueListener.queueService.sendMessage(job);
+        await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
       } else {
         throw new Error('Message information missing or formatted incorrectly');
       }
     } catch (error) {
-      await job.log(error.message);
-      await QueueListener.queueService.updateStatus(job, 'move to failed');
       await job.moveToFailed({
         message: error.message
       }, true);
       await job.finished();
     }
+  }
+
+  /**
+   * @function onRemoved
+   * Remove a job from the queue
+   * @param {object} job A Bull Queue Job object
+   */
+  static async onRemoved(job) {
+    log.error('onRemoved', `Job ${job.id} removed`);
+    await QueueListener.queueService.updateStatus(job, queueState.REMOVED);
+    await QueueListener.queueService.updateContent(job);
   }
 
 }
