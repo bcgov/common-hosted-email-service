@@ -15,7 +15,7 @@ const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
 
-const { queueState, statusState, queueToStatus } = require('../components/state');
+const { statusState, queueToStatus } = require('../components/state');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');

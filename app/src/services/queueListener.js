@@ -78,6 +78,7 @@ class QueueListener {
       if (job.data.messageId && job.data.client) {
         await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
         await QueueListener.queueService.sendMessage(job);
+        log.info('onProcess', `Job ${job.id} delivered`);
         await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
       } else {
         throw new Error('Message information missing or formatted incorrectly');
@@ -96,7 +97,7 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onRemoved(job) {
-    log.error('onRemoved', `Job ${job.id} removed`);
+    log.info('onRemoved', `Job ${job.id} removed`);
     await QueueListener.queueService.updateStatus(job, queueState.REMOVED);
     await QueueListener.queueService.updateContent(job);
   }

@@ -15,7 +15,7 @@ describe('queueState', () => {
 
 describe('statusState', () => {
   it('should have the correct number of defined states', () => {
-    expect(Object.keys(statusState)).toHaveLength(5);
+    expect(Object.keys(statusState)).toHaveLength(6);
   });
 
   it('should be read only', () => {
@@ -42,11 +42,11 @@ describe('queueToStatus', () => {
     expect(result).toMatch(statusState.COMPLETED);
   });
 
-  it('should map queue delivered to status pending', () => {
+  it('should map queue delivered to status processing', () => {
     const result = queueToStatus(queueState.DELIVERED);
 
     expect(result).toBeTruthy();
-    expect(result).toMatch(statusState.PENDING);
+    expect(result).toMatch(statusState.PROCESSING);
   });
 
   it('should map queue errored to status pending', () => {
@@ -70,11 +70,11 @@ describe('queueToStatus', () => {
     expect(result).toMatch(statusState.FAILED);
   });
 
-  it('should map queue processing to status pending', () => {
+  it('should map queue processing to status processing', () => {
     const result = queueToStatus(queueState.PROCESSING);
 
     expect(result).toBeTruthy();
-    expect(result).toMatch(statusState.PENDING);
+    expect(result).toMatch(statusState.PROCESSING);
   });
 
   it('should map queue removed to status cancelled', () => {

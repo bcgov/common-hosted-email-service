@@ -114,9 +114,9 @@ class QueueService {
       jobId: message.messageId
     }));
 
-    await this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
-
     log.info('enqueue', `Job ${message.messageId} enqueued`);
+    this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
+
     return job.id;
   }
 
@@ -174,17 +174,26 @@ class QueueService {
    *
    * @param {string} client - the client that owns the message
    * @param {object} jobId - the messageId the message job is tracked as
+   * @returns {object} TBD
    */
   async removeJob(client, jobId) {
     const job = await this.queue.getJob(jobId);
 
-    if (job && job.data && job.data.messageId && job.data.client) {
-      if(client && job.data.client === client) {
-        return;
+    if (job) {
+      if (job.data && job.data.messageId && job.data.client) {
+        if(job.data.messageId === jobId && job.data.client === client) {
+          job.remove();
+          log.info('removeJob', `Job ${jobId} removed`);
+        } else {
+          log.info('removeJob', 'Job data does not match either client or messageId');
+        }
+      } else {
+        log.info('removeJob', 'Job data is missing or malformed');
       }
+    } else {
+      log.info('removeJob', 'Job was not found - either missing or terminated');
     }
 
-    log.info('removeJob', `Job ${jobId} removed`);
     return jobId;
   }
 }
