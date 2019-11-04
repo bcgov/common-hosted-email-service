@@ -107,17 +107,15 @@ class QueueService {
    * @param {object} opts - Bull opts, including setting delay time
    */
   async enqueue(client, message, opts = {}) {
-    const job = await this.queue.add({
+    await this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
+    await this.queue.add({
       client: client,
       messageId: message.messageId
     }, Object.assign(opts, {
       jobId: message.messageId
-    }));
-
-    log.info('enqueue', `Job ${message.messageId} enqueued`);
-    this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
-
-    return job.id;
+    }))
+      .then(() => log.info('enqueue', `Job ${message.messageId} enqueued`))
+      .catch(e => log.error(e));
   }
 
   /**
@@ -143,7 +141,7 @@ class QueueService {
    */
   async updateStatus(job, status, description) {
     if (job && job.data && job.data.messageId && job.data.client) {
-      await this.dataService.updateStatus(job.data.client, job.data.messageId, status, description);
+      this.dataService.updateStatus(job.data.client, job.data.messageId, status, description);
     }
   }
 

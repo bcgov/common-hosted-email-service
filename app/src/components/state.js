@@ -36,8 +36,7 @@ const statusState = Object.freeze({
   CANCELLED: 'cancelled',
   COMPLETED: 'completed',
   FAILED: 'failed',
-  PENDING: 'pending',
-  PROCESSING: 'processing'
+  PENDING: 'pending'
 });
 
 /**
@@ -53,11 +52,11 @@ function queueToStatus(queueStatus) {
   const map = new Map([
     [queueState.ACCEPTED, statusState.ACCEPTED],
     [queueState.COMPLETED, statusState.COMPLETED],
-    [queueState.DELIVERED, statusState.PROCESSING],
+    [queueState.DELIVERED, statusState.PENDING],
     [queueState.ERRORED, statusState.PENDING],
     [queueState.ENQUEUED, statusState.PENDING],
     [queueState.FAILED, statusState.FAILED],
-    [queueState.PROCESSING, statusState.PROCESSING],
+    [queueState.PROCESSING, statusState.PENDING],
     [queueState.REMOVED, statusState.CANCELLED]
   ]);
 

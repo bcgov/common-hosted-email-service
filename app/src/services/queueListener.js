@@ -37,7 +37,7 @@ class QueueListener {
    */
   static async onCompleted(job) {
     log.info('onCompleted', `Job ${job.id} completed`);
-    await QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
+    QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
     await QueueListener.queueService.updateContent(job);
   }
 
@@ -49,7 +49,7 @@ class QueueListener {
   static async onError(job) {
     if (typeof job.id !== 'undefined') {
       log.error('onError', `Job ${job.id} errored`);
-      await QueueListener.queueService.updateStatus(job, queueState.ERRORED);
+      QueueListener.queueService.updateStatus(job, queueState.ERRORED);
     } else {
       log.error('onError', 'A Job failed');
     }
@@ -62,7 +62,7 @@ class QueueListener {
    */
   static async onFailed(job) {
     log.error('onFailed', `Job ${job.id} failed`);
-    await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
+    QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
     await QueueListener.queueService.updateContent(job);
   }
 
@@ -76,10 +76,10 @@ class QueueListener {
 
     try {
       if (job.data.messageId && job.data.client) {
-        await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
+        QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
         await QueueListener.queueService.sendMessage(job);
         log.info('onProcess', `Job ${job.id} delivered`);
-        await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
+        QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
       } else {
         throw new Error('Message information missing or formatted incorrectly');
       }
@@ -98,7 +98,7 @@ class QueueListener {
    */
   static async onRemoved(job) {
     log.info('onRemoved', `Job ${job.id} removed`);
-    await QueueListener.queueService.updateStatus(job, queueState.REMOVED);
+    QueueListener.queueService.updateStatus(job, queueState.REMOVED);
     await QueueListener.queueService.updateContent(job);
   }
 
