@@ -96,30 +96,6 @@ class DataService {
   }
 
   /**
-   * @function cancelMessage
-   * Cancels a Message from the db
-   *
-   * @param {string} client - the authorized party / client
-   * @param {string} messageId - the id of the message we want
-   * @throws NotFoundError if message for client not found
-   * @returns {object} Message object, fully populated.
-   */
-  async cancelMessage(client, messageId) {
-    const delayed = await this.isMessageCancellable(client, messageId);
-
-    if (delayed) {
-      // Cancel the message
-      // Update status tables
-    }
-
-    return Message.query()
-      .findById(messageId)
-      .whereIn('transactionId', getClientTrxnQuery(client))
-      .andWhere('status', statusState.PENDING);
-    // .throwIfNotFound();
-  }
-
-  /**
    * @function createTransaction
    * Creates a Trxn (transaction) record with associated messages
    *

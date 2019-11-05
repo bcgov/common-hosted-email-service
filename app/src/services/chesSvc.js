@@ -23,7 +23,12 @@ const utils = require('../components/utils');
 
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
-const QueueService = require('./queueSvc');
+const {
+  ClientMismatchError,
+  DataIntegrityError,
+  UncancellableError,
+  QueueService
+} = require('./queueSvc');
 
 class ChesService {
 
@@ -95,41 +100,26 @@ class ChesService {
     }
 
     try {
-      const job = await this.queueService.findJob(messageId);
-      if (job) {
-        if (job.data && job.data.messageId && job.data.client) {
-          // Job found with proper structure
-          if (job.data.client !== client) {
-            log.info('cancelMessage', `Message ${messageId} is not owned by client ${client}.`);
-            throw new Problem(403, { detail: `Message ${messageId} is not owned by client ${client}.` });
-          } else if (job.data.messageId !== messageId) {
-            log.error('cancelMessage', `Message ${messageId} does not match queued job.`);
-            throw new Problem(500, { detail: `Message ${messageId} does not match queued job.` });
-          } else {
-            const jobState = await job.getState();
-            if (jobState === 'delayed') {
-              this.queueService.removeJob(client, job);
-            } else {
-              log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
-              throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
-            }
-          }
-        }
-      } else {
-        // No job found - determine if not found or conflict from db
+      // Try removing directly from queue first
+      const success = await this.queueService.removeJob(client, messageId);
+      if (!success) {
+        // Check why a job was not found
         const cancellable = await this.dataService.isMessageCancellable(client, messageId);
-        if (cancellable) {
-          log.error('cancelMessage', `Message ${messageId} is missing corresponding job.`);
-          throw new Problem(500, { detail: `Message ${messageId} is missing corresponding job.` });
-        } else {
-          log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
-          throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
-        }
+        throw (cancellable) ? new DataIntegrityError() : new UncancellableError();
       }
     } catch (e) {
-      if (e instanceof NotFoundError) {
+      if (e instanceof ClientMismatchError) {
+        log.info('cancelMessage', `Message ${messageId} is not owned by client ${client}.`);
+        throw new Problem(403, { detail: `Message ${messageId} is not owned by client ${client}.` });
+      } else if (e instanceof DataIntegrityError) {
+        log.error('cancelMessage', `Message ${messageId} data is inconsistent or corrupted.`);
+        throw new Problem(500, { detail: `Message ${messageId} data is inconsistent or corrupted.` });
+      } else if (e instanceof NotFoundError) {
         log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
+      } else if (e instanceof UncancellableError) {
+        log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
+        throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
       } else {
         throw e;
       }

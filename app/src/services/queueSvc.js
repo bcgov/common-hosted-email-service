@@ -25,6 +25,27 @@ const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
 const QueueConnection = require('./queueConn');
 
+class ClientMismatchError extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, ClientMismatchError);
+  }
+}
+
+class DataIntegrityError extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, DataIntegrityError);
+  }
+}
+
+class UncancellableError extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, UncancellableError);
+  }
+}
+
 class QueueService {
   /**
    * Creates a new QueueService with default connection, dataService and emailService.
@@ -119,17 +140,6 @@ class QueueService {
   }
 
   /**
-   * @function findJob
-   * Finds a job from the queue.
-   *
-   * @param {object} jobId - the messageId the message job is tracked as
-   * @returns {object} the queued job if applicable
-   */
-  async findJob(jobId) {
-    return await this.queue.getJob(jobId);
-  }
-
-  /**
    * @function updateContent
    * Update the persisted content (email message) for a Message.
    * When jobs are completed or failed/errored, we want to remove the email content.
@@ -178,21 +188,44 @@ class QueueService {
 
   /**
    * @function removeJob
-   * Removes the job from the queue.
+   * Attempts to remove the job from the queue.
    *
    * @param {string} client - the authorized party / client
-   * @param {object} job - the queue job
+   * @param {object} jobId - the job id of the desired message
+   * @throws ClientMismatchError if job client does not match `client`
+   * @throws DataIntegrityError if job data is in an inconsistent state
+   * @throws UncancellableError if job state must is not 'delayed'
+   * @returns {boolean} True if successful, false if job was not found
    */
-  async removeJob(client, job) {
-    if (job && job.data && job.data.messageId && job.data.client) {
-      // Immediately remove from queue
-      await job.remove();
-      // Update DB with cancelled status
-      this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
-      this.updateContent(job);
-      log.info('removeJob', `Message ${job.data.messageId} removed from queue`);
+  async removeJob(client, jobId) {
+    const job = await this.queue.getJob(jobId);
+
+    if (job) {
+      if (job.data && job.data.client && job.data.messageId && job.data.messageId === jobId) {
+        // Job found with proper structure
+        const jobState = await job.getState();
+
+        if (job.data.client !== client) {
+          throw new ClientMismatchError();
+        } else if (jobState !== 'delayed') {
+          throw new UncancellableError();
+        } else {
+          // Immediately remove from queue
+          await job.remove();
+          // Update DB with cancelled status
+          this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
+          this.updateContent(job);
+
+          log.info('removeJob', `Message ${job.data.messageId} removed from queue`);
+          return true;
+        }
+      } else {
+        throw new DataIntegrityError();
+      }
+    } else {
+      return false;
     }
   }
 }
 
-module.exports = QueueService;
+module.exports = { ClientMismatchError, DataIntegrityError, UncancellableError, QueueService };
