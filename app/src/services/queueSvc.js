@@ -114,7 +114,7 @@ class QueueService {
     }, Object.assign(opts, {
       jobId: message.messageId
     }))
-      .then(() => log.info('enqueue', `Job ${message.messageId} enqueued`))
+      .then(job => log.info('enqueue', `Job ${job.id} enqueued`))
       .catch(e => log.error(e));
   }
 
@@ -185,7 +185,9 @@ class QueueService {
    */
   async removeJob(client, job) {
     if (job && job.data && job.data.messageId && job.data.client) {
+      // Immediately remove from queue
       await job.remove();
+      // Update DB with cancelled status
       this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
       this.updateContent(job);
       log.info('removeJob', `Message ${job.data.messageId} removed from queue`);

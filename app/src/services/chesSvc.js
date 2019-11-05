@@ -94,51 +94,44 @@ class ChesService {
       throw new Problem(400, { detail: 'Error cancelling message. Message Id cannot be null' });
     }
 
-    const job = await this.queueService.findJob(messageId);
-    if (!job) {
-      // No job found - determine if not found or conflict from db
-      try {
+    try {
+      const job = await this.queueService.findJob(messageId);
+      if (job) {
+        if (job.data && job.data.messageId && job.data.client) {
+          // Job found with proper structure
+          if (job.data.client !== client) {
+            log.info('cancelMessage', `Message ${messageId} is not owned by client ${client}.`);
+            throw new Problem(403, { detail: `Message ${messageId} is not owned by client ${client}.` });
+          } else if (job.data.messageId !== messageId) {
+            log.error('cancelMessage', `Message ${messageId} does not match queued job.`);
+            throw new Problem(500, { detail: `Message ${messageId} does not match queued job.` });
+          } else {
+            const jobState = await job.getState();
+            if (jobState === 'delayed') {
+              this.queueService.removeJob(client, job);
+            } else {
+              log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
+              throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
+            }
+          }
+        }
+      } else {
+        // No job found - determine if not found or conflict from db
         const cancellable = await this.dataService.isMessageCancellable(client, messageId);
-        if (!cancellable) {
-          log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
-          throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
-        } else {
+        if (cancellable) {
           log.error('cancelMessage', `Message ${messageId} is missing corresponding job.`);
           throw new Problem(500, { detail: `Message ${messageId} is missing corresponding job.` });
-        }
-      } catch (e) {
-        if (e instanceof NotFoundError) {
-          log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
-          throw new Problem(404, { detail: `Message ${messageId} not found.` });
         } else {
-          throw e;
+          log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
+          throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
         }
       }
-    } else if (job.data && job.data.messageId && job.data.client) {
-      // Job found with proper structure
-      if (job.data.client !== client) {
-        log.info('cancelMessage', `Message ${messageId} is not owned by client ${client}.`);
-        throw new Problem(403, { detail: `Message ${messageId} is not owned by client ${client}.` });
-      } else if (job.data.messageId !== messageId) {
-        log.error('cancelMessage', `Message ${messageId} does not match queued job.`);
-        throw new Problem(500, { detail: `Message ${messageId} does not match queued job.` });
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
+        throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else {
-        try {
-          const cancellable = await this.dataService.isMessageCancellable(client, messageId);
-          if (cancellable) {
-            this.queueService.removeJob(client, job);
-          } else {
-            log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
-            throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
-          }
-        } catch (e) {
-          if (e instanceof NotFoundError) {
-            log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
-            throw new Problem(404, { detail: `Message ${messageId} not found.` });
-          } else {
-            throw e;
-          }
-        }
+        throw e;
       }
     }
   }
