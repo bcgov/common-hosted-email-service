@@ -91,17 +91,6 @@ class QueueListener {
     }
   }
 
-  /**
-   * @function onRemoved
-   * Remove a job from the queue
-   * @param {object} job A Bull Queue Job object
-   */
-  static async onRemoved(job) {
-    log.info('onRemoved', `Job ${job.id} removed`);
-    QueueListener.queueService.updateStatus(job, queueState.REMOVED);
-    await QueueListener.queueService.updateContent(job);
-  }
-
 }
 
 module.exports = QueueListener;

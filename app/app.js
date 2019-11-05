@@ -65,7 +65,6 @@ if (process.env.NODE_ENV !== 'test') {
         queueConnection.queue.on('completed', QueueListener.onCompleted);
         queueConnection.queue.on('error', QueueListener.onError);
         queueConnection.queue.on('failed', QueueListener.onFailed);
-        queueConnection.queue.on('removed', QueueListener.onRemoved);
       } else {
         log.error('Infrastructure', `Initialization failed: Database OK = ${dataConnectionOk}, Queue OK = ${queueConnectionOk}, Email OK = ${emailConnectionOk}`);
         shutdown();
