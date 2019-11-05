@@ -38,7 +38,7 @@ class QueueListener {
   static async onCompleted(job) {
     log.info('onCompleted', `Job ${job.id} completed`);
     QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
-    await QueueListener.queueService.updateContent(job);
+    QueueListener.queueService.updateContent(job);
   }
 
   /**
@@ -63,7 +63,7 @@ class QueueListener {
   static async onFailed(job) {
     log.error('onFailed', `Job ${job.id} failed`);
     QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
-    await QueueListener.queueService.updateContent(job);
+    QueueListener.queueService.updateContent(job);
   }
 
   /**

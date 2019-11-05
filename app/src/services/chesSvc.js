@@ -86,30 +86,59 @@ class ChesService {
    *  @description Cancels message `messageId` if it is still waiting to send
    *
    *  @param {string} client - the authorized party / client
-   *  @param {string} msgId - the id of the desired message
-   *  @throws Problem if an unexpected error occurs or if message is not found
+   *  @param {string} messageId - the id of the desired message
+   *  @throws Problem if message is not found or conflicts with internal state
    */
   async cancelMessage(client, messageId) {
     if (!messageId) {
       throw new Problem(400, { detail: 'Error cancelling message. Message Id cannot be null' });
     }
 
-    try {
-      // Check redis for ownership and cancelability first
-      await this.queueService.removeJob(client, messageId);
-      // Remove from redis if possible
-      // Update DB as needed for consistency
-
-      // Cancel and remove a delayed message... (throws error if not found)
-      // return await this.dataService.cancelMessage(client, messageId);
-    } catch (e) {
-      if (e instanceof NotFoundError) {
-        log.error('cancelMessage', `Message ${messageId} from client ${client} not found.`);
-        throw new Problem(404, { detail: `Message ${messageId} not found.` });
+    const job = await this.queueService.findJob(messageId);
+    if (!job) {
+      // No job found - determine if not found or conflict from db
+      try {
+        const cancellable = await this.dataService.isMessageCancellable(client, messageId);
+        if (!cancellable) {
+          log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
+          throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
+        } else {
+          log.error('cancelMessage', `Message ${messageId} is missing corresponding job.`);
+          throw new Problem(500, { detail: `Message ${messageId} is missing corresponding job.` });
+        }
+      } catch (e) {
+        if (e instanceof NotFoundError) {
+          log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
+          throw new Problem(404, { detail: `Message ${messageId} not found.` });
+        } else {
+          throw e;
+        }
+      }
+    } else if (job.data && job.data.messageId && job.data.client) {
+      // Job found with proper structure
+      if (job.data.client !== client) {
+        log.info('cancelMessage', `Message ${messageId} is not owned by client ${client}.`);
+        throw new Problem(403, { detail: `Message ${messageId} is not owned by client ${client}.` });
+      } else if (job.data.messageId !== messageId) {
+        log.error('cancelMessage', `Message ${messageId} does not match queued job.`);
+        throw new Problem(500, { detail: `Message ${messageId} does not match queued job.` });
       } else {
-        log.error('cancelMessage', `Unable to cancel message ${messageId} from client ${client}. ${e.message}`);
-        log.error(utils.prettyStringify(e));
-        throw new Problem(500, { detail: `Unable to cancel message ${messageId}. ${e.message}` });
+        try {
+          const cancellable = await this.dataService.isMessageCancellable(client, messageId);
+          if (cancellable) {
+            this.queueService.removeJob(client, job);
+          } else {
+            log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
+            throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
+          }
+        } catch (e) {
+          if (e instanceof NotFoundError) {
+            log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
+            throw new Problem(404, { detail: `Message ${messageId} not found.` });
+          } else {
+            throw e;
+          }
+        }
       }
     }
   }
@@ -144,7 +173,7 @@ class ChesService {
    *  @description Finds the message status of `messageId`
    *
    *  @param {string} client - the authorized party / client
-   *  @param {string} msgId - the id of the desired message
+   *  @param {string} messageId - the id of the desired message
    *  @throws Problem if an unexpected error occurs or if message is not found
    *  @returns {object[]} The Status object for `messageId` if it exists
    */

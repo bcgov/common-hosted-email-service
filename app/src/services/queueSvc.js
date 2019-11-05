@@ -119,6 +119,17 @@ class QueueService {
   }
 
   /**
+   * @function findJob
+   * Finds a job from the queue.
+   *
+   * @param {object} jobId - the messageId the message job is tracked as
+   * @returns {object} the queued job if applicable
+   */
+  async findJob(jobId) {
+    return await this.queue.getJob(jobId);
+  }
+
+  /**
    * @function updateContent
    * Update the persisted content (email message) for a Message.
    * When jobs are completed or failed/errored, we want to remove the email content.
@@ -163,36 +174,22 @@ class QueueService {
         log.error(utils.prettyStringify(e));
       }
     }
-    return null;
   }
 
   /**
    * @function removeJob
-   * Removes a new job from the queue.
+   * Removes the job from the queue.
    *
-   * @param {string} client - the client that owns the message
-   * @param {object} jobId - the messageId the message job is tracked as
-   * @returns {object} TBD
+   * @param {string} client - the authorized party / client
+   * @param {object} job - the queue job
    */
-  async removeJob(client, jobId) {
-    const job = await this.queue.getJob(jobId);
-
-    if (job) {
-      if (job.data && job.data.messageId && job.data.client) {
-        if(job.data.messageId === jobId && job.data.client === client) {
-          job.remove();
-          log.info('removeJob', `Job ${jobId} removed`);
-        } else {
-          log.info('removeJob', 'Job data does not match either client or messageId');
-        }
-      } else {
-        log.info('removeJob', 'Job data is missing or malformed');
-      }
-    } else {
-      log.info('removeJob', 'Job was not found - either missing or terminated');
+  async removeJob(client, job) {
+    if (job && job.data && job.data.messageId && job.data.client) {
+      await job.remove();
+      this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
+      this.updateContent(job);
+      log.info('removeJob', `Message ${job.data.messageId} removed from queue`);
     }
-
-    return jobId;
   }
 }
 
