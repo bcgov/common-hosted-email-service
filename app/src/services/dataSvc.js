@@ -10,12 +10,11 @@
  * @exports DataService
  */
 const log = require('npmlog');
-const moment = require('moment');
 const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
 
-const { statusState, queueToStatus } = require('../components/state');
+const { queueToStatus } = require('../components/state');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -196,22 +195,21 @@ class DataService {
   }
 
   /**
-   * @function isMessageCancellable
-   * Determines if a Message is pending
+   * @function messageExists
+   * Determines if a Message exists
    *
    * @param {string} client - the authorized party / client
    * @param {string} messageId - the id of the message we want
-   * @throws NotFoundError if message for client not found
-   * @returns {boolean} True if `messageId` is in pending state
+   * @throws NotFoundError if `messageId` for `client` not found
+   * @returns {boolean} True if `messageId` for `client` exists
    */
-  async isMessageCancellable(client, messageId) {
-    const { delayTimestamp, status } = await Message.query()
+  async messageExists(client, messageId) {
+    const msg = await Message.query()
       .findById(messageId)
-      .columns(['delayTimestamp', 'status'])
       .whereIn('transactionId', getClientTrxnQuery(client))
       .throwIfNotFound();
 
-    return status === statusState.PENDING && moment().isBefore(moment.unix(delayTimestamp).utc());
+    return !!msg;
   }
 
   /**

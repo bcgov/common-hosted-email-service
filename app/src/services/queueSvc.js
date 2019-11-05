@@ -147,9 +147,13 @@ class QueueService {
    * @param {object} job - the queue job
    */
   async updateContent(job) {
-    if (job && job.data && job.data.messageId && job.data.client) {
-      await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+    if (job && job.data) {
+      if (job.data.messageId && job.data.client) {
+        await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+      }
+      await job.update(null); // Scrub out client and message id
     }
+
   }
 
   /**
@@ -157,7 +161,7 @@ class QueueService {
    * Update the persisted status for a Message
    *
    * @param {object} job - the queue job
-   * @param {string} status - the queue related status, (potentiall) different a business status
+   * @param {string} status - the queue related status
    * @param {string} description - optional description for the status, generally an error message
    */
   async updateStatus(job, status, description) {
@@ -200,27 +204,25 @@ class QueueService {
   async removeJob(client, jobId) {
     const job = await this.queue.getJob(jobId);
 
-    if (job) {
-      if (job.data && job.data.client && job.data.messageId && job.data.messageId === jobId) {
-        // Job found with proper structure
-        const jobState = await job.getState();
+    if (job && job.data && job.data.client && job.data.messageId) {
+      // Job found with proper structure
+      const jobState = await job.getState();
 
-        if (job.data.client !== client) {
-          throw new ClientMismatchError();
-        } else if (jobState !== 'delayed') {
-          throw new UncancellableError();
-        } else {
-          // Immediately remove from queue
-          await job.remove();
-          // Update DB with cancelled status
-          this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
-          this.updateContent(job);
-
-          log.info('removeJob', `Message ${job.data.messageId} removed from queue`);
-          return true;
-        }
-      } else {
+      if (job.data.client !== client) {
+        throw new ClientMismatchError();
+      } else if (job.data.messageId !== jobId) {
         throw new DataIntegrityError();
+      } else if (jobState !== 'delayed') {
+        throw new UncancellableError();
+      } else {
+        // Immediately remove from queue
+        await job.remove();
+        // Update DB with cancelled status
+        this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
+        this.updateContent(job);
+
+        log.info('removeJob', `Message ${job.data.messageId} removed from queue`);
+        return true;
       }
     } else {
       return false;

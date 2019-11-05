@@ -27,7 +27,7 @@ const QueueConnection = require('../../src/services/queueConn');
 const ChesService = require('../../src/services/chesSvc');
 const DataService = require('../../src/services/dataSvc');
 const EmailService = require('../../src/services/emailSvc');
-const QueueService = require('../../src/services/queueSvc');
+const { QueueService } = require('../../src/services/queueSvc');
 
 const { deleteTransactionsByClient } = require('./dataUtils');
 

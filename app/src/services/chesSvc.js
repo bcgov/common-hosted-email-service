@@ -104,8 +104,8 @@ class ChesService {
       const success = await this.queueService.removeJob(client, messageId);
       if (!success) {
         // Check why a job was not found
-        const cancellable = await this.dataService.isMessageCancellable(client, messageId);
-        throw (cancellable) ? new DataIntegrityError() : new UncancellableError();
+        const exists = await this.dataService.messageExists(client, messageId);
+        throw (exists) ? new UncancellableError() : new NotFoundError();
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {

@@ -12,7 +12,7 @@ const log = require('npmlog');
 
 const { queueState } = require('../components/state');
 
-const QueueService = require('./queueSvc');
+const { QueueService } = require('./queueSvc');
 
 let queueService;
 
