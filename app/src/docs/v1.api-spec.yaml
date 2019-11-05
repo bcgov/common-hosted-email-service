@@ -325,6 +325,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         default:
@@ -433,6 +435,17 @@ components:
               example: Bad Request
             type:
               example: 'https://httpstatuses.com/400'
+    Conflict:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            status:
+              example: 409
+            title:
+              example: Conflict
+            type:
+              example: 'https://httpstatuses.com/409'
     ContextObject:
       type: object
       required:
@@ -842,6 +855,12 @@ components:
                     type: string
                     description: The error message for the field.
                     example: Invalid value `encoding`.
+            status:
+              example: 422
+            title:
+              example: Unprocessable Entity
+            type:
+              example: 'https://httpstatuses.com/422'
   responses:
     BadRequest:
       description: Request is missing content or is malformed
@@ -849,6 +868,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/BadRequest'
+    Conflict:
+      description: Request conflicts with server state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Conflict'
     Error:
       description: Unexpected error
       content:
