@@ -89,8 +89,7 @@ describe('register', () => {
   it('should register a method and call it gracefully when executors error after transform', () => {
     stackpole.register('testNine', jest.fn().mockImplementation(() => {throw new Error('bad');}), () => {return 'string';});
 
-    stackpole.testNine();
-
+    expect(() => stackpole.testNine()).not.toThrow();
   });
 
 });
