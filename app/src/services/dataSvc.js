@@ -305,13 +305,13 @@ class DataService {
    * @param {string} status - the queue processing status
    * @param {string} description - optional description, mostly used for error/failure statuses
    * @throws NotFoundError if message for client not found
-   * @returns {object} Message object, fully populated.
+   * @returns {object} Message object
    */
   async updateStatus(client, messageId, status, description) {
     let trx;
     try {
       // first query for message, throw not found if client/message not exist...
-      let msg = await this.readMessage(client, messageId);
+      const msg = await this.readMessage(client, messageId);
 
       trx = await transaction.start(Message.knex());
 
@@ -325,9 +325,6 @@ class DataService {
           status: businessStatus,
           description: description
         });
-
-        // Get updated Message as status has changed
-        msg = await this.readMessage(client, messageId);
       }
 
       // Always add a new queue record
@@ -339,7 +336,8 @@ class DataService {
 
       await trx.commit();
 
-      return msg;
+      // Get updated Message as status has changed
+      return await this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating message statuses record: ${err.message}. Rolling back...`);
       log.error(err);
