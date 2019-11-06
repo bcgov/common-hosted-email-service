@@ -75,5 +75,5 @@ class Stackpole {
   }
 }
 
-let stackpole = new Stackpole();
+const stackpole = new Stackpole();
 module.exports = stackpole;

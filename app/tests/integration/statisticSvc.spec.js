@@ -52,7 +52,7 @@ describe('statservice', () => {
   });
 
   it('should not do anything when writing nothing', async () => {
-    await statisticsService.write(null);
+    expect(async () => await statisticsService.write(null)).not.toThrow();
   });
 
   it('should create a statistic', async () => {
@@ -85,7 +85,7 @@ describe('statservice', () => {
     expect(recs).toBe(2);
   });
 
-  it('should create multiple statistics with mulitple params', async () => {
+  it('should create multiple statistics with multiple params', async () => {
     const stat = {
       client: CLIENT,
       operation: 'op',

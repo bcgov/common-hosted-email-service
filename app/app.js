@@ -47,7 +47,7 @@ log.debug('Config', utils.prettyStringify(config));
 
 // this will suppress a console warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
 // we will just force it to use the new Date constructor.
-moment.createFromInputFallback = function (config) {
+moment.createFromInputFallback = (config) => {
   config._d = new Date(config._i);
 };
 

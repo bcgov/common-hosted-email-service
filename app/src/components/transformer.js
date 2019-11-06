@@ -1,3 +1,4 @@
+const log = require('npmlog');
 const moment = require('moment');
 
 const utils = require('./utils');
@@ -7,7 +8,7 @@ const utils = require('./utils');
  *  @exports transformer - Transforms between Data Service Models and API Models
  */
 const transformer = {
-  /** @function status
+  /** @function toStatusResponse
    *  @description Transforms a Message model from the db into a StatusResponse API object
    *
    *  @param {object} msg - a Message model object
@@ -35,7 +36,7 @@ const transformer = {
     return utils.dropUndefinedObject(result);
   },
 
-  /** @function transaction
+  /** @function toTransactionResponse
    *  @description Transforms a Trxn model from the db into TransactionResponse API object
    *
    *  @param {object} trxn - a Trxn model object
@@ -56,6 +57,15 @@ const transformer = {
     return result;
   },
 
+
+  /** @function transactionToStatistics
+   *  @description Transforms a Trxn model from the db into Statistic model objects
+   *
+   *  @param {string} client - the client / authorized party
+   *  @param {object} trxn - a Trxn model object
+   *  @returns array of Statistic model objects
+   *  @see Statistic
+   */
   transactionToStatistics: (client, trxn) => {
     if (!client) return [];
     const result = [];
@@ -80,6 +90,14 @@ const transformer = {
     return result;
   },
 
+  /** @function messageToStatistics
+   *  @description Transforms a Message model from the db into Statistic model objects
+   *
+   *  @param {string} client - the client / authorized party
+   *  @param {object} msg - a Message model object
+   *  @returns array of Statistic model objects
+   *  @see Statistic
+   */
   messageToStatistics: (client, msg) => {
     if (!client || !msg) return [];
     const result = [];
@@ -100,6 +118,14 @@ const transformer = {
     return result;
   },
 
+
+  /** @function mailApiToStatistics
+   *  @description Transforms a Mail API result (string) into Statistic model objects
+   *
+   *  @param {string} s - the mail api log string
+   *  @returns array of Statistic model objects
+   *  @see Statistic
+   */
   mailApiToStatistics: (s) => {
     if (!s || s.trim().length === 0) return [];
     let result = [];
@@ -118,9 +144,8 @@ const transformer = {
           delay: null
         });
       });
-      // eslint-disable-next-line no-empty
     } catch (err) {
-
+      log.error('mailApiToStatistics', err);
     }
 
     return result;

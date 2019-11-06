@@ -121,7 +121,7 @@ class DataService {
       stackpole.createTransaction(client, result);
       return result;
     } catch (err) {
-      log.error(`Error creating transaction record: ${err.message}. Rolling back,..`);
+      log.error(`Error creating transaction record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -153,7 +153,7 @@ class DataService {
 
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error(`Error updating message (email) record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message (email) record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -287,7 +287,7 @@ class DataService {
 
       return await this.readMessage(client, messageId);
     } catch (err) {
-      log.error(`Error updating message send result record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message send result record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -338,7 +338,7 @@ class DataService {
       stackpole.updateStatus(client, result);
       return result;
     } catch (err) {
-      log.error(`Error updating message statuses record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message statuses record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;

@@ -7,12 +7,12 @@
  *
  * @exports StatsTracker
  */
+const log = require('npmlog');
 const moment = require('moment');
 const morgan = require('morgan');
 
 const stackpole = require('../components/stackpole');
 
-// read statsUrls from config?
 const mailUrl = '/api/v1/email';
 const mergeUrl = '/api/v1/emailMerge';
 const statsUrls = [mailUrl, mergeUrl];
@@ -39,9 +39,8 @@ const mailApiTracker = async (req, res, next) => {
         const obj = JSON.parse(body);
         res._transactionId = obj.txId;
         res._messageIds = obj.messages.map(m => m.msgId).join(',');
-        // eslint-disable-next-line no-empty
       } catch (err) {
-
+        log.error('mailApiTracker', err);
       }
       defaultEnd.apply(res, restArgs);
     };

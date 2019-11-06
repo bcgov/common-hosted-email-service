@@ -23,7 +23,7 @@ async function deleteTransactionsByClient(client) {
 
     const trxnQuery = Trxn.query(trx)
       .select('transactionId')
-      .where('client', 'like', `%${client}%`);
+      .where('client', client);
 
     const msgsQuery = Message.query(trx)
       .select('messageId')
@@ -47,14 +47,20 @@ async function deleteTransactionsByClient(client) {
   }
 }
 
+/**
+ * countStatisticsByClient
+ * Utility function to count records in Statistic table for a client.
+ * @function
+ * @param {string} client - The client name...
+ */
 async function countStatisticsByClient(client) {
   if (!client) {
     throw Error('Cannot count statistics by client without providing a client name.');
   }
   try {
-    const items = await Statistic.query().where('client', 'like', `%${client}%`);
-    log.info(`Counted ${items.length} statistic records...`);
-    return items.length;
+    const counts = await Statistic.query().count('statisticId').where('client', client);
+    log.info(`Counted ${counts[0].count} statistic records...`);
+    return Number(counts[0].count);
   } catch (err) {
     log.error(`Error counting statistic records: ${err.message}. Rolling back,..`);
     log.error(err);
@@ -62,6 +68,12 @@ async function countStatisticsByClient(client) {
   }
 }
 
+/**
+ * deleteStatisticsByClient
+ * Utility function to delete records in Statistic table for a client.
+ * @function
+ * @param {string} client - The client name...
+ */
 async function deleteStatisticsByClient(client) {
   if (!client) {
     throw Error('Cannot delete statistics by client without providing a client name.');
@@ -70,7 +82,7 @@ async function deleteStatisticsByClient(client) {
   try {
     trx = await transaction.start(Statistic.knex());
 
-    const items = await Statistic.query(trx).delete().where('client', 'like', `%${client}%`);
+    const items = await Statistic.query(trx).delete().where('client', client);
     log.info(`Deleted ${items} statistic records...`);
 
     await trx.commit();
