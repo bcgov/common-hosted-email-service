@@ -12,6 +12,7 @@ const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
 const { statusState, queueState } = require('../../src/components/state');
+const stackpole = require('../../src/components/stackpole');
 
 const DataConnection = require('../../src/services/dataConn');
 const DataService = require('../../src/services/dataSvc');
@@ -84,6 +85,10 @@ describe('dataservice', () => {
     if (!connectOK) {
       throw Error('Error initializing dataService');
     }
+
+    stackpole.register('createTransaction', async () => {return;});
+    stackpole.register('updateStatus', async () => {return;});
+
     dataService = new DataService();
   });
 

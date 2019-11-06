@@ -3,7 +3,7 @@ const router = require('express').Router();
 const path = require('path');
 
 const keycloak = require('../components/keycloak');
-const authorizedParty = require('../middleware/authorizedParty');
+const { authorizedPartyValidator } = require('../middleware/authorizedParty');
 
 const cancelRouter = require('./v1/cancel');
 const emailRouter = require('./v1/email');
@@ -39,18 +39,18 @@ router.get('/api-spec.yaml', (_req, res) => {
 });
 
 /** Health Router */
-router.use('/health', keycloak.protect(), authorizedParty, healthRouter);
+router.use('/health', keycloak.protect(), authorizedPartyValidator, healthRouter);
 
 /** Email Router */
-router.use('/email', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, emailRouter);
+router.use('/email', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, emailRouter);
 
 /** Merge Router */
-router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, mergeRouter);
+router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, mergeRouter);
 
 /** Status Router */
-router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, statusRouter);
+router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, statusRouter);
 
 /** Cancel Router */
-router.use('/cancel', keycloak.protect(`${clientId}:EMAILER`), authorizedParty, cancelRouter);
+router.use('/cancel', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, cancelRouter);
 
 module.exports = router;

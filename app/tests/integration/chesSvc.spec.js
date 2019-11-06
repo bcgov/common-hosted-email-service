@@ -20,6 +20,8 @@ const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
+const stackpole = require('../../src/components/stackpole');
+
 const DataConnection = require('../../src/services/dataConn');
 const EmailConnection = require('../../src/services/emailConn');
 const QueueConnection = require('../../src/services/queueConn');
@@ -150,6 +152,8 @@ describe('ches service', () => {
     chesService.emailService = emailService;
     chesService.queueService = queueService;
 
+    stackpole.register('createTransaction', async () => {return;});
+    stackpole.register('updateStatus', async () => {return;});
   });
 
   afterAll(async () => {

@@ -65,7 +65,8 @@ class DataConnection {
           this._knex.schema.hasTable('trxn'),
           this._knex.schema.hasTable('message'),
           this._knex.schema.hasTable('status'),
-          this._knex.schema.hasTable('queue')
+          this._knex.schema.hasTable('queue'),
+          this._knex.schema.hasTable('statistic')
         ]).then(exists => exists.every(x => x));
       }
       if (schemaOk) {
