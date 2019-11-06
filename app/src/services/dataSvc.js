@@ -15,6 +15,7 @@ const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
 
+const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -116,9 +117,11 @@ class DataService {
 
       await trx.commit();
 
-      return await this.readTransaction(client, transactionId);
+      const result = await this.readTransaction(client, transactionId);
+      stackpole.createTransaction(client, result);
+      return result;
     } catch (err) {
-      log.error(`Error creating transaction record: ${err.message}. Rolling back,..`);
+      log.error(`Error creating transaction record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -150,7 +153,7 @@ class DataService {
 
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error(`Error updating message (email) record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message (email) record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -186,9 +189,10 @@ class DataService {
       transactionId: transactionId
     });
 
-    const columns = [... new Set(validColumns.concat(fields.filter(field => {
-      return validColumns.includes(field);
-    })))];
+    const columns = [
+      ...new Set(validColumns.concat(fields.filter(field => {
+        return validColumns.includes(field);
+      })))];
 
     const trxnQuery = Trxn.query()
       .select('transactionId')
@@ -283,7 +287,7 @@ class DataService {
 
       return await this.readMessage(client, messageId);
     } catch (err) {
-      log.error(`Error updating message send result record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message send result record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -330,9 +334,11 @@ class DataService {
 
       await trx.commit();
 
-      return await this.readMessage(client, messageId);
+      const result = await this.readMessage(client, messageId);
+      stackpole.updateStatus(client, result);
+      return result;
     } catch (err) {
-      log.error(`Error updating message statuses record: ${err.message}. Rolling back,..`);
+      log.error(`Error updating message statuses record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
