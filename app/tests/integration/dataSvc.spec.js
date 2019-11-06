@@ -11,6 +11,8 @@ const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
+const stackpole = require('../../src/components/stackpole');
+
 const DataConnection = require('../../src/services/dataConn');
 const DataService = require('../../src/services/dataSvc');
 
@@ -49,7 +51,7 @@ const emails = [
     'delayTS': 1570000000000
   }];
 
-function expectNewMessage (trxnId, msgId, msg, email) {
+function expectNewMessage(trxnId, msgId, msg, email) {
   expect(msg.transactionId).toMatch(trxnId);
   expect(msg.messageId).toMatch(msgId);
   expect(msg.status).toMatch('accepted');
@@ -82,6 +84,10 @@ describe('dataservice', () => {
     if (!connectOK) {
       throw Error('Error initializing dataService');
     }
+
+    stackpole.register('createTransaction', async () => {return;});
+    stackpole.register('updateStatus', async () => {return;});
+
     dataService = new DataService();
   });
 
