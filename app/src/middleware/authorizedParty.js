@@ -5,7 +5,6 @@ const Problem = require('api-problem');
  *  CHES requires that we separate all requests by the caller/client.
  *  We will use the azp (Authorized Party) from the JWT and stored that as
  *  the transaction client.
- *  This middleware must be called after our keycloak protect.
  *
  *  This middleware will add a property to the request: authorizedParty.
  *
@@ -21,6 +20,24 @@ const authorizedParty = async (req, res, next) => {
     const jwt = atob.atob(base64);
     const jsonWebToken = JSON.parse(jwt);
     req.authorizedParty = jsonWebToken.azp;
+  } catch (err) {
+    req.authorizedParty = undefined;
+  }
+  next();
+};
+
+/** Authorized Party Validator Middleware
+ *
+ *  This middleware must be called after our keycloak protect and after authorizedParty middleware.
+ *
+ *  This middleware will check if the authorized party token is on the request.
+ *
+ * @see module:knex
+ * @see module:keycloak
+ */
+
+const authorizedPartyValidator = async (req, res, next) => {
+  try {
     if (!req.authorizedParty) throw Error('No AZP');
   } catch (err) {
     return new Problem(400, {
@@ -30,4 +47,4 @@ const authorizedParty = async (req, res, next) => {
   next();
 };
 
-module.exports = authorizedParty;
+module.exports = { authorizedParty, authorizedPartyValidator };

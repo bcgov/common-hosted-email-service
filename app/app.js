@@ -2,17 +2,24 @@ const compression = require('compression');
 const config = require('config');
 const express = require('express');
 const log = require('npmlog');
+const moment = require('moment');
 const morgan = require('morgan');
 const Problem = require('api-problem');
 
 const keycloak = require('./src/components/keycloak');
+const stackpole = require('./src/components/stackpole');
+const transformer = require('./src/components/transformer');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
+
+const { authorizedParty } = require('./src/middleware/authorizedParty');
+const initializeMailApiTracker = require('./src/middleware/mailApiTracker');
 
 const DataConnection = require('./src/services/dataConn');
 const EmailConnection = require('./src/services/emailConn');
 const QueueConnection = require('./src/services/queueConn');
 const QueueListener = require('./src/services/queueListener');
+const StatisticsService = require('./src/services/statisticSvc');
 
 const apiRouter = express.Router();
 const state = {
@@ -38,10 +45,21 @@ log.addLevel('debug', 1500, {
 // Print out configuration settings in verbose startup
 log.debug('Config', utils.prettyStringify(config));
 
+// this will suppress a console warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
+// we will just force it to use the new Date constructor.
+moment.createFromInputFallback = function (config) {
+  config._d = new Date(config._i);
+};
+
 // Skip if running tests
 if (process.env.NODE_ENV !== 'test') {
-  // Add Morgan endpoint logging
+
+  // make sure authorized party middleware loaded before the mail api tracking...
+  app.use(authorizedParty);
+  initializeMailApiTracker(app);
+  // load up morgan to log the requests
   app.use(morgan(config.get('server.morganFormat')));
+
 
   // Check database connection and exit if unsuccessful
   (async () => {
@@ -65,6 +83,15 @@ if (process.env.NODE_ENV !== 'test') {
         queueConnection.queue.on('completed', QueueListener.onCompleted);
         queueConnection.queue.on('error', QueueListener.onError);
         queueConnection.queue.on('failed', QueueListener.onFailed);
+
+        // StackpoleService requires the data connection created and initialized...
+        // since it is, let's hook in the write statistic
+        const statisticsService = new StatisticsService();
+        const writeFn = statisticsService.write;
+        stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
+        stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
+        stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
+
       } else {
         log.error('Infrastructure', `Initialization failed: Database OK = ${dataConnectionOk}, Queue OK = ${queueConnectionOk}, Email OK = ${emailConnectionOk}`);
         shutdown();

@@ -55,6 +55,76 @@ const transformer = {
 
     return result;
   },
+
+  transactionToStatistics: (client, trxn) => {
+    if (!client) return [];
+    const result = [];
+    if (trxn && trxn.messages) {
+      trxn.messages.forEach((m) => {
+        let delay = null;
+        if (moment.utc(m.createdAt).isBefore(moment.utc(Number(m.delayTimestamp)))) {
+          delay = new Date(Number(m.delayTimestamp));
+        }
+        const stat = {
+          client: client,
+          operation: 'TRANSACTION_CREATE',
+          transactionId: trxn.transactionId,
+          messageId: m.messageId,
+          status: m.status,
+          timestamp: m.createdAt,
+          delay: delay
+        };
+        result.push(stat);
+      });
+    }
+    return result;
+  },
+
+  messageToStatistics: (client, msg) => {
+    if (!client || !msg) return [];
+    const result = [];
+    let delay = null;
+    if (moment.utc(msg.updatedAt).isBefore(moment.utc(Number(msg.delayTimestamp)))) {
+      delay = new Date(Number(msg.delayTimestamp));
+    }
+    const stat = {
+      client: client,
+      operation: 'STATUS_UPDATE',
+      transactionId: msg.transactionId,
+      messageId: msg.messageId,
+      status: msg.status,
+      timestamp: msg.updatedAt,
+      delay: delay
+    };
+    result.push(stat);
+    return result;
+  },
+
+  mailApiToStatistics: (s) => {
+    if (!s || s.trim().length === 0) return [];
+    let result = [];
+    try {
+      const tokens = s.trim().split(' ');
+      const msgIds = tokens[3].split(',');
+      const ts = new Date(Number(tokens[4]));
+      msgIds.forEach((m) => {
+        result.push({
+          client: tokens[0],
+          operation: tokens[1],
+          transactionId: tokens[2],
+          messageId: m,
+          status: '-',
+          timestamp: ts,
+          delay: null
+        });
+      });
+      // eslint-disable-next-line no-empty
+    } catch (err) {
+
+    }
+
+    return result;
+  }
 };
 
 module.exports = transformer;

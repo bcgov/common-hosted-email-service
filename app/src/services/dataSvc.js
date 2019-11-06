@@ -15,6 +15,7 @@ const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
 
+const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -116,7 +117,9 @@ class DataService {
 
       await trx.commit();
 
-      return await this.readTransaction(client, transactionId);
+      const result = await this.readTransaction(client, transactionId);
+      stackpole.createTransaction(client, result);
+      return result;
     } catch (err) {
       log.error(`Error creating transaction record: ${err.message}. Rolling back,..`);
       log.error(err);
@@ -186,9 +189,10 @@ class DataService {
       transactionId: transactionId
     });
 
-    const columns = [... new Set(validColumns.concat(fields.filter(field => {
-      return validColumns.includes(field);
-    })))];
+    const columns = [
+      ...new Set(validColumns.concat(fields.filter(field => {
+        return validColumns.includes(field);
+      })))];
 
     const trxnQuery = Trxn.query()
       .select('transactionId')
@@ -330,7 +334,9 @@ class DataService {
 
       await trx.commit();
 
-      return await this.readMessage(client, messageId);
+      const result = await this.readMessage(client, messageId);
+      stackpole.updateStatus(client, result);
+      return result;
     } catch (err) {
       log.error(`Error updating message statuses record: ${err.message}. Rolling back,..`);
       log.error(err);

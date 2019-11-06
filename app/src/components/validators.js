@@ -223,7 +223,7 @@ const models = {
       }
       return true;
     }
-  },
+  }
 };
 
 const validators = {
