@@ -95,8 +95,8 @@ class ChesService {
    *  @throws Problem if message is not found or conflicts with internal state
    */
   async cancelMessage(client, messageId) {
-    if (!messageId) {
-      throw new Problem(400, { detail: 'Error cancelling message. Message Id cannot be null' });
+    if (!client || !messageId) {
+      throw new Problem(400, { detail: 'Error cancelling message. Client and messageId cannot be null' });
     }
 
     try {
