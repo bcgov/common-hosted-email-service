@@ -21,6 +21,7 @@ const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
 const stackpole = require('../../src/components/stackpole');
+const utils = require('../../src/components/utils');
 
 const DataConnection = require('../../src/services/dataConn');
 const EmailConnection = require('../../src/services/emailConn');
@@ -157,7 +158,7 @@ describe('CHES Service', () => {
   });
 
   afterAll(async () => {
-    // await deleteTransactionsByClient(CLIENT);
+    await deleteTransactionsByClient(CLIENT);
     QueueConnection.close();
     return knex.destroy();
   });
@@ -202,10 +203,13 @@ describe('CHES Service', () => {
   describe('findStatuses', () => {
 
     it('should return an empty array if no messages were found', async () => {
+      const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
       const result = await chesService.findStatuses(CLIENT);
 
       expect(Array.isArray(result)).toBeTruthy();
       expect(result).toHaveLength(0);
+
+      await deleteTransactionsByClient(CLIENT);
     });
 
     it('should return an array of message statuses', async () => {
@@ -328,7 +332,7 @@ describe('CHES Service', () => {
     });
 
     // TODO: Determine foreign key constraint deletion issue (idempotency)
-    it.skip('should return a transaction.', async () => {
+    it('should return a transaction.', async () => {
       const result = await chesService.sendEmailMerge(CLIENT, template, false);
       expect(result).toBeTruthy();
       expect(result.txId).toBeTruthy();
@@ -338,6 +342,9 @@ describe('CHES Service', () => {
       expect(result.messages[0].to).toHaveLength(1);
       expect(result.messages[0].msgId).toBeTruthy();
       expect(result.messages[0].to).toHaveLength(1);
+
+      // Temporary wait to allow async stuff to complete
+      await utils.wait(1000);
     });
 
     /*
