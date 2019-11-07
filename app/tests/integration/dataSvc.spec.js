@@ -14,6 +14,7 @@ const uuidv4 = require('uuid/v4');
 
 const { statusState, queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
+const utils = require('../../src/components/utils');
 
 const DataConnection = require('../../src/services/dataConn');
 const DataService = require('../../src/services/dataSvc');
@@ -94,6 +95,8 @@ describe('dataService', () => {
   });
 
   afterAll(async () => {
+    // TODO: Find better way to allow connections to finish before cleanup
+    await utils.wait(3000);
     await deleteTransactionsByClient(CLIENT);
     return knex.destroy();
   });
@@ -112,8 +115,8 @@ describe('dataService', () => {
   });
 
   describe('findMessagesByQuery', () => {
-    const fn = async (...args) => {
-      return await dataService.findMessagesByQuery(...args);
+    const fn = (...args) => {
+      return dataService.findMessagesByQuery(...args);
     };
 
     it('should throw a NotFoundError when nothing was found', async () => {

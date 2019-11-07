@@ -20,6 +20,7 @@ const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
+const { queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
 const utils = require('../../src/components/utils');
 
@@ -30,11 +31,13 @@ const QueueConnection = require('../../src/services/queueConn');
 const ChesService = require('../../src/services/chesSvc');
 const DataService = require('../../src/services/dataSvc');
 const EmailService = require('../../src/services/emailSvc');
-const { QueueService } = require('../../src/services/queueSvc');
+const { ClientMismatchError, DataIntegrityError, QueueService } = require('../../src/services/queueSvc');
 
 const { deleteTransactionsByClient } = require('./dataUtils');
 
 helper.logHelper();
+
+jest.mock('../../src/services/queueSvc');
 
 const knexfile = require('../../knexfile');
 
@@ -170,6 +173,11 @@ describe('chesService', () => {
   });
 
   describe('cancelMessage', () => {
+    const spy = QueueService.prototype.removeJob;
+
+    afterEach(async () => {
+      spy.mockRestore();
+    });
 
     it('should throw a 400 when client is null', async () => {
       try {
@@ -178,6 +186,8 @@ describe('chesService', () => {
         expect(e).toBeTruthy();
         expect(e.status).toBe('400');
       }
+
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('should throw a 400 when messageId is null', async () => {
@@ -187,9 +197,12 @@ describe('chesService', () => {
         expect(e).toBeTruthy();
         expect(e.status).toBe('400');
       }
+
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('should throw a 403 when client is mismatched', async () => {
+      spy.mockImplementation(() => { throw new ClientMismatchError(); });
       const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
 
       try {
@@ -198,6 +211,55 @@ describe('chesService', () => {
         expect(e).toBeTruthy();
         expect(e.status).toBe('403');
       }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('wrong client', trxn.messages[0].msgId);
+    });
+
+    it('should throw a 404 when message is not found', async () => {
+      spy.mockResolvedValue(false);
+      const msgId = uuidv4();
+
+      try {
+        await chesService.cancelMessage(CLIENT, msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('404');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, msgId);
+    });
+
+    it('should throw a 409 when is uncancellable', async () => {
+      spy.mockResolvedValue(false);
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      await dataService.updateStatus(CLIENT, trxn.messages[0].msgId, queueState.REMOVED);
+
+      try {
+        await chesService.cancelMessage(CLIENT, trxn.messages[0].msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('409');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should throw a 500 when there is inconsistent data', async () => {
+      spy.mockImplementation(() => { throw new DataIntegrityError(); });
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+
+      try {
+        await chesService.cancelMessage(CLIENT, trxn.messages[0].msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('500');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
     });
 
   });
