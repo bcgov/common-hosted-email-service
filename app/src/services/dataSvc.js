@@ -181,7 +181,7 @@ class DataService {
    * @param {string} tag - the desired tag of the messages
    * @param {string} transactionId - the id of the desired transaction
    * @throws NotFoundError if no messages were found
-   * @returns {object[]} Array of Message objects with a subset of properties
+   * @returns {object[]} Array of Message objects
    */
   async findMessagesByQuery(client, messageId, status, tag, transactionId) {
     const parameters = utils.dropUndefinedObject({
@@ -203,14 +203,12 @@ class DataService {
    *
    * @param {string} client - the authorized party / client
    * @param {string} messageId - the id of the message we want
-   * @throws NotFoundError if `messageId` for `client` not found
    * @returns {boolean} True if `messageId` for `client` exists
    */
   async messageExists(client, messageId) {
     const msg = await Message.query()
       .findById(messageId)
-      .whereIn('transactionId', getClientTrxnQuery(client))
-      .throwIfNotFound();
+      .whereIn('transactionId', getClientTrxnQuery(client));
 
     return !!msg;
   }

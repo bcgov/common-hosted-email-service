@@ -9,6 +9,7 @@
  */
 const helper = require('../common/helper');
 const Knex = require('knex');
+const { NotFoundError } = require('objection');
 const uuidv4 = require('uuid/v4');
 
 const { statusState, queueState } = require('../../src/components/state');
@@ -72,7 +73,7 @@ function expectNewMessage(trxnId, msgId, msg, email) {
   }
 }
 
-describe('dataservice', () => {
+describe('dataService', () => {
   let knex;
   let dataService;
   const CLIENT = `unittesting-${new Date().toISOString()}`;
@@ -86,8 +87,8 @@ describe('dataservice', () => {
       throw Error('Error initializing dataService');
     }
 
-    stackpole.register('createTransaction', async () => {return;});
-    stackpole.register('updateStatus', async () => {return;});
+    stackpole.register('createTransaction', async () => { return; });
+    stackpole.register('updateStatus', async () => { return; });
 
     dataService = new DataService();
   });
@@ -101,11 +102,130 @@ describe('dataservice', () => {
     await deleteTransactionsByClient(CLIENT);
   });
 
-  it('should return false on initializing data service without knex', async () => {
-    const dataConnection = new DataConnection();
-    dataConnection.knex = undefined;
-    const connectOK = await dataConnection.checkConnection();
-    expect(connectOK).toBeFalsy();
+  describe('constructor', () => {
+    it('should return false on initializing data service without knex', async () => {
+      const dataConnection = new DataConnection();
+      dataConnection.knex = undefined;
+      const connectOK = await dataConnection.checkConnection();
+      expect(connectOK).toBeFalsy();
+    });
+  });
+
+  describe('findMessagesByQuery', () => {
+    const fn = async (...args) => {
+      return await dataService.findMessagesByQuery(...args);
+    };
+
+    it('should throw a NotFoundError when nothing was found', async () => {
+      await expect(fn(CLIENT)).rejects.toThrow(NotFoundError);
+    });
+
+    it('should throw a NotFoundError when the client is mismatched', async () => {
+      const email = emails[0];
+      await dataService.createTransaction(CLIENT, email);
+
+      await expect(fn('garbage')).rejects.toThrow(NotFoundError);
+    });
+
+    it('should return a message when searching by messageId', async () => {
+      const email = emails[0];
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, trxn.messages[0].messageId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toMatch(trxn.messages[0].messageId);
+    });
+
+    it('should return a message when searching by status', async () => {
+      const email = emails[0];
+      const status = 'accepted';
+      await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, undefined, status);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toMatch(status);
+    });
+
+    it('should return a message when searching by tag', async () => {
+      const email = emails[0];
+      const tag = 'a tag value';
+      await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, undefined, undefined, tag);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].tag).toMatch(tag);
+    });
+
+    it('should return a message when searching by transactionId', async () => {
+      const email = emails[0];
+      const { transactionId } = await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, undefined, undefined, undefined, transactionId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].transactionId).toMatch(transactionId);
+    });
+
+    it('should return a message with multiple search criteria', async () => {
+      const email = emails[0];
+      const status = 'accepted';
+      const tag = 'a tag value';
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, trxn.messages[0].messageId, status, tag, trxn.transactionId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toMatch(trxn.messages[0].messageId);
+      expect(result[0].status).toMatch(status);
+      expect(result[0].tag).toMatch(tag);
+      expect(result[0].transactionId).toMatch(trxn.transactionId);
+    });
+
+    it('should return multiple messages', async () => {
+      const { transactionId } = await dataService.createTransaction(CLIENT, emails);
+
+      const result = await fn(CLIENT, undefined, undefined, undefined, transactionId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(2);
+      expect(result[0].transactionId).toMatch(transactionId);
+      expect(result[1].transactionId).toMatch(transactionId);
+      expect(result[0].messageId).not.toMatch(result[1].messageId);
+    });
+  });
+
+  describe('messageExists', () => {
+    it('should return true when a message exists', async () => {
+      const email = emails[0];
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await dataService.messageExists(CLIENT, trxn.messages[0].messageId);
+
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when the client is mismatched', async () => {
+      const email = emails[0];
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await dataService.messageExists('garbage', trxn.messages[0].messageId);
+
+      expect(result).toBeFalsy();
+    });
+
+    it('should return false when a message does not exist', async () => {
+      const result = await dataService.messageExists(CLIENT, uuidv4());
+
+      expect(result).toBeFalsy();
+    });
   });
 
   it('should error creating a transaction without client', async () => {

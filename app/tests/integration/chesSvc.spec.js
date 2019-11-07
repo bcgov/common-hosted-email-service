@@ -101,7 +101,7 @@ const template = {
 
 jest.setTimeout(10000);
 
-describe('CHES Service', () => {
+describe('chesService', () => {
   let knex;
   let dataService;
   let emailService;
@@ -158,6 +158,8 @@ describe('CHES Service', () => {
   });
 
   afterAll(async () => {
+    // TODO: Find better way to allow connections to finish before cleanup
+    await utils.wait(3000);
     await deleteTransactionsByClient(CLIENT);
     QueueConnection.close();
     return knex.destroy();
@@ -282,7 +284,7 @@ describe('CHES Service', () => {
       }
     });
 
-    // TODO: Determine why database entries are not being cleaned up
+    // TODO: There may exist some concurrency issues here
     it('should throw a 400 when no client and not ethereal .', async () => {
       try {
         await chesService.sendEmail(undefined, emails[0], false);
@@ -321,7 +323,7 @@ describe('CHES Service', () => {
       }
     });
 
-    // TODO: Determine why database entries are not being cleaned up
+    // TODO: There may exist some concurrency issues here
     it('should throw a 400 when no client and not ethereal.', async () => {
       try {
         await chesService.sendEmailMerge(undefined, template, false);
@@ -331,7 +333,6 @@ describe('CHES Service', () => {
       }
     });
 
-    // TODO: Determine foreign key constraint deletion issue (idempotency)
     it('should return a transaction.', async () => {
       const result = await chesService.sendEmailMerge(CLIENT, template, false);
       expect(result).toBeTruthy();
@@ -343,7 +344,7 @@ describe('CHES Service', () => {
       expect(result.messages[0].msgId).toBeTruthy();
       expect(result.messages[0].to).toHaveLength(1);
 
-      // Temporary wait to allow async stuff to complete
+      // TODO: Find better way to allow connections to finish before cleanup
       await utils.wait(1000);
     });
 
