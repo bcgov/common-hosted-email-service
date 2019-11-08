@@ -42,57 +42,64 @@ class ChesService {
     this.queueService = new QueueService();
   }
 
-  /** @function dataService
-   *  Gets the current DataService
+  /**
+   * @function dataService
+   * Gets the current DataService
    */
   get dataService() {
     return this._dataService;
   }
 
-  /** @function dataService
-   *  Sets the current DataService
-   *  @param {object} v - a DataService object.
+  /**
+   * @function dataService
+   * Sets the current DataService
+   * @param {object} v - a DataService object.
    */
   set dataService(v) {
     this._dataService = v;
   }
 
-  /** @function emailService
-   *  Gets the current EmailService
+  /**
+   * @function emailService
+   * Gets the current EmailService
    */
   get emailService() {
     return this._emailService;
   }
 
-  /** @function emailService
-   *  Sets the current EmailService
-   *  @param {object} v - am EmailService object.
+  /**
+   * @function emailService
+   * Sets the current EmailService
+   * @param {object} v - am EmailService object.
    */
   set emailService(v) {
     this._emailService = v;
   }
 
-  /** @function queueService
-   *  Gets the current QueueService
+  /**
+   * @function queueService
+   * Gets the current QueueService
    */
   get queueService() {
     return this._queueService;
   }
 
-  /** @function queueService
-   *  Sets the current QueueService
-   *  @param {object} v - a QueueService.
+  /**
+   * @function queueService
+   * Sets the current QueueService
+   * @param {object} v - a QueueService.
    */
   set queueService(v) {
     this._queueService = v;
   }
 
-  /** @function cancelMessage
-   *  @description Cancels message `messageId` if it is still waiting to send
+  /**
+   * @function cancelMessage
+   * @description Cancels message `messageId` if it is still waiting to send
    *
-   *  @param {string} client - the authorized party / client
-   *  @param {string} messageId - the id of the desired message
-   *  @throws Problem if message is not found or conflicts with internal state
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if message is not found or conflicts with internal state
    */
   async cancelMessage(client, messageId) {
     if (!client || !messageId) {
@@ -126,16 +133,17 @@ class ChesService {
     }
   }
 
-  /** @function findStatuses
-   *  @description Finds the set of message statuses that matches the search criteria
+  /**
+   * @function findStatuses
+   * @description Finds the set of message statuses that matches the search criteria
    *
-   *  @param {string} client - the authorized party / client
-   *  @param {string} messageId - the id of the desired message
-   *  @param {string} status - the desired status of the messages
-   *  @param {string} tag - the desired tag of the messages
-   *  @param {string} transactionId - the id of the desired transaction
-   *  @throws Problem if an unexpected error occurs
-   *  @returns {object[]} Array of Status objects with a subset of properties
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @param {string} status - the desired status of the messages
+   * @param {string} tag - the desired tag of the messages
+   * @param {string} transactionId - the id of the desired transaction
+   * @throws Problem if an unexpected error occurs
+   * @returns {object[]} Array of Status objects with a subset of properties
    */
   async findStatuses(client, messageId, status, tag, transactionId) {
     try {
@@ -152,13 +160,14 @@ class ChesService {
     }
   }
 
-  /** @function getStatus
-   *  @description Finds the message status of `messageId`
+  /**
+   * @function getStatus
+   * @description Finds the message status of `messageId`
    *
-   *  @param {string} client - the authorized party / client
-   *  @param {string} messageId - the id of the desired message
-   *  @throws Problem if an unexpected error occurs or if message is not found
-   *  @returns {object[]} The Status object for `messageId` if it exists
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if an unexpected error occurs or if message is not found
+   * @returns {object[]} The Status object for `messageId` if it exists
    */
   async getStatus(client, messageId) {
     if (!messageId) {
@@ -184,12 +193,14 @@ class ChesService {
     }
   }
 
-  /** @function sendEmail
-   *  Creates and Queues the API message for delivery
-   *  @param {string} client - the authorized party / client
-   *  @param {object} message - the API email message
-   *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
-   *  @returns {object} TransactionResponse
+  /**
+   * @function sendEmail
+   * @description Creates and Queues the API message for delivery
+   *
+   * @param {string} client - the authorized party / client
+   * @param {object} message - the API email message
+   * @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
+   * @returns {object} TransactionResponse
    */
   async sendEmail(client, message, ethereal = false) {
     if (!message) {
@@ -222,12 +233,14 @@ class ChesService {
     }
   }
 
-  /** @function sendEmailMerge
-   *  Creates and Queues the API messages for delivery
-   *  @param {string} client - the authorized party / client
-   *  @param {object} template - the API email template
-   *  @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
-   *  @returns {object} TransactionResponse
+  /**
+   * @function sendEmailMerge
+   * @description Creates and Queues the API messages for delivery
+   *
+   * @param {string} client - the authorized party / client
+   * @param {object} template - the API email template
+   * @param {boolean} ethereal - if true, then use the Ethereal connection, send email immediately.
+   * @returns {object} TransactionResponse
    */
   async sendEmailMerge(client, template, ethereal = false) {
     if (!template) {

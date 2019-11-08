@@ -15,16 +15,15 @@ describe('GET /api/v1', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeTruthy();
-    expect(response.body).toEqual({
-      endpoints: [
-        '/api-spec.yaml',
-        '/docs',
-        '/email',
-        '/emailMerge',
-        '/health',
-        '/status'
-      ]
-    });
+    expect(Array.isArray(response.body.endpoints)).toBeTruthy();
+    expect(response.body.endpoints).toHaveLength(7);
+    expect(response.body.endpoints).toContain('/api-spec.yaml');
+    expect(response.body.endpoints).toContain('/docs');
+    expect(response.body.endpoints).toContain('/email');
+    expect(response.body.endpoints).toContain('/emailMerge');
+    expect(response.body.endpoints).toContain('/health');
+    expect(response.body.endpoints).toContain('/status');
+    expect(response.body.endpoints).toContain('/cancel');
   });
 });
 

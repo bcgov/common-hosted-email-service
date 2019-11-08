@@ -1319,7 +1319,19 @@ describe('validators.cancelMsg', () => {
     expect(result.length).toEqual(0);
   });
 
-  it('should return an error with validation error when invalid', () => {
+  it('should return an error when msgId is missing', () => {
+    param.msgId = undefined;
+
+    const result = validators.cancelMsg(param);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].value).toBeUndefined();
+    expect(result[0].message).toMatch('Missing value `msgId`.');
+  });
+
+  it('should return an error when msgId is invalid', () => {
     param.msgId = 'garbage';
 
     const result = validators.cancelMsg(param);
@@ -1327,7 +1339,7 @@ describe('validators.cancelMsg', () => {
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toEqual(1);
-    expect(result[0].value).toMatch('garbage');
+    expect(result[0].value).toMatch(param.msgId);
     expect(result[0].message).toMatch('Invalid value `msgId`.');
   });
 });

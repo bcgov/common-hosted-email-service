@@ -273,7 +273,9 @@ const validators = {
   cancelMsg: param => {
     const errors = [];
 
-    if (!models.queryParams.msgId(param.msgId)) {
+    if(!param.msgId) {
+      errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
+    } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
     }
 

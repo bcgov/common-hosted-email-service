@@ -147,13 +147,16 @@ class QueueService {
    * @param {object} job - the queue job
    */
   async updateContent(job) {
-    if (job && job.data) {
-      if (job.data.messageId && job.data.client) {
-        await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+    try {
+      if (job && job.data) {
+        if (job.data.messageId && job.data.client) {
+          await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+        }
+        await job.update(null); // Scrub out client and message id
       }
-      await job.update(null); // Scrub out client and message id
+    } catch (e) {
+      log.error('updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
     }
-
   }
 
   /**
@@ -166,7 +169,7 @@ class QueueService {
    */
   async updateStatus(job, status, description) {
     if (job && job.data && job.data.messageId && job.data.client) {
-      this.dataService.updateStatus(job.data.client, job.data.messageId, status, description);
+      await this.dataService.updateStatus(job.data.client, job.data.messageId, status, description);
     }
   }
 
@@ -206,13 +209,11 @@ class QueueService {
 
     if (job && job.data && job.data.client && job.data.messageId) {
       // Job found with proper structure
-      const jobState = await job.getState();
-
       if (job.data.client !== client) {
         throw new ClientMismatchError();
       } else if (job.data.messageId !== jobId) {
         throw new DataIntegrityError();
-      } else if (jobState !== 'delayed') {
+      } else if (await job.getState() !== 'delayed') {
         throw new UncancellableError();
       } else {
         // Immediately remove from queue

@@ -22,7 +22,8 @@ router.get('/', (_req, res) => {
       '/email',
       '/emailMerge',
       '/health',
-      '/status'
+      '/status',
+      '/cancel'
     ]
   });
 });

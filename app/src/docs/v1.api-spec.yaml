@@ -357,17 +357,15 @@ components:
     QueryStatus:
       in: query
       name: status
-      description: (DRAFT) Yield messages in the specified status
+      description: Yield messages in the specified status
       schema:
         type: string
         enum:
-          - active
+          - accepted
+          - cancelled
           - completed
-          - delayed
           - failed
-          - paused
-          - stuck
-          - waiting
+          - pending
       example: completed
     QueryTag:
       in: query
@@ -808,15 +806,13 @@ components:
           example: 1570000000
     StatusType:
       type: string
-      description: (DRAFT) The state of this message in the queue
+      description: The latest state of the message
       enum:
-        - active
+        - accepted
+        - cancelled
         - completed
-        - delayed
         - failed
-        - paused
-        - stuck
-        - waiting
+        - pending
       example: completed
     TransactionResponse:
       type: object
