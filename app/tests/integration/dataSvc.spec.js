@@ -14,7 +14,6 @@ const uuidv4 = require('uuid/v4');
 
 const { statusState, queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
-const utils = require('../../src/components/utils');
 
 const DataConnection = require('../../src/services/dataConn');
 const DataService = require('../../src/services/dataSvc');
