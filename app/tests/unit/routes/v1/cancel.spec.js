@@ -24,8 +24,9 @@ describe(`DELETE ${basePath}/:msgId`, () => {
     const id = '00000000-0000-0000-0000-000000000000';
 
     const response = await request(app).delete(`${basePath}/${id}`);
-
     expect(response.statusCode).toBe(202);
+    expect(response.header).toHaveProperty('content-location');
+    expect(response.header['content-location']).toMatch(response.req.path.replace('cancel', 'status'));
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(undefined, id);
   });

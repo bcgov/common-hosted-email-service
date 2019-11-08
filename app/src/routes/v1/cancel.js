@@ -9,7 +9,9 @@ cancelRouter.delete('/:msgId', validateCancelMsg, async (req, res, next) => {
   try {
     await chesService.cancelMessage(req.authorizedParty, req.params.msgId);
 
-    res.status(202).end();
+    res.status(202)
+      .header('Content-Location', req.originalUrl.replace('cancel', 'status'))
+      .end();
   } catch (err) {
     next(err);
   }
