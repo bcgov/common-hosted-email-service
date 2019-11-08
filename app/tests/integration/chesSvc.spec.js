@@ -265,13 +265,42 @@ describe('chesService', () => {
   });
 
   describe('findStatuses', () => {
+    const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
 
-    it('should return an empty array if no messages were found', async () => {
+    afterEach(() => {
+      spy.mockClear();
+    });
+
+    it('should throw an error if no parameters were provided', async () => {
+      const fn = () => chesService.findStatuses();
+
+      await expect(fn()).rejects.toThrow();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('should return an empty array with no search parameters', async () => {
       const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
       const result = await chesService.findStatuses(CLIENT);
 
       expect(Array.isArray(result)).toBeTruthy();
       expect(result).toHaveLength(0);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, undefined);
+
+      await deleteTransactionsByClient(CLIENT);
+    });
+
+    it('should return an empty array with all nonexistent search parameters', async () => {
+      const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
+      const uuid = uuidv4();
+      const result = await chesService.findStatuses(CLIENT, uuid, 'status', 'tag', uuid);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(0);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, uuid, 'status', 'tag', uuid);
 
       await deleteTransactionsByClient(CLIENT);
     });
@@ -285,6 +314,8 @@ describe('chesService', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toBeTruthy();
       expect(result[0].txId).toMatch(trxn.txId);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, trxn.txId);
     });
 
   });
@@ -407,6 +438,8 @@ describe('chesService', () => {
       expect(result.messages[0].to).toHaveLength(1);
 
       // TODO: Find better way to allow connections to finish before cleanup
+      // This should be in a top-level afterEach but extends the test time significantly
+      // Revisit this when we need better test/connection isolation
       await utils.wait(1000);
     });
 

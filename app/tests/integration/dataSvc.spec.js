@@ -88,15 +88,13 @@ describe('dataService', () => {
       throw Error('Error initializing dataService');
     }
 
-    stackpole.register('createTransaction', async () => { return; });
-    stackpole.register('updateStatus', async () => { return; });
+    stackpole.register('createTransaction', async () => { });
+    stackpole.register('updateStatus', async () => { });
 
     dataService = new DataService();
   });
 
   afterAll(async () => {
-    // TODO: Find better way to allow connections to finish before cleanup
-    await utils.wait(3000);
     await deleteTransactionsByClient(CLIENT);
     return knex.destroy();
   });

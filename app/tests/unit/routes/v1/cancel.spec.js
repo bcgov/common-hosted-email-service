@@ -42,6 +42,18 @@ describe(`DELETE ${basePath}/:msgId`, () => {
     expect(spy).toHaveBeenCalledWith(undefined, id);
   });
 
+  it('should respond with a conflict error', async () => {
+    spy.mockImplementation(() => { throw new Problem(409); });
+    const id = '00000000-0000-0000-0000-000000000000';
+
+    const response = await request(app).delete(`${basePath}/${id}`);
+
+    expect(response.statusCode).toBe(409);
+    expect(response.body.title).toMatch('Conflict');
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(undefined, id);
+  });
+
   it('should respond with a validation error', async () => {
     const id = 'badId';
     const response = await request(app).delete(`${basePath}/${id}`);
