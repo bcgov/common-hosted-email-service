@@ -294,13 +294,14 @@ describe('chesService', () => {
 
     it('should return an empty array with all nonexistent search parameters', async () => {
       const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
-      const uuid = uuidv4();
-      const result = await chesService.findStatuses(CLIENT, uuid, 'status', 'tag', uuid);
+      const msgId = uuidv4();
+      const txId = uuidv4();
+      const result = await chesService.findStatuses(CLIENT, msgId, 'status', 'tag', txId);
 
       expect(Array.isArray(result)).toBeTruthy();
       expect(result).toHaveLength(0);
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith(CLIENT, uuid, 'status', 'tag', uuid);
+      expect(spy).toHaveBeenCalledWith(CLIENT, msgId, 'status', 'tag', txId);
 
       await deleteTransactionsByClient(CLIENT);
     });

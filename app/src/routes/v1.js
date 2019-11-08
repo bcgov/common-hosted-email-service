@@ -18,12 +18,12 @@ router.get('/', (_req, res) => {
   res.status(200).json({
     endpoints: [
       '/api-spec.yaml',
+      '/cancel',
       '/docs',
       '/email',
       '/emailMerge',
       '/health',
-      '/status',
-      '/cancel'
+      '/status'
     ]
   });
 });

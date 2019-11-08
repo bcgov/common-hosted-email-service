@@ -1,19 +1,19 @@
 const log = require('npmlog');
 const moment = require('moment');
 
-const utils = require('./utils');
-
-/** @module transform
+/**
+ * @module transform
  *
- *  @exports transformer - Transforms between Data Service Models and API Models
+ * @exports transformer - Transforms between Data Service Models and API Models
  */
 const transformer = {
-  /** @function toStatusResponse
-   *  @description Transforms a Message model from the db into a StatusResponse API object
+  /**
+   * @function toStatusResponse
+   * @description Transforms a Message model from the db into a StatusResponse API object
    *
-   *  @param {object} msg - a Message model object
-   *  @returns {object} StatusResponse
-   *  @see Message
+   * @param {object} msg - a Message model object
+   * @returns {object} StatusResponse
+   * @see Message
    */
   toStatusResponse: msg => {
     const result = {
@@ -33,15 +33,16 @@ const transformer = {
       updatedTS: msg.updatedAt ? moment.utc(msg.updatedAt).valueOf() : null
     };
 
-    return utils.dropUndefinedObject(result);
+    return result;
   },
 
-  /** @function toTransactionResponse
-   *  @description Transforms a Trxn model from the db into TransactionResponse API object
+  /**
+   * @function toTransactionResponse
+   * @description Transforms a Trxn model from the db into TransactionResponse API object
    *
-   *  @param {object} trxn - a Trxn model object
-   *  @returns TransactionResponse
-   *  @see Trxn
+   * @param {object} trxn - a Trxn model object
+   * @returns TransactionResponse
+   * @see Trxn
    */
   toTransactionResponse: trxn => {
     const result = {
@@ -58,13 +59,14 @@ const transformer = {
   },
 
 
-  /** @function transactionToStatistics
-   *  @description Transforms a Trxn model from the db into Statistic model objects
+  /**
+   * @function transactionToStatistics
+   * @description Transforms a Trxn model from the db into Statistic model objects
    *
-   *  @param {string} client - the client / authorized party
-   *  @param {object} trxn - a Trxn model object
-   *  @returns array of Statistic model objects
-   *  @see Statistic
+   * @param {string} client - the client / authorized party
+   * @param {object} trxn - a Trxn model object
+   * @returns array of Statistic model objects
+   * @see Statistic
    */
   transactionToStatistics: (client, trxn) => {
     if (!client) return [];
@@ -90,13 +92,14 @@ const transformer = {
     return result;
   },
 
-  /** @function messageToStatistics
-   *  @description Transforms a Message model from the db into Statistic model objects
+  /**
+   * @function messageToStatistics
+   * @description Transforms a Message model from the db into Statistic model objects
    *
-   *  @param {string} client - the client / authorized party
-   *  @param {object} msg - a Message model object
-   *  @returns array of Statistic model objects
-   *  @see Statistic
+   * @param {string} client - the client / authorized party
+   * @param {object} msg - a Message model object
+   * @returns array of Statistic model objects
+   * @see Statistic
    */
   messageToStatistics: (client, msg) => {
     if (!client || !msg) return [];
@@ -119,12 +122,13 @@ const transformer = {
   },
 
 
-  /** @function mailApiToStatistics
-   *  @description Transforms a Mail API result (string) into Statistic model objects
+  /**
+   * @function mailApiToStatistics
+   * @description Transforms a Mail API result (string) into Statistic model objects
    *
-   *  @param {string} s - the mail api log string
-   *  @returns array of Statistic model objects
-   *  @see Statistic
+   * @param {string} s - the mail api log string
+   * @returns array of Statistic model objects
+   * @see Statistic
    */
   mailApiToStatistics: (s) => {
     if (!s || s.trim().length === 0) return [];
