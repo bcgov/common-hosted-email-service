@@ -20,7 +20,9 @@ const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
+const { queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
+const utils = require('../../src/components/utils');
 
 const DataConnection = require('../../src/services/dataConn');
 const EmailConnection = require('../../src/services/emailConn');
@@ -29,11 +31,13 @@ const QueueConnection = require('../../src/services/queueConn');
 const ChesService = require('../../src/services/chesSvc');
 const DataService = require('../../src/services/dataSvc');
 const EmailService = require('../../src/services/emailSvc');
-const QueueService = require('../../src/services/queueSvc');
+const { ClientMismatchError, DataIntegrityError, QueueService } = require('../../src/services/queueSvc');
 
 const { deleteTransactionsByClient } = require('./dataUtils');
 
 helper.logHelper();
+
+jest.mock('../../src/services/queueSvc');
 
 const knexfile = require('../../knexfile');
 
@@ -100,7 +104,7 @@ const template = {
 
 jest.setTimeout(10000);
 
-describe('ches service', () => {
+describe('chesService', () => {
   let knex;
   let dataService;
   let emailService;
@@ -152,17 +156,172 @@ describe('ches service', () => {
     chesService.emailService = emailService;
     chesService.queueService = queueService;
 
-    stackpole.register('createTransaction', async () => {return;});
-    stackpole.register('updateStatus', async () => {return;});
+    stackpole.register('createTransaction', async () => { });
+    stackpole.register('updateStatus', async () => { });
   });
 
   afterAll(async () => {
+    // TODO: Find better way to allow connections to finish before cleanup
+    await utils.wait(3000);
     await deleteTransactionsByClient(CLIENT);
     QueueConnection.close();
     return knex.destroy();
   });
 
-  describe('get status', () => {
+  afterEach(async () => {
+    await deleteTransactionsByClient(CLIENT);
+  });
+
+  describe('cancelMessage', () => {
+    const spy = QueueService.prototype.removeJob;
+
+    afterEach(async () => {
+      spy.mockRestore();
+    });
+
+    it('should throw a 400 when client is null', async () => {
+      try {
+        await chesService.cancelMessage(undefined, uuidv4());
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('400');
+      }
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should throw a 400 when messageId is null', async () => {
+      try {
+        await chesService.cancelMessage(CLIENT, undefined);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('400');
+      }
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should throw a 403 when client is mismatched', async () => {
+      spy.mockImplementation(() => { throw new ClientMismatchError(); });
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+
+      try {
+        await chesService.cancelMessage('wrong client', trxn.messages[0].msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('403');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith('wrong client', trxn.messages[0].msgId);
+    });
+
+    it('should throw a 404 when message is not found', async () => {
+      spy.mockResolvedValue(false);
+      const msgId = uuidv4();
+
+      try {
+        await chesService.cancelMessage(CLIENT, msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('404');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, msgId);
+    });
+
+    it('should throw a 409 when is uncancellable', async () => {
+      spy.mockResolvedValue(false);
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      await dataService.updateStatus(CLIENT, trxn.messages[0].msgId, queueState.REMOVED);
+
+      try {
+        await chesService.cancelMessage(CLIENT, trxn.messages[0].msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('409');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should throw a 500 when there is inconsistent data', async () => {
+      spy.mockImplementation(() => { throw new DataIntegrityError(); });
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+
+      try {
+        await chesService.cancelMessage(CLIENT, trxn.messages[0].msgId);
+      } catch (e) {
+        expect(e).toBeTruthy();
+        expect(e.status).toBe('500');
+      }
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+  });
+
+  describe('findStatuses', () => {
+    const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+
+    afterEach(() => {
+      spy.mockClear();
+    });
+
+    it('should throw an error if no parameters were provided', async () => {
+      const fn = () => chesService.findStatuses();
+
+      await expect(fn()).rejects.toThrow();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it('should return an empty array with no search parameters', async () => {
+      const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
+      const result = await chesService.findStatuses(CLIENT);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(0);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, undefined);
+
+      await deleteTransactionsByClient(CLIENT);
+    });
+
+    it('should return an empty array with all nonexistent search parameters', async () => {
+      const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
+      const msgId = uuidv4();
+      const txId = uuidv4();
+      const result = await chesService.findStatuses(CLIENT, msgId, 'status', 'tag', txId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(0);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, msgId, 'status', 'tag', txId);
+
+      await deleteTransactionsByClient(CLIENT);
+    });
+
+    it('should return an array of message statuses', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+
+      const result = await chesService.findStatuses(CLIENT, undefined, undefined, undefined, trxn.txId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toBeTruthy();
+      expect(result[0].txId).toMatch(trxn.txId);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, trxn.txId);
+    });
+
+  });
+
+  describe('getStatus', () => {
 
     it('should throw a 400 when no message id.', async () => {
       try {
@@ -208,7 +367,7 @@ describe('ches service', () => {
 
   });
 
-  describe('send email', () => {
+  describe('sendEmail', () => {
 
     it('should throw a 400 when no message.', async () => {
       try {
@@ -219,6 +378,7 @@ describe('ches service', () => {
       }
     });
 
+    // TODO: There may exist some concurrency issues here
     it('should throw a 400 when no client and not ethereal .', async () => {
       try {
         await chesService.sendEmail(undefined, emails[0], false);
@@ -246,7 +406,7 @@ describe('ches service', () => {
     */
   });
 
-  describe('send email merge', () => {
+  describe('sendEmailMerge', () => {
 
     it('should throw a 400 when no template.', async () => {
       try {
@@ -257,7 +417,8 @@ describe('ches service', () => {
       }
     });
 
-    it('should throw a 400 when no client and not ethereal .', async () => {
+    // TODO: There may exist some concurrency issues here
+    it('should throw a 400 when no client and not ethereal.', async () => {
       try {
         await chesService.sendEmailMerge(undefined, template, false);
       } catch (e) {
@@ -276,6 +437,11 @@ describe('ches service', () => {
       expect(result.messages[0].to).toHaveLength(1);
       expect(result.messages[0].msgId).toBeTruthy();
       expect(result.messages[0].to).toHaveLength(1);
+
+      // TODO: Find better way to allow connections to finish before cleanup
+      // This should be in a top-level afterEach but extends the test time significantly
+      // Revisit this when we need better test/connection isolation
+      await utils.wait(1000);
     });
 
     /*

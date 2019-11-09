@@ -13,6 +13,11 @@ const handleValidationErrors = (res, next, errors) => {
   next();
 };
 
+const validateCancelMsg = (req, res, next) => {
+  const errors = validators.cancelMsg(req.params);
+  handleValidationErrors(res, next, errors);
+};
+
 const validateEmail = async (req, res, next) => {
   const errors = await validators.email(req.body, config.get('server.attachmentLimit'));
   handleValidationErrors(res, next, errors);
@@ -34,4 +39,10 @@ const validateStatusQuery = (req, res, next) => {
   handleValidationErrors(res, next, errors);
 };
 
-module.exports = { validateEmail, validateMerge, validateStatusFetch, validateStatusQuery };
+module.exports = {
+  validateCancelMsg,
+  validateEmail,
+  validateMerge,
+  validateStatusFetch,
+  validateStatusQuery
+};

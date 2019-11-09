@@ -40,7 +40,7 @@ async function deleteTransactionsByClient(client) {
 
     await trx.commit();
   } catch (err) {
-    log.error(`Error deleting transaction records: ${err.message}. Rolling back,..`);
+    log.error(`Error deleting transaction records: ${err.message}. Rolling back...`);
     log.error(err);
     if (trx) await trx.rollback();
     throw err;
@@ -62,7 +62,7 @@ async function countStatisticsByClient(client) {
     log.info(`Counted ${counts[0].count} statistic records...`);
     return Number(counts[0].count);
   } catch (err) {
-    log.error(`Error counting statistic records: ${err.message}. Rolling back,..`);
+    log.error(`Error counting statistic records: ${err.message}. Rolling back...`);
     log.error(err);
     throw err;
   }
@@ -87,7 +87,7 @@ async function deleteStatisticsByClient(client) {
 
     await trx.commit();
   } catch (err) {
-    log.error(`Error deleting statistic records: ${err.message}. Rolling back,..`);
+    log.error(`Error deleting statistic records: ${err.message}. Rolling back...`);
     log.error(err);
     if (trx) await trx.rollback();
     throw err;

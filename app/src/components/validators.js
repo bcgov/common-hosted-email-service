@@ -270,6 +270,18 @@ const validators = {
     return errors;
   },
 
+  cancelMsg: param => {
+    const errors = [];
+
+    if(!param.msgId) {
+      errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
+    } else if (!models.queryParams.msgId(param.msgId)) {
+      errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
+    }
+
+    return errors;
+  },
+
   contexts: obj => {
     const errors = [];
     if (obj.contexts) {

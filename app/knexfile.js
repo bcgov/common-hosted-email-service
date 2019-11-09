@@ -19,12 +19,14 @@ module.exports = {
     password: config.get('db.password'),
     database: config.get('db.database')
   },
+  debug: ['silly', 'verbose'].includes(config.get('server.logLevel')),
   migrations: {
     directory: __dirname + '/src/services/migrations'
   },
   pool: {
-    min: 0,
-    max: 7
+    min: 2,
+    max: 10,
+    propagateCreateError: false
   },
   seeds: {
     directory: __dirname + '/src/services/seeds'

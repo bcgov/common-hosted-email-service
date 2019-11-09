@@ -20,7 +20,7 @@ helper.logHelper();
 
 const config = require('../../knexfile');
 
-describe('statservice', () => {
+describe('statisticsService', () => {
   let knex;
   let statisticsService;
   const CLIENT = `unittesting-${new Date().toISOString()}`;
@@ -44,60 +44,64 @@ describe('statservice', () => {
     await deleteStatisticsByClient(CLIENT);
   });
 
-  it('should return false on initializing data service without knex', async () => {
-    const dataConnection = new DataConnection();
-    dataConnection.knex = undefined;
-    const connectOK = await dataConnection.checkConnection();
-    expect(connectOK).toBeFalsy();
+  describe('constructor', () => {
+    it('should return false on initializing data service without knex', async () => {
+      const dataConnection = new DataConnection();
+      dataConnection.knex = undefined;
+      const connectOK = await dataConnection.checkConnection();
+      expect(connectOK).toBeFalsy();
+    });
   });
 
-  it('should not do anything when writing nothing', async () => {
-    expect(async () => await statisticsService.write(null)).not.toThrow();
-  });
+  describe('write', () => {
+    it('should not do anything when writing nothing', async () => {
+      expect(async () => await statisticsService.write(null)).not.toThrow();
+    });
 
-  it('should create a statistic', async () => {
-    const stat = {
-      client: CLIENT,
-      operation: 'op',
-      transactionId: uuidv4(),
-      messageId: uuidv4(),
-      status: 'asdfasdf',
-      timestamp: new Date(),
-      delay: null
-    };
-    await statisticsService.write(stat);
-    const recs = await countStatisticsByClient(CLIENT);
-    expect(recs).toBe(1);
-  });
+    it('should create a statistic', async () => {
+      const stat = {
+        client: CLIENT,
+        operation: 'op',
+        transactionId: uuidv4(),
+        messageId: uuidv4(),
+        status: 'asdfasdf',
+        timestamp: new Date(),
+        delay: null
+      };
+      await statisticsService.write(stat);
+      const recs = await countStatisticsByClient(CLIENT);
+      expect(recs).toBe(1);
+    });
 
-  it('should create multiple statistics with array param', async () => {
-    const stat = {
-      client: CLIENT,
-      operation: 'op',
-      transactionId: uuidv4(),
-      messageId: uuidv4(),
-      status: 'asdfasdf',
-      timestamp: new Date(),
-      delay: null
-    };
-    await statisticsService.write([stat, stat]);
-    const recs = await countStatisticsByClient(CLIENT);
-    expect(recs).toBe(2);
-  });
+    it('should create multiple statistics with array param', async () => {
+      const stat = {
+        client: CLIENT,
+        operation: 'op',
+        transactionId: uuidv4(),
+        messageId: uuidv4(),
+        status: 'asdfasdf',
+        timestamp: new Date(),
+        delay: null
+      };
+      await statisticsService.write([stat, stat]);
+      const recs = await countStatisticsByClient(CLIENT);
+      expect(recs).toBe(2);
+    });
 
-  it('should create multiple statistics with multiple params', async () => {
-    const stat = {
-      client: CLIENT,
-      operation: 'op',
-      transactionId: uuidv4(),
-      messageId: uuidv4(),
-      status: 'asdfasdf',
-      timestamp: new Date(),
-      delay: null
-    };
-    await statisticsService.write(stat, stat, stat);
-    const recs = await countStatisticsByClient(CLIENT);
-    expect(recs).toBe(3);
+    it('should create multiple statistics with multiple params', async () => {
+      const stat = {
+        client: CLIENT,
+        operation: 'op',
+        transactionId: uuidv4(),
+        messageId: uuidv4(),
+        status: 'asdfasdf',
+        timestamp: new Date(),
+        delay: null
+      };
+      await statisticsService.write(stat, stat, stat);
+      const recs = await countStatisticsByClient(CLIENT);
+      expect(recs).toBe(3);
+    });
   });
 
 });

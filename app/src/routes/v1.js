@@ -5,6 +5,7 @@ const path = require('path');
 const keycloak = require('../components/keycloak');
 const { authorizedPartyValidator } = require('../middleware/authorizedParty');
 
+const cancelRouter = require('./v1/cancel');
 const emailRouter = require('./v1/email');
 const healthRouter = require('./v1/health');
 const mergeRouter = require('./v1/merge');
@@ -17,6 +18,7 @@ router.get('/', (_req, res) => {
   res.status(200).json({
     endpoints: [
       '/api-spec.yaml',
+      '/cancel',
       '/docs',
       '/email',
       '/emailMerge',
@@ -48,5 +50,8 @@ router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), authorizedPar
 
 /** Status Router */
 router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, statusRouter);
+
+/** Cancel Router */
+router.use('/cancel', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, cancelRouter);
 
 module.exports = router;

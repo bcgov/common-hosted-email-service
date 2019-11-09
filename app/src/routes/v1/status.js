@@ -4,6 +4,7 @@ const ChesService = require('../../services/chesSvc');
 
 const chesService = new ChesService();
 
+/** Queryable message transaction status endpoint */
 statusRouter.get('/', validateStatusQuery, async (req, res, next) => {
   try {
     // Find messages, transform message and statuses into API format
@@ -17,6 +18,7 @@ statusRouter.get('/', validateStatusQuery, async (req, res, next) => {
   }
 });
 
+/** Status of a single message endpoint */
 statusRouter.get('/:msgId', validateStatusFetch, async (req, res, next) => {
   try {
     // transform message and statuses into API format...

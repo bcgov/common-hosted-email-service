@@ -9,8 +9,10 @@
  */
 const helper = require('../common/helper');
 const Knex = require('knex');
+const { NotFoundError } = require('objection');
 const uuidv4 = require('uuid/v4');
 
+const { statusState, queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
 
 const DataConnection = require('../../src/services/dataConn');
@@ -54,12 +56,12 @@ const emails = [
 function expectNewMessage(trxnId, msgId, msg, email) {
   expect(msg.transactionId).toMatch(trxnId);
   expect(msg.messageId).toMatch(msgId);
-  expect(msg.status).toMatch('accepted');
+  expect(msg.status).toMatch(statusState.ACCEPTED);
   expect(msg.createdAt).toBeTruthy();
   expect(msg.updatedAt).toBeTruthy();
   expect(msg.statusHistory).toHaveLength(1);
   expect(msg.statusHistory[0].messageId).toMatch(msg.messageId);
-  expect(msg.statusHistory[0].status).toMatch('accepted');
+  expect(msg.statusHistory[0].status).toMatch(statusState.ACCEPTED);
   expect(msg.statusHistory[0].createdAt).toBeTruthy();
   expect(msg.statusHistory[0].updatedAt).toBeFalsy();
   expect(msg.email).toBeTruthy();
@@ -71,7 +73,7 @@ function expectNewMessage(trxnId, msgId, msg, email) {
   }
 }
 
-describe('dataservice', () => {
+describe('dataService', () => {
   let knex;
   let dataService;
   const CLIENT = `unittesting-${new Date().toISOString()}`;
@@ -85,8 +87,8 @@ describe('dataservice', () => {
       throw Error('Error initializing dataService');
     }
 
-    stackpole.register('createTransaction', async () => {return;});
-    stackpole.register('updateStatus', async () => {return;});
+    stackpole.register('createTransaction', async () => { });
+    stackpole.register('updateStatus', async () => { });
 
     dataService = new DataService();
   });
@@ -96,11 +98,134 @@ describe('dataservice', () => {
     return knex.destroy();
   });
 
-  it('should return false on initializing data service without knex', async () => {
-    const dataConnection = new DataConnection();
-    dataConnection.knex = undefined;
-    const connectOK = await dataConnection.checkConnection();
-    expect(connectOK).toBeFalsy();
+  afterEach(async () => {
+    await deleteTransactionsByClient(CLIENT);
+  });
+
+  describe('constructor', () => {
+    it('should return false on initializing data service without knex', async () => {
+      const dataConnection = new DataConnection();
+      dataConnection.knex = undefined;
+      const connectOK = await dataConnection.checkConnection();
+      expect(connectOK).toBeFalsy();
+    });
+  });
+
+  describe('findMessagesByQuery', () => {
+    const fn = (...args) => {
+      return dataService.findMessagesByQuery(...args);
+    };
+
+    it('should throw a NotFoundError when nothing was found', async () => {
+      await expect(fn(CLIENT)).rejects.toThrow(NotFoundError);
+    });
+
+    it('should throw a NotFoundError when the client is mismatched', async () => {
+      const email = emails[0];
+      await dataService.createTransaction(CLIENT, email);
+
+      await expect(fn('garbage')).rejects.toThrow(NotFoundError);
+    });
+
+    it('should return a message when searching by messageId', async () => {
+      const email = emails[0];
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, trxn.messages[0].messageId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toMatch(trxn.messages[0].messageId);
+    });
+
+    it('should return a message when searching by status', async () => {
+      const email = emails[0];
+      const status = 'accepted';
+      await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, undefined, status);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toMatch(status);
+    });
+
+    it('should return a message when searching by tag', async () => {
+      const email = emails[0];
+      const tag = 'a tag value';
+      await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, undefined, undefined, tag);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].tag).toMatch(tag);
+    });
+
+    it('should return a message when searching by transactionId', async () => {
+      const email = emails[0];
+      const { transactionId } = await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, undefined, undefined, undefined, transactionId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].transactionId).toMatch(transactionId);
+    });
+
+    it('should return a message with multiple search criteria', async () => {
+      const email = emails[0];
+      const status = 'accepted';
+      const tag = 'a tag value';
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await fn(CLIENT, trxn.messages[0].messageId, status, tag, trxn.transactionId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(1);
+      expect(result[0].messageId).toMatch(trxn.messages[0].messageId);
+      expect(result[0].status).toMatch(status);
+      expect(result[0].tag).toMatch(tag);
+      expect(result[0].transactionId).toMatch(trxn.transactionId);
+    });
+
+    it('should return multiple messages', async () => {
+      const { transactionId } = await dataService.createTransaction(CLIENT, emails);
+
+      const result = await fn(CLIENT, undefined, undefined, undefined, transactionId);
+
+      expect(Array.isArray(result)).toBeTruthy();
+      expect(result).toHaveLength(2);
+      expect(result[0].transactionId).toMatch(transactionId);
+      expect(result[1].transactionId).toMatch(transactionId);
+      expect(result[0].messageId).not.toMatch(result[1].messageId);
+    });
+  });
+
+  describe('messageExists', () => {
+    it('should return true when a message exists', async () => {
+      const email = emails[0];
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await dataService.messageExists(CLIENT, trxn.messages[0].messageId);
+
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when the client is mismatched', async () => {
+      const email = emails[0];
+      const trxn = await dataService.createTransaction(CLIENT, email);
+
+      const result = await dataService.messageExists('garbage', trxn.messages[0].messageId);
+
+      expect(result).toBeFalsy();
+    });
+
+    it('should return false when a message does not exist', async () => {
+      const result = await dataService.messageExists(CLIENT, uuidv4());
+
+      expect(result).toBeFalsy();
+    });
   });
 
   it('should error creating a transaction without client', async () => {
@@ -159,56 +284,39 @@ describe('dataservice', () => {
     });
   });
 
-  it('should update a status and queue history', async () => {
+  it('should update the status history', async () => {
     const email = emails[0];
-    const status = 'in the queue';
     const result = await dataService.createTransaction(CLIENT, email);
     expect(result).toBeTruthy();
 
-    const msg = await dataService.updateStatus(CLIENT, result.messages[0].messageId, status);
+    // Add Enqueued State
+    const msg = await dataService.updateStatus(CLIENT, result.messages[0].messageId, queueState.ENQUEUED);
 
     expect(msg.messageId).toMatch(result.messages[0].messageId);
-    expect(msg.status).toMatch(status);
+    expect(msg.status).toMatch(statusState.PENDING);
     expect(msg.statusHistory).toHaveLength(2);
-    expect(msg.statusHistory[0].status).toMatch(status);
-    expect(msg.queueHistory).toHaveLength(1);
-    expect(msg.queueHistory[0].messageId).toMatch(msg.messageId);
-    expect(msg.queueHistory[0].status).toMatch(status);
+    expect(msg.statusHistory[1].status).toMatch(statusState.ACCEPTED);
+    expect(msg.statusHistory[0].status).toMatch(statusState.PENDING);
 
-    // use the same status, should only add to queue history...
-    const msg2 = await dataService.updateStatus(CLIENT, msg.messageId, status);
+    // Add Processing State (should yield no new status entry)
+    const msg2 = await dataService.updateStatus(CLIENT, msg.messageId, queueState.ENQUEUED);
     expect(msg2.messageId).toMatch(msg.messageId);
     expect(msg2.status).toMatch(msg.status);
     expect(msg2.statusHistory).toHaveLength(2);
     // status history should come back in descending created order (last in, first out)
-    expect(msg2.statusHistory[0].status).toMatch(status);
-    expect(msg2.statusHistory[1].status).toMatch('accepted');
-    expect(msg2.queueHistory).toHaveLength(2);
-    // queue history should come back in descending created order (last in, first out)
-    expect(msg2.queueHistory[0].messageId).toMatch(msg.messageId);
-    expect(msg2.queueHistory[0].status).toMatch(status);
-    expect(msg2.queueHistory[1].messageId).toMatch(msg.messageId);
-    expect(msg2.queueHistory[1].status).toMatch(status);
+    expect(msg2.statusHistory[1].status).toMatch(statusState.ACCEPTED);
+    expect(msg2.statusHistory[0].status).toMatch(statusState.PENDING);
 
-    // use a new status, should add to status history too...
-    const newStatus = 'this is new!';
+    // Add Cancelled State (should yield new status entry)
+    const newStatus = queueState.REMOVED;
     const msg3 = await dataService.updateStatus(CLIENT, msg.messageId, newStatus);
     expect(msg3.messageId).toMatch(msg.messageId);
-    expect(msg3.status).toMatch(newStatus);
+    expect(msg3.status).toMatch(statusState.CANCELLED);
     expect(msg3.statusHistory).toHaveLength(3);
     // status history should come back in descending created order (last in, first out)
-    expect(msg3.statusHistory[0].status).toMatch(newStatus);
-    expect(msg3.statusHistory[1].status).toMatch(status);
-    expect(msg3.statusHistory[2].status).toMatch('accepted');
-    expect(msg3.queueHistory).toHaveLength(3);
-    // queue history should come back in descending created order (last in, first out)
-    expect(msg3.queueHistory[0].messageId).toMatch(msg.messageId);
-    expect(msg3.queueHistory[0].status).toMatch(newStatus);
-    expect(msg3.queueHistory[1].messageId).toMatch(msg.messageId);
-    expect(msg3.queueHistory[1].status).toMatch(status);
-    expect(msg3.queueHistory[2].messageId).toMatch(msg.messageId);
-    expect(msg3.queueHistory[2].status).toMatch(status);
-
+    expect(msg3.statusHistory[2].status).toMatch(statusState.ACCEPTED);
+    expect(msg3.statusHistory[1].status).toMatch(statusState.PENDING);
+    expect(msg3.statusHistory[0].status).toMatch(statusState.CANCELLED);
   });
 
   it('should error out on status update with bad message id', async () => {
@@ -277,14 +385,12 @@ describe('dataservice', () => {
     expect(message2).toBeTruthy();
     expect(message2.messageId).toMatch(messageId2);
 
-    const newStatus = 'a whole new status';
+    const newStatus = queueState.REMOVED;
     const updated1 = await dataService.updateStatus(client1, messageId1, newStatus);
     expect(updated1.statusHistory).toHaveLength(2);
-    expect(updated1.queueHistory).toHaveLength(1);
 
     const updated2 = await dataService.updateStatus(client2, messageId2, newStatus);
     expect(updated2.statusHistory).toHaveLength(2);
-    expect(updated2.queueHistory).toHaveLength(1);
 
     const content1 = await dataService.deleteMessageEmail(client1, messageId1);
     expect(content1.email).toBeFalsy();
@@ -327,7 +433,6 @@ describe('dataservice', () => {
 
     deleteTransactionsByClient(client1);
     deleteTransactionsByClient(client2);
-
   });
 
   it('should error out on find message with bad id', async () => {
@@ -360,10 +465,9 @@ describe('dataservice', () => {
     expect(transact.messages).toHaveLength(1);
 
     // add in a queue record...
-    const newStatus = 'a whole new status';
+    const newStatus = queueState.ENQUEUED;
     const msg = await dataService.updateStatus(client, transact.messages[0].messageId, newStatus);
     expect(msg.statusHistory).toHaveLength(2);
-    expect(msg.queueHistory).toHaveLength(1);
 
     // ok, now let's delete...
     await deleteTransactionsByClient(client);

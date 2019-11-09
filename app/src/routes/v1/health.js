@@ -2,7 +2,7 @@ const checksRouter = require('express').Router();
 
 const healthCheck = require('../../components/health');
 
-/** Returns the status of correspondent APIs */
+/** Returns health checks of external service dependencies endpoint */
 checksRouter.get('/', async (_req, res, next) => {
   try {
     const dependencies = await healthCheck.getAll();

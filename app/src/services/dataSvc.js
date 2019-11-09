@@ -3,10 +3,9 @@
  *
  * Service to persist data.
  *
- *
  * @see DataConnection
- * @see Objection
  * @see knex
+ * @see Objection
  *
  * @exports DataService
  */
@@ -15,6 +14,7 @@ const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuidv4 = require('uuid/v4');
 
+const { queueToStatus } = require('../components/state');
 const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
 
@@ -25,13 +25,15 @@ const Queue = require('./models/queue');
 const Status = require('./models/status');
 const Trxn = require('./models/trxn');
 
-/** @function createMessage
- *  inserts all message related data into the db for a Trxn (transaction)
- *  inserts an initial status record.
- *  @param {string} transactionId - transaction parent record
- *  @param {object} msg - API email message object
- *  @param {object} db - an Objection/Knex transaction for commit/rollback
- *  @returns Message
+/**
+ * @function createMessage
+ * inserts all message related data into the db for a Trxn (transaction)
+ * inserts an initial status and queue record.
+ *
+ * @param {string} transactionId - transaction parent record
+ * @param {object} msg - API email message object
+ * @param {object} db - an Objection/Knex transaction for commit/rollback
+ * @returns Message
  */
 const createMessage = async (transactionId, msg, db) => {
   const messageObj = await Message.query(db).insert({
@@ -42,23 +44,28 @@ const createMessage = async (transactionId, msg, db) => {
     delayTimestamp: msg.delayTS
   });
 
+  // Insert initial status and queue accepted records
   await Status.query(db).insert({
+    messageId: messageObj.messageId
+  });
+  await Queue.query(db).insert({
     messageId: messageObj.messageId
   });
 
   return messageObj;
 };
 
-/** @function queueToBusinessStatus
- *  Not all transitions in the queue processing are relevant to business.
- *  Translate a queue processing status into a  business status.
+/**
+ * @function getClientTrxnQuery
+ * @description Gets a list of all transactions created by `client`
  *
- *  @param {string} queueStatus - status message from queue
- *  @returns {string} a business status (stored in Status)
+ * @param {string} client - the client
+ * @returns An array of transactionIds
  */
-const queueToBusinessStatus = (queueStatus) => {
-  // we have no mapping yet, so just track them all...
-  return queueStatus;
+const getClientTrxnQuery = client => {
+  return Trxn.query()
+    .select('transactionId')
+    .where('client', client);
 };
 
 class DataService {
@@ -71,27 +78,30 @@ class DataService {
     this.connection = new DataConnection();
   }
 
-  /** @function connection
-   *  Gets the current DataConnection
+  /**
+   * @function connection
+   * Gets the current DataConnection
    */
   get connection() {
     return this._connection;
   }
 
-  /** @function connection
-   *  Sets the current DataConnection
-   *  @param {object} v - an DataConnection
+  /**
+   * @function connection
+   * Sets the current DataConnection
+   * @param {object} v - an DataConnection
    */
   set connection(v) {
     this._connection = v;
   }
 
-  /** @function createTransaction
-   *  Creates a Trxn (transaction) record with associated messages
+  /**
+   * @function createTransaction
+   * Creates a Trxn (transaction) record with associated messages
    *
-   *  @param {string} client- the authorized party / client
-   *  @param {object} msg - the API email message or template.
-   *  @returns {object} Trxn object, fully populated with child messages and status
+   * @param {string} client - the authorized party / client
+   * @param {object} msg - the API email message or template.
+   * @returns {object} Trxn object, fully populated with child messages and status
    */
   async createTransaction(client, msg) {
     if (!msg) {
@@ -128,14 +138,15 @@ class DataService {
     }
   }
 
-  /** @function deleteMessageEmail
-   *  Deletes the email data from a message.
-   *  We don't want to retain any private-ish data longer than required to perform our task.
+  /**
+   * @function deleteMessageEmail
+   * Deletes the email data from a message.
+   * We don't want to retain any private-ish data longer than required to perform our task.
    *
-   *  @param {string} client- the authorized party / client
-   *  @param {string} messageId - the id of the message we want to purge email
-   *  @throws NotFoundError if message for client not found
-   *  @returns {object} Message object, fully populated.
+   * @param {string} client- the authorized party / client
+   * @param {string} messageId - the id of the message we want to purge email
+   * @throws NotFoundError if message for client not found
+   * @returns {object} Message object, fully populated.
    */
   async deleteMessageEmail(client, messageId) {
     let trx;
@@ -151,7 +162,7 @@ class DataService {
 
       await trx.commit();
 
-      return this.readMessage(client, messageId);
+      return await this.readMessage(client, messageId);
     } catch (err) {
       log.error(`Error updating message (email) record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -160,28 +171,19 @@ class DataService {
     }
   }
 
-  /** @function findMessagesByQuery
-   *  @description Finds the set of messages that matches the search criteria
+  /**
+   * @function findMessagesByQuery
+   * @description Finds the set of messages that matches the search criteria
    *
-   *  @param {string} client - the authorized party / client
-   *  @param {string} messageId - the id of the desired message
-   *  @param {string} status - the desired status of the messages
-   *  @param {string} tag - the desired tag of the messages
-   *  @param {string} transactionId - the id of the desired transaction
-   *  @param {string[]} [fields=[]] - a list of desired columns in addition to the defaults
-   *  @throws NotFoundError if no messages were found
-   *  @returns {object[]} Array of Message objects with a subset of properties
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @param {string} status - the desired status of the messages
+   * @param {string} tag - the desired tag of the messages
+   * @param {string} transactionId - the id of the desired transaction
+   * @throws NotFoundError if no messages were found
+   * @returns {object[]} Array of Message objects
    */
-  async findMessagesByQuery(client, messageId, status, tag, transactionId, fields = []) {
-    const validColumns = [
-      'createdAt',
-      'delayTimestamp',
-      'messageId',
-      'status',
-      'tag',
-      'transactionId',
-      'updatedAt'
-    ];
+  async findMessagesByQuery(client, messageId, status, tag, transactionId) {
     const parameters = utils.dropUndefinedObject({
       messageId: messageId,
       status: status,
@@ -189,58 +191,59 @@ class DataService {
       transactionId: transactionId
     });
 
-    const columns = [
-      ...new Set(validColumns.concat(fields.filter(field => {
-        return validColumns.includes(field);
-      })))];
-
-    const trxnQuery = Trxn.query()
-      .select('transactionId')
-      .where('client', client);
-
     return Message.query()
-      .column(columns)
-      .whereIn('transactionId', trxnQuery)
+      .whereIn('transactionId', getClientTrxnQuery(client))
       .andWhere(parameters)
       .throwIfNotFound();
   }
 
-  /** @function readMessage
-   *  Read a Message from the db
+  /**
+   * @function messageExists
+   * Determines if a Message exists
    *
-   *  @param {string} client - the authorized party / client
-   *  @param {string} messageId - the id of the message we want
-   *  @throws NotFoundError if message for client not found
-   *  @returns {object} Message object, fully populated.
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the message we want
+   * @returns {boolean} True if `messageId` for `client` exists
+   */
+  async messageExists(client, messageId) {
+    const msg = await Message.query()
+      .findById(messageId)
+      .whereIn('transactionId', getClientTrxnQuery(client));
+
+    return !!msg;
+  }
+
+  /**
+   * @function readMessage
+   * Read a Message from the db
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the message we want
+   * @throws NotFoundError if message for client not found
+   * @returns {object} Message object, fully populated.
    */
   async readMessage(client, messageId) {
-    const trxnQuery = Trxn.query()
-      .select('transactionId')
-      .where('client', client);
-
     return Message.query()
       .findById(messageId)
-      .whereIn('transactionId', trxnQuery)
+      .whereIn('transactionId', getClientTrxnQuery(client))
       .eagerAlgorithm(Model.JoinEagerAlgorithm)
       .eager({
-        statusHistory: true,
-        queueHistory: true
+        statusHistory: true
       })
       .modifyEager('statusHistory', builder => {
         builder.orderBy('createdAt', 'desc');
       })
-      .modifyEager('queueHistory', builder => {
-        builder.orderBy('createdAt', 'desc');
-      }).throwIfNotFound();
+      .throwIfNotFound();
   }
 
-  /** @function readTransaction
-   *  Read a Transaction (Trxn) from the db
+  /**
+   * @function readTransaction
+   * Read a Transaction (Trxn) from the db
    *
-   *  @param {string} client - the authorized party / client
-   *  @param {string} transactionId - the id of the transaction we want
-   *  @throws NotFoundError if transaction for client not found
-   *  @returns {object} Trxn object, fully populated.
+   * @param {string} client - the authorized party / client
+   * @param {string} transactionId - the id of the transaction we want
+   * @throws NotFoundError if transaction for client not found
+   * @returns {object} Trxn object
    */
   async readTransaction(client, transactionId) {
     return Trxn.query()
@@ -249,27 +252,25 @@ class DataService {
       .eagerAlgorithm(Model.JoinEagerAlgorithm)
       .eager({
         messages: {
-          statusHistory: true,
-          queueHistory: true
+          statusHistory: true
         }
       })
       .modifyEager('messages.statusHistory', builder => {
         builder.orderBy('createdAt', 'desc');
       })
-      .modifyEager('messages.queueHistory', builder => {
-        builder.orderBy('createdAt', 'desc');
-      }).throwIfNotFound();
+      .throwIfNotFound();
   }
 
-  /** @function updateMessageSendResult
-   *  Updates the message's send result field.
-   *  The send result is populated once the email has been sent.
+  /**
+   * @function updateMessageSendResult
+   * Updates the message's send result field.
+   * The send result is populated once the email has been sent.
    *
-   *  @param {string} client- the authorized party / client
-   *  @param {string} messageId - the id of the message
-   *  @param {object} sendResult - the pared down SMTP result
-   *  @throws NotFoundError if message for client not found
-   *  @returns {object} Message object, fully populated.
+   * @param {string} client- the authorized party / client
+   * @param {string} messageId - the id of the message
+   * @param {object} sendResult - the pared down SMTP result
+   * @throws NotFoundError if message for client not found
+   * @returns {object} Message object, fully populated.
    */
   async updateMessageSendResult(client, messageId, sendResult) {
     let trx;
@@ -294,17 +295,18 @@ class DataService {
     }
   }
 
-  /** @function updateStatus
-   *  Updates the message's current status.
-   *  Add a new queue processing status (Queue) record.
-   *  Determine the business status and if required, add a new business status (Status) record.
+  /**
+   * @function updateStatus
+   * Updates the message's current status.
+   * Adds a new queue processing status (Queue) record.
+   * Determines the business status and if required, add a new business status (Status) record.
    *
-   *  @param {string} client- the authorized party / client
-   *  @param {string} messageId - the id of the message we want to purge email content
-   *  @param {string} status - the queue processing status
-   *  @param {string} description - optional description, mostly used for error/failure statuses
-   *  @throws NotFoundError if message for client not found
-   *  @returns {object} Message object, fully populated.
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the message we want to purge email content
+   * @param {string} status - the queue processing status
+   * @param {string} description - optional description, mostly used for error/failure statuses
+   * @throws NotFoundError if message for client not found
+   * @returns {object} Message object
    */
   async updateStatus(client, messageId, status, description) {
     let trx;
@@ -314,18 +316,19 @@ class DataService {
 
       trx = await transaction.start(Message.knex());
 
-      const businessStatus = queueToBusinessStatus(status);
+      const businessStatus = queueToStatus(status);
+      // Update business status if it is different than current state
       if (msg.status !== businessStatus) {
-        // we are changing business statuses... so update and add new status history
+        // Update message status and add a new status record
         await msg.$query(trx).patch({ status: businessStatus });
         await Status.query(trx).insert({
           messageId: messageId,
-          status: status,
+          status: businessStatus,
           description: description
         });
       }
 
-      // always add the queue status...
+      // Always add a new queue record
       await Queue.query(trx).insert({
         messageId: messageId,
         status: status,
