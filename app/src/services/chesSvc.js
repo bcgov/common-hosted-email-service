@@ -134,6 +134,31 @@ class ChesService {
   }
 
   /**
+   * @function findCancelMessages
+   * @description Finds and attempts to cancel the set of messages matching the search criteria
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @param {string} status - the desired status of the messages
+   * @param {string} tag - the desired tag of the messages
+   * @param {string} transactionId - the id of the desired transaction
+   * @throws Problem if an unexpected error occurs
+   */
+  // eslint-disable-next-line no-unused-vars
+  async findCancelMessages(client, messageId, status, tag, transactionId) {
+    try {
+      // await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        log.verbose('findCancelMessages', 'No messages found');
+      } else {
+        log.error('findCancelMessages', e.message);
+        throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
+      }
+    }
+  }
+
+  /**
    * @function findStatuses
    * @description Finds the set of message statuses that matches the search criteria
    *

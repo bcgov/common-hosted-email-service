@@ -276,7 +276,7 @@ paths:
                 URL location to affected resource. Use the same query and path
                 parameters as this request to find the affected resource.
               example: >-
-                /api/v1/status?msgId=00000000-0000-0000-0000-000000000000&status=completed&tag=example&txId=00000000-0000-0000-0000-000000000000
+                /api/v1/status?msgId=00000000-0000-0000-0000-000000000000&status=pending&tag=example&txId=00000000-0000-0000-0000-000000000000
               schema:
                 type: string
                 format: uri
@@ -366,7 +366,7 @@ components:
           - completed
           - failed
           - pending
-      example: completed
+      example: pending
     QueryTag:
       in: query
       name: tag

@@ -264,6 +264,61 @@ describe('chesService', () => {
 
   });
 
+  describe('findCancelMessages', () => {
+    // const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+
+    // afterEach(() => {
+    //   spy.mockClear();
+    // });
+
+    it.skip('should throw an error with no parameters provided', async () => {
+      const fn = () => chesService.findCancelMessages();
+
+      await expect(fn()).rejects.toThrow();
+
+      // expect(spy).toHaveBeenCalledTimes(1);
+      // expect(spy).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
+    });
+
+    it.skip('should throw an error with no search parameters', async () => {
+      const CLIENT = `ches-svc-findCancelMessages-${new Date().toISOString()}`;
+      const fn = () => chesService.findCancelMessages(CLIENT);
+
+      await expect(fn()).resolves.toThrow();
+
+      // expect(Array.isArray(result)).toBeTruthy();
+      // expect(result).toHaveLength(0);
+      // expect(spy).toHaveBeenCalledTimes(1);
+      // expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, undefined);
+
+      await deleteTransactionsByClient(CLIENT);
+    });
+
+    it('should return with all nonexistent search parameters', async () => {
+      const CLIENT = `ches-svc-findCancelMessages-${new Date().toISOString()}`;
+      const msgId = uuidv4();
+      const txId = uuidv4();
+      const fn = () => chesService.findCancelMessages(CLIENT, msgId, 'status', 'tag', txId);
+
+      await expect(fn()).resolves.not.toThrow();
+      // expect(spy).toHaveBeenCalledTimes(1);
+      // expect(spy).toHaveBeenCalledWith(CLIENT, msgId, 'status', 'tag', txId);
+
+      await deleteTransactionsByClient(CLIENT);
+    });
+
+    it('should return an array of message statuses', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+
+      const fn = () => chesService.findCancelMessages(CLIENT, undefined, undefined, undefined, trxn.txId);
+
+      await expect(fn()).resolves.not.toThrow();
+      // expect(spy).toHaveBeenCalledTimes(1);
+      // expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, trxn.txId);
+    });
+
+  });
+
   describe('findStatuses', () => {
     const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
 
