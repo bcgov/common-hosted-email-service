@@ -144,13 +144,40 @@ class ChesService {
    * @param {string} transactionId - the id of the desired transaction
    * @throws Problem if an unexpected error occurs
    */
-  // eslint-disable-next-line no-unused-vars
   async findCancelMessages(client, messageId, status, tag, transactionId) {
+    if (!client) {
+      throw new Problem(400, { detail: 'Error finding and cancelling messages. Client cannot be null' });
+    }
+
     try {
-      // await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
+      const messages = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
+
+      const result = await Promise.all(messages.map(msg => {
+        try {
+          // Try removing directly from queue, then update db afterwards
+          this.queueService.removeJob(client, msg.messageId);
+        } catch (e) {
+          if (e instanceof ClientMismatchError) {
+            log.info('cancelMessage', `Message ${msg.messageId} is not owned by client ${client}.`);
+          } else if (e instanceof DataIntegrityError) {
+            log.error('cancelMessage', `Message ${msg.messageId} data is inconsistent or corrupted.`);
+            return msg.messageId;
+          } else if (e instanceof NotFoundError) {
+            log.info('findCancelMessages', 'No messages found');
+          } else if (e instanceof UncancellableError) {
+            log.info('cancelMessage', `Message ${msg.messageId} is not cancellable.`);
+          } else {
+            throw e;
+          }
+        }
+      }).filter(el => !!el)); // Drop undefined elements from array
+
+      if (result && result.length) {
+        throw new DataIntegrityError(`Message(s) ${result} inconsistent or corrupted.`);
+      }
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.verbose('findCancelMessages', 'No messages found');
+        log.info('findCancelMessages', 'No messages found');
       } else {
         log.error('findCancelMessages', e.message);
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });

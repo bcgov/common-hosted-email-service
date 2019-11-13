@@ -20,7 +20,7 @@ const helper = require('../common/helper');
 const Knex = require('knex');
 const uuidv4 = require('uuid/v4');
 
-const { queueState } = require('../../src/components/state');
+const { statusState, queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
 const utils = require('../../src/components/utils');
 
@@ -265,56 +265,64 @@ describe('chesService', () => {
   });
 
   describe('findCancelMessages', () => {
-    // const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+    const findSpy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+    const removeSpy = jest.spyOn(QueueService.prototype, 'removeJob');
+    const fn = (...args) => {
+      return chesService.findCancelMessages(...args);
+    };
 
-    // afterEach(() => {
-    //   spy.mockClear();
-    // });
-
-    it.skip('should throw an error with no parameters provided', async () => {
-      const fn = () => chesService.findCancelMessages();
-
-      await expect(fn()).rejects.toThrow();
-
-      // expect(spy).toHaveBeenCalledTimes(1);
-      // expect(spy).toHaveBeenCalledWith(undefined, undefined, undefined, undefined, undefined);
+    afterEach(() => {
+      findSpy.mockClear();
+      removeSpy.mockClear();
     });
 
-    it.skip('should throw an error with no search parameters', async () => {
+    it('should throw an error with no parameters provided', async () => {
+      await expect(fn()).rejects.toThrow();
+
+      expect(findSpy).toHaveBeenCalledTimes(0);
+      expect(removeSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return nothing with no search parameters', async () => {
       const CLIENT = `ches-svc-findCancelMessages-${new Date().toISOString()}`;
-      const fn = () => chesService.findCancelMessages(CLIENT);
 
-      await expect(fn()).resolves.toThrow();
+      const result = await fn(CLIENT);
 
-      // expect(Array.isArray(result)).toBeTruthy();
-      // expect(result).toHaveLength(0);
-      // expect(spy).toHaveBeenCalledTimes(1);
-      // expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, undefined);
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(0);
 
       await deleteTransactionsByClient(CLIENT);
     });
 
-    it('should return with all nonexistent search parameters', async () => {
+    it('should return nothing with all nonexistent search parameters', async () => {
       const CLIENT = `ches-svc-findCancelMessages-${new Date().toISOString()}`;
       const msgId = uuidv4();
       const txId = uuidv4();
-      const fn = () => chesService.findCancelMessages(CLIENT, msgId, 'status', 'tag', txId);
+      const status = statusState.COMPLETED;
+      const tag = 'tag';
 
-      await expect(fn()).resolves.not.toThrow();
-      // expect(spy).toHaveBeenCalledTimes(1);
-      // expect(spy).toHaveBeenCalledWith(CLIENT, msgId, 'status', 'tag', txId);
+      const result = await fn(CLIENT, msgId, status, tag, txId);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, msgId, status, tag, txId);
+      expect(removeSpy).toHaveBeenCalledTimes(0);
 
       await deleteTransactionsByClient(CLIENT);
     });
 
-    it('should return an array of message statuses', async () => {
+    it('should return nothing with one message ', async () => {
       const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
 
-      const fn = () => chesService.findCancelMessages(CLIENT, undefined, undefined, undefined, trxn.txId);
+      const result = await fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, trxn.txId);
 
-      await expect(fn()).resolves.not.toThrow();
-      // expect(spy).toHaveBeenCalledTimes(1);
-      // expect(spy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, trxn.txId);
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, trxn.txId);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
     });
 
   });
