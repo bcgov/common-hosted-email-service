@@ -209,12 +209,12 @@ class QueueService {
 
     if (job && job.data && job.data.client && job.data.messageId) {
       // Job found with proper structure
-      if (job.data.client !== client) {
-        throw new ClientMismatchError();
-      } else if (job.data.messageId !== jobId) {
-        throw new DataIntegrityError();
+      if (job.data.messageId !== jobId) {
+        throw new DataIntegrityError(`Message ${jobId} data is inconsistent or corrupted.`);
+      } else if (job.data.client !== client) {
+        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${job.data.client}.`);
       } else if (await job.getState() !== 'delayed') {
-        throw new UncancellableError();
+        throw new UncancellableError(`Message ${jobId} is not cancellable.`);
       } else {
         // Immediately remove from queue
         await job.remove();

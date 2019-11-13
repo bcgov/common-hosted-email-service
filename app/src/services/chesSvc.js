@@ -112,21 +112,22 @@ class ChesService {
       if (!success) {
         // Check why a job was not found
         const exists = await this.dataService.messageExists(client, messageId);
-        throw (exists) ? new UncancellableError() : new NotFoundError();
+        throw (!exists) ? new NotFoundError() :
+          new UncancellableError(`Message ${messageId} is not cancellable.`);
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {
-        log.info('cancelMessage', `Message ${messageId} is not owned by client ${client}.`);
-        throw new Problem(403, { detail: `Message ${messageId} is not owned by client ${client}.` });
+        log.info('cancelMessage', e.message);
+        throw new Problem(403, { detail: e.message });
       } else if (e instanceof DataIntegrityError) {
-        log.error('cancelMessage', `Message ${messageId} data is inconsistent or corrupted.`);
-        throw new Problem(500, { detail: `Message ${messageId} data is inconsistent or corrupted.` });
+        log.error('cancelMessage', e.message);
+        throw new Problem(500, { detail: e.message });
       } else if (e instanceof NotFoundError) {
         log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UncancellableError) {
-        log.info('cancelMessage', `Message ${messageId} is not cancellable.`);
-        throw new Problem(409, { detail: `Message ${messageId} is not cancellable.` });
+        log.info('cancelMessage', e.message);
+        throw new Problem(409, { detail: e.message });
       } else {
         throw e;
       }
@@ -152,32 +153,37 @@ class ChesService {
     try {
       const messages = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
 
-      const result = await Promise.all(messages.map(msg => {
+      const integrityList = [];
+      await Promise.all(messages.map(msg => {
         try {
           // Try removing directly from queue, then update db afterwards
           this.queueService.removeJob(client, msg.messageId);
         } catch (e) {
-          if (e instanceof ClientMismatchError) {
-            log.info('cancelMessage', `Message ${msg.messageId} is not owned by client ${client}.`);
+          if (e instanceof ClientMismatchError || e instanceof NotFoundError ||
+              e instanceof UncancellableError) {
+            log.info('findCancelMessages', e.message);
           } else if (e instanceof DataIntegrityError) {
-            log.error('cancelMessage', `Message ${msg.messageId} data is inconsistent or corrupted.`);
-            return msg.messageId;
-          } else if (e instanceof NotFoundError) {
-            log.info('findCancelMessages', 'No messages found');
-          } else if (e instanceof UncancellableError) {
-            log.info('cancelMessage', `Message ${msg.messageId} is not cancellable.`);
+            log.error('findCancelMessages', e.message);
+            integrityList.push(msg.messageId);
           } else {
-            throw e;
+            throw e; // We want to throw and not return an error object in this case
           }
+          return e;
         }
-      }).filter(el => !!el)); // Drop undefined elements from array
+      }).filter(e => !!e)); // Drop undefined elements from array
 
-      if (result && result.length) {
-        throw new DataIntegrityError(`Message(s) ${result} inconsistent or corrupted.`);
+      if (integrityList && integrityList.length) {
+        log.error('findCancelMessages', `Message(s) ${integrityList} inconsistent or corrupted.`);
+        throw new Problem(500, {
+          detail: 'Some message(s) are inconsistent or corrupted.',
+          messages: integrityList
+        });
       }
     } catch (e) {
       if (e instanceof NotFoundError) {
         log.info('findCancelMessages', 'No messages found');
+      } else if (e instanceof Problem) {
+        throw e;
       } else {
         log.error('findCancelMessages', e.message);
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
