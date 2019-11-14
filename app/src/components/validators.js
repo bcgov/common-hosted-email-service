@@ -4,6 +4,8 @@ const log = require('npmlog');
 const tmp = require('tmp');
 const validator = require('validator');
 
+const { statusState } = require('./state');
+
 const DEFAULT_ATTACHMENT_SIZE = bytes.parse('5mb');
 
 const asyncForEach = async (array, callback) => {
@@ -200,10 +202,9 @@ const models = {
     },
 
     /** @function status */
-    // TODO: Change this to enforce an enumeration of valid states
     status: value => {
       if (value) {
-        return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
+        return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true }) && Object.values(statusState).includes(value);
       }
       return true;
     },

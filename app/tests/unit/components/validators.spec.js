@@ -1070,12 +1070,28 @@ describe('models.queryParams.msgId', () => {
 describe('models.queryParams.status', () => {
   const fn = models.queryParams.status;
 
-  it('should return true for a string', () => {
-    expect(fn('this is a status')).toBeTruthy();
+  it('should return true for a valid string', () => {
+    expect(fn('accepted')).toBeTruthy();
+    expect(fn('cancelled')).toBeTruthy();
+    expect(fn('completed')).toBeTruthy();
+    expect(fn('failed')).toBeTruthy();
+    expect(fn('pending')).toBeTruthy();
   });
 
-  it('should return true for a string object', () => {
-    expect(fn(String('this is a status'))).toBeTruthy();
+  it('should return true for a valid string object', () => {
+    expect(fn(String('accepted'))).toBeTruthy();
+    expect(fn(String('cancelled'))).toBeTruthy();
+    expect(fn(String('completed'))).toBeTruthy();
+    expect(fn(String('failed'))).toBeTruthy();
+    expect(fn(String('pending'))).toBeTruthy();
+  });
+
+  it('should return false for an invalid string', () => {
+    expect(fn('invalid')).toBeFalsy();
+  });
+
+  it('should return true for an invalid string object', () => {
+    expect(fn(String('invalid'))).toBeFalsy();
   });
 
   it('should return true for undefined', () => {
