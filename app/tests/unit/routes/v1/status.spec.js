@@ -58,22 +58,29 @@ const getMessageStatusHistory = msgId => {
 };
 
 describe(`GET ${basePath}`, () => {
-  afterEach(() => {
-    ChesService.prototype.findStatuses.mockClear();
-  });
+  const spy = ChesService.prototype.findStatuses;
+  let query;
 
-  it('should respond with an array of messages', async () => {
-    const id = '00000000-0000-0000-0000-000000000000';
-    ChesService.prototype.findStatuses.mockResolvedValue([
-      getMessageStatus(id)
-    ]);
-
-    const response = await request(app).get(`${basePath}`).query({
+  beforeEach(() => {
+    query = {
       msgId: '00000000-0000-0000-0000-000000000000',
       status: 'completed',
       tag: 'tag',
       txId: '00000000-0000-0000-0000-000000000000'
-    });
+    };
+  });
+
+  afterEach(() => {
+    spy.mockClear();
+  });
+
+  it('should respond with an array of messages', async () => {
+    const id = '00000000-0000-0000-0000-000000000000';
+    spy.mockResolvedValue([
+      getMessageStatus(id)
+    ]);
+
+    const response = await request(app).get(`${basePath}`).query(query);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeTruthy();
@@ -88,14 +95,9 @@ describe(`GET ${basePath}`, () => {
   });
 
   it('should respond with an empty array if nothing was found', async () => {
-    ChesService.prototype.findStatuses.mockResolvedValue([]);
+    spy.mockResolvedValue([]);
 
-    const response = await request(app).get(`${basePath}`).query({
-      msgId: '00000000-0000-0000-0000-000000000000',
-      status: 'completed',
-      tag: 'tag',
-      txId: '00000000-0000-0000-0000-000000000000'
-    });
+    const response = await request(app).get(`${basePath}`).query(query);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeTruthy();
@@ -105,16 +107,11 @@ describe(`GET ${basePath}`, () => {
 
   it('should respond with an internal server error', async () => {
     const errorMsg = 'error';
-    ChesService.prototype.findStatuses.mockImplementation(() => {
+    spy.mockImplementation(() => {
       throw new Error(errorMsg);
     });
 
-    const response = await request(app).get(`${basePath}`).query({
-      msgId: '00000000-0000-0000-0000-000000000000',
-      status: 'completed',
-      tag: 'tag',
-      txId: '00000000-0000-0000-0000-000000000000'
-    });
+    const response = await request(app).get(`${basePath}`).query(query);
 
     expect(response.statusCode).toBe(500);
     expect(response.body.title).toMatch('Internal Server Error');
@@ -134,13 +131,15 @@ describe(`GET ${basePath}`, () => {
 });
 
 describe(`GET ${basePath}/:msgId`, () => {
+  const spy = ChesService.prototype.getStatus;
+
   afterEach(() => {
-    ChesService.prototype.getStatus.mockClear();
+    spy.mockClear();
   });
 
   it('should respond with the state of a message', async () => {
     const id = '00000000-0000-0000-0000-000000000000';
-    ChesService.prototype.getStatus.mockResolvedValue(getMessageStatusHistory(id));
+    spy.mockResolvedValue(getMessageStatusHistory(id));
 
     const response = await request(app).get(`${basePath}/${id}`);
 
@@ -158,7 +157,7 @@ describe(`GET ${basePath}/:msgId`, () => {
 
   it('should respond with a not found error', async () => {
     const id = '00000000-0000-0000-0000-000000000000';
-    ChesService.prototype.getStatus.mockImplementation(() => {
+    spy.mockImplementation(() => {
       throw new Problem(404);
     });
 

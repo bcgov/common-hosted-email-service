@@ -1,11 +1,11 @@
 const cancelRouter = require('express').Router();
-const { validateCancelMsg } = require('../../middleware/validation');
+const { validateCancelQuery, validateCancelMsg } = require('../../middleware/validation');
 const ChesService = require('../../services/chesSvc');
 
 const chesService = new ChesService();
 
 /** Cancel multiple delayed messages endpoint */
-cancelRouter.delete('/', async (req, res, next) => {
+cancelRouter.delete('/', validateCancelQuery, async (req, res, next) => {
   try {
     await chesService.findCancelMessages(req.authorizedParty, req.query.msgId,
       req.query.status, req.query.tag, req.query.txId);

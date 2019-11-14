@@ -14,16 +14,26 @@ jest.mock('../../../../src/services/chesSvc');
 
 describe(`DELETE ${basePath}`, () => {
   const spy = ChesService.prototype.findCancelMessages;
+  let query;
+
+  beforeEach(() => {
+    query = {
+      msgId: '00000000-0000-0000-0000-000000000000',
+      status: 'pending',
+      tag: 'tag',
+      txId: '00000000-0000-0000-0000-000000000000'
+    };
+  });
 
   afterEach(() => {
-    ChesService.prototype.findCancelMessages.mockClear();
+    spy.mockClear();
   });
 
   it('should respond with an acknowledgement when a message is found', async () => {
     spy.mockResolvedValue(undefined);
-    const query = {
-      msgId: '00000000-0000-0000-0000-000000000000'
-    };
+    delete query.status;
+    delete query.tag;
+    delete query.txId;
 
     const response = await request(app).delete(`${basePath}`).query(query);
     expect(response.statusCode).toBe(202);
@@ -35,12 +45,6 @@ describe(`DELETE ${basePath}`, () => {
 
   it('should respond with an acknowledgement when multiple messages are found', async () => {
     spy.mockResolvedValue(undefined);
-    const query = {
-      msgId: '00000000-0000-0000-0000-000000000000',
-      status: 'pending',
-      tag: 'tag',
-      txId: '00000000-0000-0000-0000-000000000000'
-    };
 
     const response = await request(app).delete(`${basePath}`).query(query);
     expect(response.statusCode).toBe(202);
@@ -52,12 +56,7 @@ describe(`DELETE ${basePath}`, () => {
 
   it('should respond with an acknowledgement when nothing is found', async () => {
     spy.mockResolvedValue(undefined);
-    const query = {
-      msgId: '00000000-0000-0000-0000-000000000000',
-      status: 'accepted',
-      tag: 'tag',
-      txId: '00000000-0000-0000-0000-000000000000'
-    };
+    query.status = 'accepted';
 
     const response = await request(app).delete(`${basePath}`).query(query);
 
@@ -70,12 +69,6 @@ describe(`DELETE ${basePath}`, () => {
 
   it('should respond with an internal server error', async () => {
     const errorMsg = 'error';
-    const query = {
-      msgId: '00000000-0000-0000-0000-000000000000',
-      status: 'pending',
-      tag: 'tag',
-      txId: '00000000-0000-0000-0000-000000000000'
-    };
     spy.mockImplementation(() => {
       throw new Error(errorMsg);
     });
@@ -89,7 +82,7 @@ describe(`DELETE ${basePath}`, () => {
     expect(spy).toHaveBeenCalledWith(undefined, query.msgId, query.status, query.tag, query.txId);
   });
 
-  it.skip('should respond with a validation error', async () => {
+  it('should respond with a validation error', async () => {
     const response = await request(app).delete(`${basePath}`);
 
     expect(response.statusCode).toBe(422);

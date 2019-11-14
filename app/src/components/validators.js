@@ -282,6 +282,21 @@ const validators = {
     return errors;
   },
 
+  cancelQuery: query => {
+    const errors = [];
+
+    if (!query || !Object.keys(query).some(param => validator.isIn(param, ['msgId', 'status', 'tag', 'txId']))) {
+      errors.push({
+        value: 'params',
+        message: 'At least one of `msgId`, `status`, `tag` or `txId` must be defined.'
+      });
+    }
+
+    validators.searchQueryFields(query).forEach(error => errors.push(error));
+
+    return errors;
+  },
+
   contexts: obj => {
     const errors = [];
     if (obj.contexts) {
@@ -412,17 +427,6 @@ const validators = {
     }
 
     validators.searchQueryFields(query).forEach(error => errors.push(error));
-
-    if (query && query.fields) {
-      query.fields.split(',').forEach(field => {
-        if (!validator.isIn(field, ['createdTimestamp', 'delayTS', 'updatedTimestamp'])) {
-          errors.push({
-            value: 'fields',
-            message: `Value \`${field}\` is not one of \`createdTimestamp\`, \`delayTS\`, or \`updatedTimestamp\`.`
-          });
-        }
-      });
-    }
 
     return errors;
   },
