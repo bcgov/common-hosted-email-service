@@ -187,7 +187,7 @@ class QueueService {
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
-        log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
+        log.error('sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
         log.error(utils.prettyStringify(e));
       }
     }

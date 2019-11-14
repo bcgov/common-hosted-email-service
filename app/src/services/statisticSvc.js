@@ -61,7 +61,7 @@ class StatisticsService {
       await trx.commit();
 
     } catch (err) {
-      log.error(`Error creating statistic records: ${err.message}. Rolling back...`);
+      log.error('write', `Error creating statistic records: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
     }

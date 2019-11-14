@@ -338,7 +338,7 @@ class ChesService {
         return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
-      log.error(`Send Email Merge error. ${e.message}`);
+      log.error('sendEmailMerge', `Send Email Merge error. ${e.message}`);
       log.error(utils.prettyStringify(e));
       throw new Problem(500, { detail: `Error sending email merge. ${e.message}` });
     }
