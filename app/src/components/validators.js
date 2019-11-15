@@ -4,6 +4,8 @@ const log = require('npmlog');
 const tmp = require('tmp');
 const validator = require('validator');
 
+const { statusState } = require('./state');
+
 const DEFAULT_ATTACHMENT_SIZE = bytes.parse('5mb');
 
 const asyncForEach = async (array, callback) => {
@@ -200,10 +202,9 @@ const models = {
     },
 
     /** @function status */
-    // TODO: Change this to enforce an enumeration of valid states
     status: value => {
       if (value) {
-        return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true });
+        return validatorUtils.isString(value) && !validator.isEmpty(value, { ignore_whitespace: true }) && Object.values(statusState).includes(value);
       }
       return true;
     },
@@ -278,6 +279,21 @@ const validators = {
     } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
     }
+
+    return errors;
+  },
+
+  cancelQuery: query => {
+    const errors = [];
+
+    if (!query || !Object.keys(query).some(param => validator.isIn(param, ['msgId', 'status', 'tag', 'txId']))) {
+      errors.push({
+        value: 'params',
+        message: 'At least one of `msgId`, `status`, `tag` or `txId` must be defined.'
+      });
+    }
+
+    validators.searchQueryFields(query).forEach(error => errors.push(error));
 
     return errors;
   },
@@ -412,17 +428,6 @@ const validators = {
     }
 
     validators.searchQueryFields(query).forEach(error => errors.push(error));
-
-    if (query && query.fields) {
-      query.fields.split(',').forEach(field => {
-        if (!validator.isIn(field, ['createdTimestamp', 'delayTS', 'updatedTimestamp'])) {
-          errors.push({
-            value: 'fields',
-            message: `Value \`${field}\` is not one of \`createdTimestamp\`, \`delayTS\`, or \`updatedTimestamp\`.`
-          });
-        }
-      });
-    }
 
     return errors;
   },

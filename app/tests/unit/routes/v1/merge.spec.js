@@ -78,13 +78,7 @@ describe(`POST ${basePath}`, () => {
       messages: [{ msgId: 'qwerqwerqwerw', to: ['email@email.org'] }]
     });
 
-    const response = await request(app).post(`${basePath}`).send({
-      bodyType: 'text',
-      body: 'body',
-      contexts: contexts,
-      from: 'email@email.com',
-      subject: 'subject'
-    });
+    const response = await request(app).post(`${basePath}`).send(body);
 
     expect(response.statusCode).toBe(201);
     expect(response.body).toBeTruthy();
@@ -103,13 +97,7 @@ describe(`POST ${basePath}`, () => {
       throw new Error(errorMsg);
     });
 
-    const response = await request(app).post(`${basePath}`).send({
-      bodyType: 'text',
-      body: 'body',
-      contexts: contexts,
-      from: 'email@email.com',
-      subject: 'subject'
-    });
+    const response = await request(app).post(`${basePath}`).send(body);
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();

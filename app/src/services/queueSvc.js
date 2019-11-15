@@ -187,7 +187,7 @@ class QueueService {
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
-        log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
+        log.error('sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
         log.error(utils.prettyStringify(e));
       }
     }
@@ -209,12 +209,12 @@ class QueueService {
 
     if (job && job.data && job.data.client && job.data.messageId) {
       // Job found with proper structure
-      if (job.data.client !== client) {
-        throw new ClientMismatchError();
-      } else if (job.data.messageId !== jobId) {
-        throw new DataIntegrityError();
+      if (job.data.messageId !== jobId) {
+        throw new DataIntegrityError(`Message ${jobId} data is inconsistent or corrupted.`);
+      } else if (job.data.client !== client) {
+        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${job.data.client}.`);
       } else if (await job.getState() !== 'delayed') {
-        throw new UncancellableError();
+        throw new UncancellableError(`Message ${jobId} is not cancellable.`);
       } else {
         // Immediately remove from queue
         await job.remove();

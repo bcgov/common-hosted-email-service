@@ -13,36 +13,37 @@ const handleValidationErrors = (res, next, errors) => {
   next();
 };
 
-const validateCancelMsg = (req, res, next) => {
-  const errors = validators.cancelMsg(req.params);
-  handleValidationErrors(res, next, errors);
+const validation = {
+  validateCancelMsg: (req, res, next) => {
+    const errors = validators.cancelMsg(req.params);
+    handleValidationErrors(res, next, errors);
+  },
+
+  validateCancelQuery: (req, res, next) => {
+    const errors = validators.cancelQuery(req.query);
+    handleValidationErrors(res, next, errors);
+  },
+
+  validateEmail: async (req, res, next) => {
+    const errors = await validators.email(req.body, config.get('server.attachmentLimit'));
+    handleValidationErrors(res, next, errors);
+  },
+
+  validateMerge: async (req, res, next) => {
+    const errors = await validators.merge(req.body, config.get('server.attachmentLimit'));
+    handleValidationErrors(res, next, errors);
+
+  },
+
+  validateStatusFetch: (req, res, next) => {
+    const errors = validators.statusFetch(req.params);
+    handleValidationErrors(res, next, errors);
+  },
+
+  validateStatusQuery: (req, res, next) => {
+    const errors = validators.statusQuery(req.query);
+    handleValidationErrors(res, next, errors);
+  }
 };
 
-const validateEmail = async (req, res, next) => {
-  const errors = await validators.email(req.body, config.get('server.attachmentLimit'));
-  handleValidationErrors(res, next, errors);
-};
-
-const validateMerge = async (req, res, next) => {
-  const errors = await validators.merge(req.body, config.get('server.attachmentLimit'));
-  handleValidationErrors(res, next, errors);
-
-};
-
-const validateStatusFetch = (req, res, next) => {
-  const errors = validators.statusFetch(req.params);
-  handleValidationErrors(res, next, errors);
-};
-
-const validateStatusQuery = (req, res, next) => {
-  const errors = validators.statusQuery(req.query);
-  handleValidationErrors(res, next, errors);
-};
-
-module.exports = {
-  validateCancelMsg,
-  validateEmail,
-  validateMerge,
-  validateStatusFetch,
-  validateStatusQuery
-};
+module.exports = validation;

@@ -18,9 +18,11 @@ const Bull = require('bull');
 const config = require('config');
 const helper = require('../common/helper');
 const Knex = require('knex');
+const { NotFoundError } = require('objection');
 const uuidv4 = require('uuid/v4');
+const Problem = require('api-problem');
 
-const { queueState } = require('../../src/components/state');
+const { statusState, queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
 const utils = require('../../src/components/utils');
 
@@ -31,7 +33,12 @@ const QueueConnection = require('../../src/services/queueConn');
 const ChesService = require('../../src/services/chesSvc');
 const DataService = require('../../src/services/dataSvc');
 const EmailService = require('../../src/services/emailSvc');
-const { ClientMismatchError, DataIntegrityError, QueueService } = require('../../src/services/queueSvc');
+const {
+  ClientMismatchError,
+  DataIntegrityError,
+  UncancellableError,
+  QueueService
+} = require('../../src/services/queueSvc');
 
 const { deleteTransactionsByClient } = require('./dataUtils');
 
@@ -264,16 +271,157 @@ describe('chesService', () => {
 
   });
 
-  describe('findStatuses', () => {
-    const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+  describe('findCancelMessages', () => {
+    const CLIENT = `ches-svc-findCancelMessages-${new Date().toISOString()}`;
 
-    afterEach(() => {
+    const findSpy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+    const removeSpy = jest.spyOn(QueueService.prototype, 'removeJob');
+    const fn = (...args) => {
+      return chesService.findCancelMessages(...args);
+    };
+
+    afterEach(async () => {
+      findSpy.mockClear();
+      removeSpy.mockClear();
+      await deleteTransactionsByClient(CLIENT);
+    });
+
+    it('should throw an error with no parameters provided', async () => {
+      await expect(fn()).rejects.toThrow();
+
+      expect(findSpy).toHaveBeenCalledTimes(0);
+      expect(removeSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return nothing with no search parameters', async () => {
+      const result = await fn(CLIENT);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, undefined, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return nothing with all nonexistent search parameters', async () => {
+      const msgId = uuidv4();
+      const txId = uuidv4();
+      const status = statusState.COMPLETED;
+      const tag = 'tag';
+
+      const result = await fn(CLIENT, msgId, status, tag, txId);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, msgId, status, tag, txId);
+      expect(removeSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return nothing with one message ', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+
+      const result = await fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, trxn.txId);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, trxn.txId);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should return nothing when there is a ClientMismatchError', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      removeSpy.mockImplementation(() => {
+        throw new ClientMismatchError('test');
+      });
+
+      const result = await fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should return nothing when there is a NotFoundError', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      removeSpy.mockImplementation(() => {
+        throw new NotFoundError('test');
+      });
+
+      const result = await fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should return nothing when there is a UncancellableError', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      removeSpy.mockImplementation(() => {
+        throw new UncancellableError('test');
+      });
+
+      const result = await fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+
+      expect(result).toBeFalsy();
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should throw an error when there is a DataIntegrityError', async () => {
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      removeSpy.mockImplementation(() => {
+        throw new DataIntegrityError('test');
+      });
+
+      await expect(fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined)).rejects.toThrow(new Problem(500, {
+        detail: 'Some message(s) are inconsistent or corrupted.',
+        messages: [
+          trxn.messages[0].msgId
+        ]
+      }));
+
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+    it('should throw an error when there is a generic error', async () => {
+      const errMsg = 'test';
+      const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
+      removeSpy.mockImplementation(() => {
+        throw new Error(errMsg);
+      });
+
+      await expect(fn(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined)).rejects.toThrow(new Problem(500, { detail: `Unexpected Error: ${errMsg}` }));
+
+      expect(findSpy).toHaveBeenCalledTimes(1);
+      expect(findSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId, undefined, undefined, undefined);
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith(CLIENT, trxn.messages[0].msgId);
+    });
+
+  });
+
+  describe('findStatuses', () => {
+    const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
+    const spy = jest.spyOn(DataService.prototype, 'findMessagesByQuery');
+    const fn = (...args) => {
+      return chesService.findStatuses(...args);
+    };
+
+    afterEach(async () => {
       spy.mockClear();
+      await deleteTransactionsByClient(CLIENT);
     });
 
     it('should throw an error if no parameters were provided', async () => {
-      const fn = () => chesService.findStatuses();
-
       await expect(fn()).rejects.toThrow();
 
       expect(spy).toHaveBeenCalledTimes(1);
@@ -281,8 +429,8 @@ describe('chesService', () => {
     });
 
     it('should return an empty array with no search parameters', async () => {
-      const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
-      const result = await chesService.findStatuses(CLIENT);
+
+      const result = await fn(CLIENT);
 
       expect(Array.isArray(result)).toBeTruthy();
       expect(result).toHaveLength(0);
@@ -293,23 +441,20 @@ describe('chesService', () => {
     });
 
     it('should return an empty array with all nonexistent search parameters', async () => {
-      const CLIENT = `ches-svc-findStatuses-${new Date().toISOString()}`;
       const msgId = uuidv4();
       const txId = uuidv4();
-      const result = await chesService.findStatuses(CLIENT, msgId, 'status', 'tag', txId);
+      const result = await fn(CLIENT, msgId, 'status', 'tag', txId);
 
       expect(Array.isArray(result)).toBeTruthy();
       expect(result).toHaveLength(0);
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith(CLIENT, msgId, 'status', 'tag', txId);
-
-      await deleteTransactionsByClient(CLIENT);
     });
 
     it('should return an array of message statuses', async () => {
       const trxn = await chesService.sendEmail(CLIENT, emails[0], false);
 
-      const result = await chesService.findStatuses(CLIENT, undefined, undefined, undefined, trxn.txId);
+      const result = await fn(CLIENT, undefined, undefined, undefined, trxn.txId);
 
       expect(Array.isArray(result)).toBeTruthy();
       expect(result).toHaveLength(1);

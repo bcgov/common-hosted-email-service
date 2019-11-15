@@ -1070,12 +1070,28 @@ describe('models.queryParams.msgId', () => {
 describe('models.queryParams.status', () => {
   const fn = models.queryParams.status;
 
-  it('should return true for a string', () => {
-    expect(fn('this is a status')).toBeTruthy();
+  it('should return true for a valid string', () => {
+    expect(fn('accepted')).toBeTruthy();
+    expect(fn('cancelled')).toBeTruthy();
+    expect(fn('completed')).toBeTruthy();
+    expect(fn('failed')).toBeTruthy();
+    expect(fn('pending')).toBeTruthy();
   });
 
-  it('should return true for a string object', () => {
-    expect(fn(String('this is a status'))).toBeTruthy();
+  it('should return true for a valid string object', () => {
+    expect(fn(String('accepted'))).toBeTruthy();
+    expect(fn(String('cancelled'))).toBeTruthy();
+    expect(fn(String('completed'))).toBeTruthy();
+    expect(fn(String('failed'))).toBeTruthy();
+    expect(fn(String('pending'))).toBeTruthy();
+  });
+
+  it('should return false for an invalid string', () => {
+    expect(fn('invalid')).toBeFalsy();
+  });
+
+  it('should return true for an invalid string object', () => {
+    expect(fn(String('invalid'))).toBeFalsy();
   });
 
   it('should return true for undefined', () => {
@@ -1341,6 +1357,58 @@ describe('validators.cancelMsg', () => {
     expect(result.length).toEqual(1);
     expect(result[0].value).toMatch(param.msgId);
     expect(result[0].message).toMatch('Invalid value `msgId`.');
+  });
+});
+
+describe('validators.cancelQuery', () => {
+  let query;
+
+  beforeEach(() => {
+    query = {
+      msgId: '00000000-0000-0000-0000-000000000000',
+      status: 'completed',
+      tag: 'tag',
+      txId: '00000000-0000-0000-0000-000000000000'
+    };
+  });
+
+  it('should return an empty error array when all valid', () => {
+    const result = validators.cancelQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an empty error array with some missing parameters', () => {
+    delete query.status;
+    delete query.txId;
+
+    const result = validators.cancelQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an error with some validation errors', () => {
+    query.txId = 'garbage';
+
+    const result = validators.cancelQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+  });
+
+  it('should return an error when all parameters are missing', () => {
+    const result = validators.cancelQuery({});
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/At least one of/);
+    expect(result[0].value).toMatch('params');
   });
 });
 
@@ -1870,7 +1938,6 @@ describe('validators.statusQuery', () => {
 
   beforeEach(() => {
     query = {
-      fields: 'createdTimestamp,delayTS,updatedTimestamp',
       msgId: '00000000-0000-0000-0000-000000000000',
       status: 'completed',
       tag: 'tag',
@@ -1915,18 +1982,6 @@ describe('validators.statusQuery', () => {
     expect(result.length).toEqual(1);
     expect(result[0].message).toMatch(/At least one of/);
     expect(result[0].value).toMatch('params');
-  });
-
-  it('should return an error with invalid field content', () => {
-    query.fields = 'garbage,delayTS';
-
-    const result = validators.statusQuery(query);
-
-    expect(result).toBeTruthy();
-    expect(Array.isArray(result)).toBeTruthy();
-    expect(result.length).toEqual(1);
-    expect(result[0].message).toMatch(/Value.*is not one of/);
-    expect(result[0].value).toMatch('fields');
   });
 });
 
