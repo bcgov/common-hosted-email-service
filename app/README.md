@@ -8,24 +8,29 @@ The application is a node server which serves the Common Hosted Email Service AP
 
 Authentication & Password Management
 
-* `jsonwebtoken` - JWT parsing library
-* `passportjs` - JWT and OIDC strategies
+* `keycloak-connect` - Keycloak Node.js adapter ([npm](https://www.npmjs.com/package/keycloak-connect))
 
 Networking
 
-* `api-problem` - RFC 7807 problem details
-* `express` - Server middleware
-* `express-validator` - Call validation
-* `nodemailer` - SMTP mail library
+* `api-problem` - RFC 7807 problem details ([npm](https://www.npmjs.com/package/api-problem))
+* `express` - Server middleware ([npm](https://www.npmjs.com/package/express))
+* `nodemailer` - SMTP mail library ([npm](https://www.npmjs.com/package/nodemailer))
 
 Logging
 
-* `morgan` - HTTP request logger
-* `npmlog` - General log framework
+* `morgan` - HTTP request logger ([npm](https://www.npmjs.com/package/morgan))
+* `npmlog` - General log framework ([npm](https://www.npmjs.com/package/npmlog))
 
 Templating
 
-* `nunjucks` - Jinja2 style templating language
+* `nunjucks` - Jinja2 style templating language ([npm](https://www.npmjs.com/package/nunjucks))
+
+Queueing and Persisting
+
+* `bull` - Redis-based queue for Node ([npm](https://www.npmjs.com/package/bull))
+* `knex` - Multi-dialect query builder ([npm](https://www.npmjs.com/package/knex))
+
+
 
 ### General Code Layout
 
