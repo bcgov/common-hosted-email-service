@@ -9,6 +9,8 @@
 
 CHES - Powered by NodeMailer (a shared library)
 
+To learn more about the **Common Services** available visit the [Common Services Showcase](https://bcgov.github.io/common-service-showcase/) page.
+
 ## Directory Structure
 
     .github/                   - PR and Issue templates
