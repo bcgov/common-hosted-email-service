@@ -10,8 +10,6 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
     name: nodejs-10
   spec:
     lookupPolicy:
@@ -31,8 +29,6 @@ objects:
 - apiVersion: v1
   kind: ImageStream
   metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
     name: "${REPO_NAME}-app"
   spec:
     lookupPolicy:
@@ -40,8 +36,6 @@ objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewBuild
     name: "${REPO_NAME}-app-${JOB_NAME}"
   spec:
     completionDeadlineSeconds: 600
