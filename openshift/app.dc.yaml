@@ -7,8 +7,8 @@ labels:
 metadata:
   name: "${REPO_NAME}-app-dc"
 objects:
-- kind: NetworkSecurityPolicy
-  apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+- apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  kind: NetworkSecurityPolicy
   metadata:
     name: "${APP_NAME}-app-${JOB_NAME}-pods-to-egress-${NAMESPACE}"
   spec:
@@ -21,8 +21,8 @@ objects:
         - role=app
     destination:
       - - ext:network=any
-- kind: NetworkSecurityPolicy
-  apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+- apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  kind: NetworkSecurityPolicy
   metadata:
     name: "${APP_NAME}-app-${JOB_NAME}-pods-to-patroni-master-${NAMESPACE}"
   spec:
@@ -40,6 +40,22 @@ objects:
         - "cluster-name=${JOB_NAME}"
         - "statefulset=patroni-${JOB_NAME}"
         - role=master
+- apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  kind: NetworkSecurityPolicy
+  metadata:
+    name: "${APP_NAME}-app-${JOB_NAME}-pods-to-redis-${NAMESPACE}"
+  spec:
+    description: |
+      Allow pods to open connections to redis
+    source:
+      - - "$namespace=${NAMESPACE}"
+        - "app=${APP_NAME}-${JOB_NAME}"
+        - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
+        - role=app
+    destination:
+      - - "$namespace=${NAMESPACE}"
+        - "app=${APP_NAME}-${JOB_NAME}"
+        - role=redis
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
