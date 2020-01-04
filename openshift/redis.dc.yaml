@@ -2,8 +2,8 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: "${REPO_NAME}-template"
   app: "${APP_NAME}-${JOB_NAME}"
+  template: "${REPO_NAME}-template"
 metadata:
   name: "${REPO_NAME}-redis-dc"
 objects:
@@ -16,6 +16,7 @@ objects:
     selector:
       app: "${APP_NAME}-${JOB_NAME}"
       deploymentconfig: "redis-${JOB_NAME}"
+      role: redis
     strategy:
       resources: {}
       type: Rolling
@@ -24,6 +25,7 @@ objects:
         labels:
           app: "${APP_NAME}-${JOB_NAME}"
           deploymentconfig: "redis-${JOB_NAME}"
+          role: redis
       spec:
         containers:
         - image: docker-registry.default.svc:5000/openshift/redis:latest
@@ -104,6 +106,7 @@ objects:
     selector:
       app: "${APP_NAME}-${JOB_NAME}"
       deploymentconfig: "redis-${JOB_NAME}"
+      role: redis
 parameters:
 - name: REPO_NAME
   description: Application repository name

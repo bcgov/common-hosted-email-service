@@ -2,22 +2,70 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: "${REPO_NAME}-template"
   app: "${APP_NAME}-${JOB_NAME}"
+  template: "${REPO_NAME}-template"
 metadata:
   name: "${REPO_NAME}-app-dc"
 objects:
+- apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  kind: NetworkSecurityPolicy
+  metadata:
+    name: "${APP_NAME}-app-${JOB_NAME}-pods-to-egress-${NAMESPACE}"
+  spec:
+    description: |
+      Allow pods to open connections to the internet
+    source:
+      - - "$namespace=${NAMESPACE}"
+        - "app=${APP_NAME}-${JOB_NAME}"
+        - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
+        - role=app
+    destination:
+      - - ext:network=any
+- apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  kind: NetworkSecurityPolicy
+  metadata:
+    name: "${APP_NAME}-app-${JOB_NAME}-pods-to-patroni-master-${NAMESPACE}"
+  spec:
+    description: |
+      Allow pods to open connections to patroni cluster
+    source:
+      - - "$namespace=${NAMESPACE}"
+        - "app=${APP_NAME}-${JOB_NAME}"
+        - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
+        - role=app
+      - - "$namespace=${NAMESPACE}"
+        - "openshift.io/deployer-pod.type=hook-pre"
+    destination:
+      - - "$namespace=${NAMESPACE}"
+        - "cluster-name=${JOB_NAME}"
+        - "statefulset=patroni-${JOB_NAME}"
+        - role=master
+- apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  kind: NetworkSecurityPolicy
+  metadata:
+    name: "${APP_NAME}-app-${JOB_NAME}-pods-to-redis-${NAMESPACE}"
+  spec:
+    description: |
+      Allow pods to open connections to redis
+    source:
+      - - "$namespace=${NAMESPACE}"
+        - "app=${APP_NAME}-${JOB_NAME}"
+        - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
+        - role=app
+    destination:
+      - - "$namespace=${NAMESPACE}"
+        - "app=${APP_NAME}-${JOB_NAME}"
+        - role=redis
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewApp
     name: "${APP_NAME}-app-${JOB_NAME}"
   spec:
     replicas: 2
     selector:
       app: "${APP_NAME}-${JOB_NAME}"
       deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
+      role: app
     strategy:
       type: Rolling
       rollingParams:
@@ -53,11 +101,10 @@ objects:
         resources: {}
     template:
       metadata:
-        annotations:
-          openshift.io/generated-by: OpenShiftNewApp
         labels:
           app: "${APP_NAME}-${JOB_NAME}"
           deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
+          role: app
       spec:
         containers:
         - image: docker-registry.default.svc:5000/${NAMESPACE}/${REPO_NAME}-app:${JOB_NAME}
@@ -142,8 +189,6 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    annotations:
-      openshift.io/generated-by: OpenShiftNewApp
     name: "${APP_NAME}-app-${JOB_NAME}"
   spec:
     ports:
@@ -154,11 +199,10 @@ objects:
     selector:
       app: "${APP_NAME}-${JOB_NAME}"
       deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
+      role: app
 - apiVersion: v1
   kind: Route
   metadata:
-    annotations:
-      openshift.io/host.generated: 'true'
     name: "${APP_NAME}-app-${JOB_NAME}"
   spec:
     host: "${HOST_ROUTE}"

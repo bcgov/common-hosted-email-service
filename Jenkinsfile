@@ -276,7 +276,8 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
               def dcPatroniSecretTemplate = openshift.process('-f',
                 'openshift/patroni.secret.yaml',
                 "APP_DB_NAME=${APP_NAME}",
-                "INSTANCE=${JOB_NAME}"
+                "INSTANCE=${JOB_NAME}",
+                "NAMESPACE=${projectEnv}"
               )
 
               echo "Creating Patroni Secret..."
