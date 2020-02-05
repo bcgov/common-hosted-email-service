@@ -82,7 +82,7 @@ describe('dataService', () => {
     knex = Knex(config);
     await knex.migrate.latest();
     const dataConnection = new DataConnection();
-    const connectOK = await dataConnection.checkConnection();
+    const connectOK = await dataConnection.checkAll();
     if (!connectOK) {
       throw Error('Error initializing dataService');
     }

@@ -126,7 +126,7 @@ describe('chesService', () => {
     await knex.migrate.latest();
 
     const dataConnection = new DataConnection();
-    const dataConnectionOK = await dataConnection.checkConnection();
+    const dataConnectionOK = await dataConnection.checkAll();
     if (!dataConnectionOK) {
       throw Error('Error initializing data connection');
     }

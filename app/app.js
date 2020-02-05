@@ -43,7 +43,7 @@ log.addLevel('debug', 1500, {
 });
 
 // Print out configuration settings in verbose startup
-log.debug('Config', utils.prettyStringify(config));
+log.verbose('Config', utils.prettyStringify(config));
 
 // this will suppress a console warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
 // we will just force it to use the new Date constructor.
@@ -65,7 +65,8 @@ if (process.env.NODE_ENV !== 'test') {
   (async () => {
     try {
       const dataConnection = new DataConnection();
-      const dataConnectionOk = await dataConnection.checkConnection();
+      const dataConnectionOk = await dataConnection.checkAll();
+      if (dataConnectionOk) log.info('DataConnection', 'Connected');
 
       const queueConnection = new QueueConnection();
       const queueConnectionOk = await queueConnection.checkConnection();
@@ -97,7 +98,7 @@ if (process.env.NODE_ENV !== 'test') {
         shutdown();
       }
     } catch (error) {
-      log.error('Infrastructure', 'Connection failed...');
+      log.error('Infrastructure', 'Data and/or queue connection(s) failed');
       shutdown();
     }
   })();

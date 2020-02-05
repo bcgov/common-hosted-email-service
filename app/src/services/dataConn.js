@@ -49,41 +49,78 @@ class DataConnection {
     this._connected = false;
   }
 
-  /** @function checkConnection
-   *  Checks the current knex connection.
-   *  Will check for expected schema tables and binds this knex to the Objection Models.
+  /**
+   *  @function checkAll
+   *  Checks the Knex connection, the database schema, and Objection models
+   *  @returns {boolean} True if successful, otherwise false
    */
-  async checkConnection() {
+  async checkAll() {
     this._connected = false;
-    let { connectOk, schemaOk, modelsOk } = false;
-    try {
-      const data = await this._knex.raw('SELECT 1+1 AS result');
-      connectOk = (data && data.rows && data.rows[0].result === 2);
-      if (connectOk) {
-        log.debug('Database connection ok...');
-        schemaOk = await Promise.all([
-          this._knex.schema.hasTable('trxn'),
-          this._knex.schema.hasTable('message'),
-          this._knex.schema.hasTable('status'),
-          this._knex.schema.hasTable('queue'),
-          this._knex.schema.hasTable('statistic')
-        ]).then(exists => exists.every(x => x));
-      }
-      if (schemaOk) {
-        log.debug('Database schema ok...');
-        Model.knex(this.knex);
-        modelsOk = true;
-        log.debug('Database models ok...');
-      }
-    } catch (err) {
-      log.error(`Error initializing data connection: ${err.message}`);
-      log.error(err);
-    }
-    log.info('Database', `Connect OK: ${connectOk}, Schema OK: ${schemaOk}, Models OK: ${modelsOk}`);
+
+    const connectOk = await this.checkConnection();
+    const schemaOk = await this.checkSchema();
+    const modelsOk = this.checkModel();
+
+    log.debug('DataConnection.checkAll', `Connect OK: ${connectOk}, Schema OK: ${schemaOk}, Models OK: ${modelsOk}`);
     this._connected = connectOk && schemaOk && modelsOk;
     return this._connected;
   }
 
+  /**
+   *  @function checkConnection
+   *  Checks the current knex connection to Postgres
+   *  @returns {boolean} True if successful, otherwise false
+   */
+  async checkConnection() {
+    try {
+      const data = await this._knex.raw('SELECT 1+1 AS result');
+      const result = data && data.rows && data.rows[0].result === 2;
+      if (result) log.verbose('DataConnection.checkConnection', 'Database connection ok');
+      return result;
+    } catch (err) {
+      log.error('DataConnection.checkConnection', `Error with database connection: ${err.message}`);
+      return false;
+    }
+  }
+
+  /**
+   *  @function checkSchema
+   *  Queries the knex connection to check for the existence of the expected schema tables
+   *  @returns {boolean} True if schema is ok, otherwise false
+   */
+  checkSchema() {
+    const tables = ['trxn', 'message', 'status', 'queue', 'statistic'];
+    try {
+      return Promise
+        .all(tables.map(table => this._knex.schema.hasTable(table)))
+        .then(exists => exists.every(x => x))
+        .then(result => {
+          if (result) log.verbose('DataConnection.checkSchema', 'Database schema ok');
+          return result;
+        });
+    } catch (err) {
+      log.error('DataConnection.checkSchema', `Error with database schema: ${err.message}`);
+      log.error('DataConnection.checkSchema', err);
+      return false;
+    }
+  }
+
+  /**
+   *  @function checkModel
+   *  Attaches the Objection model to the existing knex connection
+   *  @returns {boolean} True if successful, otherwise false
+   */
+  checkModel() {
+    try {
+      Model.knex(this.knex);
+      log.verbose('DataConnection.checkModel', 'Database models ok');
+      return true;
+    } catch (err) {
+      log.error('DataConnection.checkModel', `Error attaching Model to connection: ${err.message}`);
+      log.error('DataConnection.checkModel', err);
+      return false;
+    }
+  }
 }
 
 module.exports = DataConnection;
