@@ -21,7 +21,7 @@ class QueueConnection {
    * Creates a new QueueConnection with default configuration.
    * @class
    */
-  constructor () {
+  constructor() {
     const configuration = {
       redis: {
         host: config.get('redis.host'),
@@ -31,19 +31,21 @@ class QueueConnection {
     this.queue = new Bull('ches', configuration);
   }
 
-  /** @function queue
+  /**
+   *  @function queue
    *  Gets the underlying Bull queue
    */
-  get queue () {
+  get queue() {
     return this._queue;
   }
 
-  /** @function queue
+  /**
+   *  @function queue
    *  Sets the underlying Bull queue
    *  Also sets the globalQueue object
    *  @param {object} v - a new Bull instance
    */
-  set queue (v) {
+  set queue(v) {
     this._queue = v;
     this._connected = false;
     globalQueue = this._queue;
@@ -52,40 +54,41 @@ class QueueConnection {
   /** @function connected
    *  True or false if connected.
    */
-  get connected () {
+  get connected() {
     return this._connected;
   }
 
-  /** @function close
+  /**
+   *  @function close
    *  Will close the globally stored QueueConnection
    */
-  static close () {
+  static close() {
     if (globalQueue) {
       try {
         globalQueue.close();
-        log.info('Redis', 'Disconnected');
+        log.info('QueueConnection', 'Disconnected');
       } catch (e) {
         log.error(e);
       }
     }
   }
 
-  /** @function checkConnection
+  /**
+   *  @function checkConnection
    *  Checks the current QueueConnection
+   *  @param {integer} [timeout=1] Number of seconds to retry before failing out
    *  @returns boolean True if queue is connected
    */
-  async checkConnection () {
-    this._connected = false;
-    for (let i = 0; i < 5; i++) {
-      if (this._queue.clients[0].status === 'ready') {
-        log.info('Redis', 'Connected');
-        this._connected = true;
-        break;
-      }
+  async checkConnection(timeout = 5) {
+    // Redis does not establish connection immediately.
+    // You need a small grace period checking for the status.
+    for (let i = 0; i < timeout; i++) {
+      this._connected = this.queue.clients[0].status === 'ready';
+      if (this.connected) break;
       await utils.wait(1000);
     }
-    if (!this._connected) {
-      log.error('Redis', 'Unable to connect...');
+    if (!this.connected) {
+      log.error('QueueConnection', 'Unable to connect to queue');
     }
     return this._connected;
   }

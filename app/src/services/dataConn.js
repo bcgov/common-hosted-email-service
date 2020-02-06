@@ -55,8 +55,6 @@ class DataConnection {
    *  @returns {boolean} True if successful, otherwise false
    */
   async checkAll() {
-    this._connected = false;
-
     const connectOk = await this.checkConnection();
     const schemaOk = await this.checkSchema();
     const modelsOk = this.checkModel();

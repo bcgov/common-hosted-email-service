@@ -23,8 +23,13 @@ const StatisticsService = require('./src/services/statisticSvc');
 
 const apiRouter = express.Router();
 const state = {
-  isRedisConnected: false,
-  isShutdown: false
+  connections: {
+    data: false,
+    email: true, // Assume SMTP is accessible by default
+    queue: false
+  },
+  ready: false,
+  shutdown: false
 };
 
 const app = express();
@@ -60,26 +65,28 @@ if (process.env.NODE_ENV !== 'test') {
   // load up morgan to log the requests
   app.use(morgan(config.get('server.morganFormat')));
 
-
-  // Check database connection and exit if unsuccessful
+  // Check connections and exit if unsuccessful
   (async () => {
     try {
       const dataConnection = new DataConnection();
-      const dataConnectionOk = await dataConnection.checkAll();
-      if (dataConnectionOk) log.info('DataConnection', 'Connected');
+      await dataConnection.checkAll();
+      if (dataConnection.connected) log.info('DataConnection', 'Connected');
+      state.connections.data = dataConnection.connected;
 
       const queueConnection = new QueueConnection();
-      const queueConnectionOk = await queueConnection.checkConnection();
-      state.isRedisConnected = queueConnectionOk;
+      await queueConnection.checkConnection();
+      if (queueConnection.connected) log.info('QueueConnection', 'Connected');
+      state.connections.queue = queueConnection.connected;
 
-      let emailConnectionOk = true;
       if (process.env.NODE_ENV == 'production') {
         const emailConnection = new EmailConnection();
-        emailConnectionOk = await emailConnection.checkConnection();
+        await emailConnection.checkConnection();
+        if (emailConnection.connected) log.info('EmailConnection', 'Connected');
+        state.connections.email = emailConnection.connected;
       }
 
-      if (dataConnectionOk && queueConnectionOk && emailConnectionOk) {
-        // listen on the queue connection...
+      if (Object.values(state.connections).every(x => x)) {
+        // Register the listener worker when everything is connected
         queueConnection.queue.process(QueueListener.onProcess);
         queueConnection.queue.on('completed', QueueListener.onCompleted);
         queueConnection.queue.on('error', QueueListener.onError);
@@ -92,9 +99,8 @@ if (process.env.NODE_ENV !== 'test') {
         stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
         stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
         stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
-
       } else {
-        log.error('Infrastructure', `Initialization failed: Database OK = ${dataConnectionOk}, Queue OK = ${queueConnectionOk}, Email OK = ${emailConnectionOk}`);
+        log.error('Infrastructure', `Initialization failed: Database OK = ${state.connections.data}, Queue OK = ${state.connections.queue}, Email OK = ${state.connections.email}`);
         shutdown();
       }
     } catch (error) {
@@ -109,9 +115,9 @@ app.use(keycloak.middleware());
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
-  if (state.isShutdown) {
+  if (state.shutdown) {
     throw new Error('Server shutting down');
-  } else if (!state.isRedisConnected) {
+  } else if (!state.isQueueConnected) {
     throw new Error('Server not connected to Redis');
   } else {
     res.status(200).json({
@@ -165,7 +171,7 @@ process.on('SIGINT', shutdown);
 
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
-  state.isShutdown = true;
+  state.shutdown = true;
   QueueConnection.close();
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
