@@ -23,7 +23,12 @@ class DataConnection {
    * @class
    */
   constructor() {
-    this.knex = Knex(knexfile);
+    if (!DataConnection.instance) {
+      this.knex = Knex(knexfile);
+      DataConnection.instance = this;
+    }
+
+    return DataConnection.instance;
   }
 
   /** @function connected

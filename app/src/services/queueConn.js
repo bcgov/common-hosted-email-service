@@ -66,6 +66,7 @@ class QueueConnection {
     if (globalQueue) {
       try {
         globalQueue.close();
+        this._connected = false;
         log.info('QueueConnection', 'Disconnected');
       } catch (e) {
         log.error(e);
