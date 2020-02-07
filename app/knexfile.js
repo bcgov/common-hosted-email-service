@@ -25,8 +25,9 @@ module.exports = {
   },
   pool: {
     min: 2,
-    max: 10,
-    propagateCreateError: false
+    max: 10
+    // This shouldn't be here: https://github.com/knex/knex/issues/3455#issuecomment-535554401
+    // propagateCreateError: false
   },
   seeds: {
     directory: __dirname + '/src/services/seeds'

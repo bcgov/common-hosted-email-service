@@ -8,10 +8,9 @@ const Statistic = require('../../src/services/models/statistic');
 const Trxn = require('../../src/services/models/trxn');
 
 /**
- * deleteTransactionsByClient
- * Utility function to clean up test data by client.
- * @function
- * @param {string} client - The client name...
+ *  @function deleteTransactionsByClient
+ *  Utility function to clean up test data by client.
+ *  @param {string} client - The client name...
  */
 async function deleteTransactionsByClient(client) {
   if (!client) {
@@ -48,10 +47,9 @@ async function deleteTransactionsByClient(client) {
 }
 
 /**
- * countStatisticsByClient
- * Utility function to count records in Statistic table for a client.
- * @function
- * @param {string} client - The client name...
+ *  @functioncountStatisticsByClient
+ *  Utility function to count records in Statistic table for a client.
+ *  @param {string} client - The client name...
  */
 async function countStatisticsByClient(client) {
   if (!client) {
@@ -69,10 +67,9 @@ async function countStatisticsByClient(client) {
 }
 
 /**
- * deleteStatisticsByClient
- * Utility function to delete records in Statistic table for a client.
- * @function
- * @param {string} client - The client name...
+ *  @function deleteStatisticsByClient
+ *  Utility function to delete records in Statistic table for a client.
+ *  @param {string} client - The client name...
  */
 async function deleteStatisticsByClient(client) {
   if (!client) {

@@ -23,8 +23,14 @@ const StatisticsService = require('./src/services/statisticSvc');
 
 const apiRouter = express.Router();
 const state = {
-  isRedisConnected: false,
-  isShutdown: false
+  connections: {
+    data: false,
+    email: true, // Assume SMTP is accessible by default
+    queue: false
+  },
+  mounted: false,
+  ready: false,
+  shutdown: false
 };
 
 const app = express();
@@ -43,64 +49,28 @@ log.addLevel('debug', 1500, {
 });
 
 // Print out configuration settings in verbose startup
-log.debug('Config', utils.prettyStringify(config));
+log.verbose('Config', utils.prettyStringify(config));
 
 // this will suppress a console warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
 // we will just force it to use the new Date constructor.
-moment.createFromInputFallback = (config) => {
+moment.createFromInputFallback = config => {
   config._d = new Date(config._i);
 };
 
+// Instantiate application level connection objects
+const dataConnection = new DataConnection();
+const queueConnection = new QueueConnection();
+const emailConnection = new EmailConnection();
+
 // Skip if running tests
 if (process.env.NODE_ENV !== 'test') {
-
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
   initializeMailApiTracker(app);
   // load up morgan to log the requests
   app.use(morgan(config.get('server.morganFormat')));
-
-
-  // Check database connection and exit if unsuccessful
-  (async () => {
-    try {
-      const dataConnection = new DataConnection();
-      const dataConnectionOk = await dataConnection.checkConnection();
-
-      const queueConnection = new QueueConnection();
-      const queueConnectionOk = await queueConnection.checkConnection();
-      state.isRedisConnected = queueConnectionOk;
-
-      let emailConnectionOk = true;
-      if (process.env.NODE_ENV == 'production') {
-        const emailConnection = new EmailConnection();
-        emailConnectionOk = await emailConnection.checkConnection();
-      }
-
-      if (dataConnectionOk && queueConnectionOk && emailConnectionOk) {
-        // listen on the queue connection...
-        queueConnection.queue.process(QueueListener.onProcess);
-        queueConnection.queue.on('completed', QueueListener.onCompleted);
-        queueConnection.queue.on('error', QueueListener.onError);
-        queueConnection.queue.on('failed', QueueListener.onFailed);
-
-        // StackpoleService requires the data connection created and initialized...
-        // since it is, let's hook in the write statistic
-        const statisticsService = new StatisticsService();
-        const writeFn = statisticsService.write;
-        stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
-        stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
-        stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
-
-      } else {
-        log.error('Infrastructure', `Initialization failed: Database OK = ${dataConnectionOk}, Queue OK = ${queueConnectionOk}, Email OK = ${emailConnectionOk}`);
-        shutdown();
-      }
-    } catch (error) {
-      log.error('Infrastructure', 'Connection failed...');
-      shutdown();
-    }
-  })();
+  // Initialize connections and exit if unsuccessful
+  initializeConnections();
 }
 
 // Use Keycloak OIDC Middleware
@@ -108,10 +78,10 @@ app.use(keycloak.middleware());
 
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
-  if (state.isShutdown) {
+  if (state.shutdown) {
     throw new Error('Server shutting down');
-  } else if (!state.isRedisConnected) {
-    throw new Error('Server not connected to Redis');
+  } else if (!state.ready) {
+    throw new Error('Server is not ready');
   } else {
     res.status(200).json({
       endpoints: [
@@ -162,12 +132,116 @@ process.on('unhandledRejection', err => {
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
+/**
+ *  @function shutdown
+ *  Begins shutting down this application. It will hard exit after 3 seconds.
+ */
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
-  state.isShutdown = true;
+  state.shutdown = true;
   QueueConnection.close();
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
+}
+
+/**
+ *  @function initializeConnections
+ *  Initializes the database, queue and email connections
+ *  This will force the application to exit if it fails
+ */
+function initializeConnections() {
+  // Initialize connections and exit if unsuccessful
+  try {
+    const tasks = [
+      dataConnection.checkAll(),
+      queueConnection.checkConnection()
+    ];
+
+    if (process.env.NODE_ENV == 'production') {
+      tasks.push(emailConnection.checkConnection());
+    }
+
+    Promise.all(tasks)
+      .then(results => {
+        state.connections.data = results[0];
+        state.connections.queue = results[1];
+        if (results[2] !== undefined) {
+          state.connections.email = results[2];
+        }
+
+        if (state.connections.data) log.info('DataConnection', 'Connected');
+        if (state.connections.queue) log.info('QueueConnection', 'Connected');
+        if (state.connections.email) log.info('EmailConnection', 'Connected');
+      })
+      .catch(error => {
+        log.error(error);
+        log.error('initializeConnections', `Initialization failed: Database OK = ${state.connections.data}, Queue OK = ${state.connections.queue}, Email OK = ${state.connections.email}`);
+      })
+      .finally(() => {
+        state.ready = Object.values(state.connections).every(x => x);
+        if (!state.ready) shutdown();
+        mountServices();
+      });
+
+  } catch (error) {
+    log.error('initializeConnections', 'Connection initialization failure', error.message);
+    if (!state.ready) shutdown();
+  }
+
+  // Start asynchronous connection probe
+  connectionProbe();
+}
+
+/**
+ *  @function connectionProbe
+ *  Periodically checks the status of the connections at a specific interval
+ *  This will force the application to exit a connection fails
+ *  @param {integer} [interval=10000] Number of milliseconds to wait before
+ */
+function connectionProbe(interval = 10000) {
+  const checkConnections = () => {
+    if (!state.shutdown) {
+      const tasks = [
+        dataConnection.checkConnection(),
+        queueConnection.checkConnection()
+      ];
+
+      log.verbose(JSON.stringify(state));
+      Promise.all(tasks).then(results => {
+        state.connections.data = results[0];
+        state.connections.queue = results[1];
+        state.ready = Object.values(state.connections).every(x => x);
+        if (!state.ready) shutdown();
+      });
+    }
+  };
+
+  setInterval(checkConnections, interval);
+}
+
+/**
+ *  @function mountServices
+ *  Registers the queue listener workers and stackpole services
+ */
+function mountServices() {
+  if (state.ready && !state.mounted) {
+    // Register the listener worker when everything is connected
+    queueConnection.queue.process(QueueListener.onProcess);
+    queueConnection.queue.on('completed', QueueListener.onCompleted);
+    queueConnection.queue.on('error', QueueListener.onError);
+    queueConnection.queue.on('failed', QueueListener.onFailed);
+    log.debug('QueueConnection', 'Listener workers attached');
+
+    // StackpoleService requires the data connection created and initialized...
+    // since it is, let's hook in the write statistic
+    const writeFn = new StatisticsService().write;
+    stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
+    stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
+    stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
+    log.debug('StatisticsService', 'Stackpole registered');
+
+    state.mounted = true;
+  }
 }
 
 module.exports = app;

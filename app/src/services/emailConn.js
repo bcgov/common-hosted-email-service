@@ -20,7 +20,7 @@ class EmailConnection {
    * Creates a new EmailConnection with default (SMTP) configuration.
    * @class
    */
-  constructor () {
+  constructor() {
     this.configuration = {
       host: config.get('server.smtpHost'),
       port: 25,
@@ -33,7 +33,7 @@ class EmailConnection {
   /** @function configuration
    *  Gets the current configuration
    */
-  get configuration () {
+  get configuration() {
     return this._configuration;
   }
 
@@ -41,7 +41,7 @@ class EmailConnection {
    *  Sets the current configuration
    *  @param {object} v - a node mailer transport configuration.
    */
-  set configuration (v) {
+  set configuration(v) {
     this._configuration = v;
     this._mailer = nodemailer.createTransport(this._configuration);
     this._connected = false;
@@ -50,21 +50,21 @@ class EmailConnection {
   /** @function connected
    *  True or false if connected.
    */
-  get connected () {
+  get connected() {
     return this._connected;
   }
 
   /** @function mailer
    *  Get the current nodemailer transport
    */
-  get mailer () {
+  get mailer() {
     return this._mailer;
   }
 
   /** @function host
    *  Get the current host name for the connection
    */
-  get host () {
+  get host() {
     try {
       return this._configuration.host;
     } catch (err) {
@@ -76,7 +76,7 @@ class EmailConnection {
    *  Gets a connection to Ethereal
    *  Should only be used for local development/testing
    */
-  static async getEtherealConnection () {
+  static async getEtherealConnection() {
     if (!etherealConnection) {
       const testAccount = await nodemailer.createTestAccount();
       const etherealConfiguration = {
@@ -99,7 +99,7 @@ class EmailConnection {
    *  Gets a test url for Ethereal
    *  Should only be used for local development/testing
    */
-  getTestMessageUrl (info) {
+  getTestMessageUrl(info) {
     // this will only work if the transporter is ethereal...
     try {
       return nodemailer.getTestMessageUrl(info);
@@ -112,7 +112,7 @@ class EmailConnection {
   /** @function checkConnection
    *  Checks the current node mailer connection.
    */
-  async checkConnection () {
+  async checkConnection() {
     this._connected = await this._mailer.verify();
     return this._connected;
   }
