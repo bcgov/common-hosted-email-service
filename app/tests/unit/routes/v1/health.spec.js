@@ -21,11 +21,11 @@ describe(`GET ${basePath}`, () => {
     expect(response.statusCode).toBe(200);
     expect(response.body).toBeTruthy();
     expect(response.body.dependencies).toBeTruthy();
-    expect(response.body.dependencies).toHaveLength(1);
-    expect(response.body.dependencies[0].name).toMatch('smtp');
-    expect(response.body.dependencies[0].healthy).toBeTruthy();
-    expect(response.body.dependencies[0].info).toBeTruthy();
-    expect(response.body.dependencies[0].info).toMatch('good');
+    expect(response.body.dependencies).toHaveLength(3);
+    expect(response.body.dependencies[2].name).toMatch('smtp');
+    expect(response.body.dependencies[2].healthy).toBeTruthy();
+    expect(response.body.dependencies[2].info).toBeTruthy();
+    expect(response.body.dependencies[2].info).toMatch('good');
   });
 
   it('should respond even with an exception', async () => {
@@ -34,11 +34,11 @@ describe(`GET ${basePath}`, () => {
     const response = await request(app).get(`${basePath}`);
 
     expect(response.body.dependencies).toBeTruthy();
-    expect(response.body.dependencies).toHaveLength(1);
-    expect(response.body.dependencies[0].name).toMatch('smtp');
-    expect(response.body.dependencies[0].healthy).toBeFalsy();
-    expect(response.body.dependencies[0].info).toBeTruthy();
-    expect(response.body.dependencies[0].info).toMatch('bad');
+    expect(response.body.dependencies).toHaveLength(3);
+    expect(response.body.dependencies[2].name).toMatch('smtp');
+    expect(response.body.dependencies[2].healthy).toBeFalsy();
+    expect(response.body.dependencies[2].info).toBeTruthy();
+    expect(response.body.dependencies[2].info).toMatch('bad');
   });
 
   it('should fail gracefully when an error occurs', async () => {
