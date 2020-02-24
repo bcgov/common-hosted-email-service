@@ -31,12 +31,16 @@ objects:
         - image: docker-registry.default.svc:5000/openshift/redis:latest
           imagePullPolicy: IfNotPresent
           livenessProbe:
+            exec:
+              command:
+              - "/bin/sh"
+              - "-i"
+              - "-c"
+              - test "$(redis-cli -h 127.0.0.1 -a $REDIS_PASSWORD ping)" == "PONG"
             failureThreshold: 3
             initialDelaySeconds: 30
             periodSeconds: 10
             successThreshold: 1
-            tcpSocket:
-              port: 6379
             timeoutSeconds: 1
           name: "redis-${JOB_NAME}"
           ports:
