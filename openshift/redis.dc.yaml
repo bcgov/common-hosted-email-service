@@ -130,7 +130,7 @@ parameters:
   required: true
   value: 2Gi
 - name: REDIS_PERSISTENT_VOLUME_CLASS
-  description: The class of the volume; gluster-file, gluster-block, gluster-file-db
+  description: The storage class of the volume
   displayName: Persistent Volume Class name
   required: false
-  value: gluster-file
+  value: netapp-file-standard
