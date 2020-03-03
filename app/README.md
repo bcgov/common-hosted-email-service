@@ -1,10 +1,24 @@
 # Common Hosted Email Service
 
-CHES - Powered by NodeMailer (a shared library)
+The application is a node server which serves the Common Hosted Email Service (CHES) API.
+It allows another application to send email messages (single, bulk or mail merge) immediately or with a delay and then check the status and manage the messages in the queue. It may be extended to broadcast to other channels (e.g., SMS)
+
+This API is defined and documented using the OpenAPI 3.0 specification.
+The API Specifications can be seen at <https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs>
+
+
+### Table of Contents
+
+1. [Application Dependencies](#Application)
+2. [General Code Layout](#general-code-layout)
+3. [Installation](#install)
+4. [Configuration](#configuration)
+5. [Design Considerations](#general-design)
+6. [Templating](#templating)
 
 ## Application
 
-The application is a node server which serves the Common Hosted Email Service API. It uses the following dependencies from NPM:
+The CHES API uses the following dependencies from NPM:
 
 Authentication & Password Management
 
