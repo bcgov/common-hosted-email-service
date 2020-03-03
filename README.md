@@ -26,7 +26,7 @@ To learn more about the **Common Services** available visit the [Common Services
 ## Documentation
 
 * [Application Readme](app/README.md)
-* [API specification:](app/README.md#api-usage)
+* [API specification](app/README.md#api-usage)
 * [Openshift Readme](openshift/README.md)
 * [Devops Tools Setup](https://github.com/bcgov/nr-showcase-devops-tools)
 * [Showcase Team Roadmap](https://github.com/bcgov/nr-get-token/wiki/Product-Roadmap)
