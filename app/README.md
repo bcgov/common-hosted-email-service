@@ -1,22 +1,19 @@
 # Common Hosted Email Service
 
 The application is a node server which serves the Common Hosted Email Service (CHES) API.
-It allows another application to send email messages (single, bulk or mail merge) immediately or with a delay and then check the status and manage the messages in the queue. It may be extended to broadcast to other channels (e.g., SMS)
-
-This API is defined and documented using the OpenAPI 3.0 specification.
+The API is defined and documented using the OpenAPI 3.0 specification.
 The API Specifications can be seen at <https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs>
 
-
-### Table of Contents
+## Table of Contents
 
 1. [Application Dependencies](#Application)
 2. [General Code Layout](#general-code-layout)
-3. [Installation](#install)
+3. [Installation](#installation)
 4. [Configuration](#configuration)
 5. [Design Considerations](#general-design)
 6. [Templating](#templating)
 
-## Application
+## Application Dependencies
 
 The CHES API uses the following dependencies from NPM:
 
@@ -43,8 +40,6 @@ Queueing and Persisting
 
 * `bull` - Redis-based queue for Node ([npm](https://www.npmjs.com/package/bull))
 * `knex` - Multi-dialect query builder ([npm](https://www.npmjs.com/package/knex))
-
-
 
 ### General Code Layout
 
