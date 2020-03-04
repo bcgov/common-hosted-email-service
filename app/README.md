@@ -1,10 +1,18 @@
 # Common Hosted Email Service
 
-CHES - Powered by NodeMailer (a shared library)
+## Table of Contents
 
-## Application
+1. [Application Dependencies](#application-dependencies)
+2. [General Code Layout](#general-code-layout)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [API Usage](#api-usage)
+6. [General Design](#general-design)
+7. [Templating](#templating)
 
-The application is a node server which serves the Common Hosted Email Service API. It uses the following dependencies from NPM:
+## Application Dependencies
+
+The CHES API uses the following dependencies from NPM:
 
 Authentication & Password Management
 
@@ -30,8 +38,6 @@ Queueing and Persisting
 * `bull` - Redis-based queue for Node ([npm](https://www.npmjs.com/package/bull))
 * `knex` - Multi-dialect query builder ([npm](https://www.npmjs.com/package/knex))
 
-
-
 ### General Code Layout
 
 The codebase is separated into a few discrete layers:
@@ -48,7 +54,7 @@ In order for the application to run correctly, you will need to ensure that the 
 2. You have a Redis-compatible memory store available to connect to.
 3. Environment configurations have been set up
 
-### Install
+### Installation
 
 #### Node Application
 
@@ -134,7 +140,8 @@ npm run lint
 
 ## API Usage
 
-This API is defined and described in OpenAPI 3.0 specification. When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). Otherwise, the general API can usually be found under the `/api/v1/docs` path.
+This API is defined and described in OpenAPI 3.0 specification.
+When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). A hosted instance of the API can be found at: <https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs>
 
 ### General Design
 
