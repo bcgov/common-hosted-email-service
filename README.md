@@ -33,7 +33,7 @@ To learn more about the **Common Services** available visit the [Common Services
 
 ## Getting Help or Reporting an Issue
 
-To report bugs/issues/features requests, please file an issue.
+To report bugs/issues/features requests, please file a Github issue.
 
 ## How to Contribute
 
