@@ -23,7 +23,8 @@
     "migrate:latest": "./node_modules/.bin/knex migrate:latest",
     "migrate:rollback": "./node_modules/.bin/knex migrate:rollback",
     "migrate:up": "./node_modules/.bin/knex migrate:up",
-    "migrate:down": "./node_modules/.bin/knex migrate:down"
+    "migrate:down": "./node_modules/.bin/knex migrate:down",
+    "posttest": "node ./lcov-fix.js"
   },
   "homepage": "https://github.com/bcgov/common-hosted-email-service",
   "dependencies": {
