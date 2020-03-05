@@ -16,6 +16,7 @@
     "test:unit": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns integration",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
+    "posttest": "node ./lcov-fix.js",
     "purge": "rm -rf ./node_modules",
     "rebuild": "npm run clean && npm run build",
     "reinstall": "npm run purge && npm install",
@@ -49,7 +50,7 @@
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "jest": "^24.9.0",
+    "jest": "^25.1.0",
     "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^2.0.2",
     "supertest": "^4.0.2"
