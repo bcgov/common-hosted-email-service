@@ -16,6 +16,7 @@
     "test:unit": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns integration",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
+    "posttest": "node ./lcov-fix.js",
     "purge": "rm -rf ./node_modules",
     "rebuild": "npm run clean && npm run build",
     "reinstall": "npm run purge && npm install",
@@ -23,8 +24,7 @@
     "migrate:latest": "./node_modules/.bin/knex migrate:latest",
     "migrate:rollback": "./node_modules/.bin/knex migrate:rollback",
     "migrate:up": "./node_modules/.bin/knex migrate:up",
-    "migrate:down": "./node_modules/.bin/knex migrate:down",
-    "posttest": "node ./lcov-fix.js"
+    "migrate:down": "./node_modules/.bin/knex migrate:down"
   },
   "homepage": "https://github.com/bcgov/common-hosted-email-service",
   "dependencies": {
