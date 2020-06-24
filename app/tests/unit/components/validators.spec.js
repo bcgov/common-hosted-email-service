@@ -332,6 +332,12 @@ describe('models.context.cc', () => {
 
 describe('models.context.delayTS', () => {
 
+  it('should return true for null', () => {
+    const value = null;
+    const result = models.context.delayTS(value);
+    expect(result).toBeTruthy();
+  });
+
   it('should return true for undefined', () => {
     const value = undefined;
     const result = models.context.delayTS(value);

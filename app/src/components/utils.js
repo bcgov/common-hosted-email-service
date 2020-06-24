@@ -39,15 +39,15 @@ const utils = {
   },
 
   /** @function filterUndefinedAndEmptyArray
-   *  @description Returns a new object where undefined and empty arrays are dropped
+   *  @description Returns a new object where null/undefined, and null/empty arrays are dropped
    *
    *  @param {object} obj A JSON Object
-   *  @returns {object} A JSON Object without empty arrays and undefined properties
+   *  @returns {object} A JSON Object without null/empty arrays and null/undefined properties
    */
   filterUndefinedAndEmptyArray: obj => {
     const ret = {};
     Object.keys(obj)
-      .filter((key) => obj[key] !== undefined && obj[key].length)
+      .filter((key) => obj[key] !== undefined && obj[key] && obj[key].length)
       .forEach((key) => ret[key] = obj[key]);
     return ret;
   },
