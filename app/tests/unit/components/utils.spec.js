@@ -76,7 +76,8 @@ describe('filterUndefinedAndEmptyArray', () => {
     baz: [
       'herp'
     ],
-    derp: 'flerp'
+    derp: 'flerp',
+    whoops: null
   };
 
   it('should drop undefined properties', () => {
@@ -84,6 +85,7 @@ describe('filterUndefinedAndEmptyArray', () => {
 
     expect(result).toBeTruthy();
     expect(result.foo).toBeUndefined();
+    expect(result.whoops).toBeUndefined();
     expect(result.derp).toMatch('flerp');
     expect(Object.keys(result).length).toEqual(2);
   });
