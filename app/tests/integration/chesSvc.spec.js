@@ -19,7 +19,7 @@ const config = require('config');
 const helper = require('../common/helper');
 const Knex = require('knex');
 const { NotFoundError } = require('objection');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 const Problem = require('api-problem');
 
 const { statusState, queueState } = require('../../src/components/state');
@@ -188,7 +188,7 @@ describe('chesService', () => {
 
     it('should throw a 400 when client is null', async () => {
       try {
-        await chesService.cancelMessage(undefined, uuidv4());
+        await chesService.cancelMessage(undefined, uuid.v4());
       } catch (e) {
         expect(e).toBeTruthy();
         expect(e.status).toBe('400');
@@ -225,7 +225,7 @@ describe('chesService', () => {
 
     it('should throw a 404 when message is not found', async () => {
       spy.mockResolvedValue(false);
-      const msgId = uuidv4();
+      const msgId = uuid.v4();
 
       try {
         await chesService.cancelMessage(CLIENT, msgId);
@@ -303,8 +303,8 @@ describe('chesService', () => {
     });
 
     it('should return nothing with all nonexistent search parameters', async () => {
-      const msgId = uuidv4();
-      const txId = uuidv4();
+      const msgId = uuid.v4();
+      const txId = uuid.v4();
       const status = statusState.COMPLETED;
       const tag = 'tag';
 
@@ -441,8 +441,8 @@ describe('chesService', () => {
     });
 
     it('should return an empty array with all nonexistent search parameters', async () => {
-      const msgId = uuidv4();
-      const txId = uuidv4();
+      const msgId = uuid.v4();
+      const txId = uuid.v4();
       const result = await fn(CLIENT, msgId, 'status', 'tag', txId);
 
       expect(Array.isArray(result)).toBeTruthy();
@@ -479,7 +479,7 @@ describe('chesService', () => {
 
     it('should throw a 404 with invalid message id.', async () => {
       try {
-        await chesService.getStatus(CLIENT, uuidv4());
+        await chesService.getStatus(CLIENT, uuid.v4());
       } catch (e) {
         expect(e).toBeTruthy();
         expect(e.status).toBe('404');
