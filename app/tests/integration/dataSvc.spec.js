@@ -10,7 +10,7 @@
 const helper = require('../common/helper');
 const Knex = require('knex');
 const { NotFoundError } = require('objection');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 
 const { statusState, queueState } = require('../../src/components/state');
 const stackpole = require('../../src/components/stackpole');
@@ -222,7 +222,7 @@ describe('dataService', () => {
     });
 
     it('should return false when a message does not exist', async () => {
-      const result = await dataService.messageExists(CLIENT, uuidv4());
+      const result = await dataService.messageExists(CLIENT, uuid.v4());
 
       expect(result).toBeFalsy();
     });
@@ -321,14 +321,14 @@ describe('dataService', () => {
 
   it('should error out on status update with bad message id', async () => {
 
-    const messageId = uuidv4();
+    const messageId = uuid.v4();
     const status = 'there is no message';
 
     await expect(dataService.updateStatus(CLIENT, messageId, status)).rejects.toThrow();
   });
 
   it('should error out on find transaction with bad id', async () => {
-    const transactionId = uuidv4();
+    const transactionId = uuid.v4();
     await expect(dataService.readTransaction(CLIENT, transactionId)).rejects.toThrow();
   });
 
@@ -353,11 +353,11 @@ describe('dataService', () => {
 
   it('should only read data created by the client.', async () => {
     const email = emails[0];
-    const client1 = `client1-${uuidv4()}`;
+    const client1 = `client1-${uuid.v4()}`;
     const result1 = await dataService.createTransaction(client1, email);
     expect(result1).toBeTruthy();
 
-    const client2 = `client1-${uuidv4()}`;
+    const client2 = `client1-${uuid.v4()}`;
     const result2 = await dataService.createTransaction(client2, email);
     expect(result2).toBeTruthy();
 
@@ -399,13 +399,13 @@ describe('dataService', () => {
     expect(content2.email).toBeFalsy();
 
     const smtp1 = await dataService.updateMessageSendResult(client1, messageId1, {
-      smtpMsgId: uuidv4(),
+      smtpMsgId: uuid.v4(),
       response: 'response'
     });
     expect(smtp1.sendResult).toBeTruthy();
 
     const smpt2 = await dataService.updateMessageSendResult(client2, messageId2, {
-      smtpMsgId: uuidv4(),
+      smtpMsgId: uuid.v4(),
       response: 'response'
     });
     expect(smpt2.sendResult).toBeTruthy();
@@ -423,11 +423,11 @@ describe('dataService', () => {
     await expect(dataService.deleteMessageEmail(client2, messageId1)).rejects.toThrow();
 
     await expect(dataService.updateMessageSendResult(client1, messageId2, {
-      smtpMsgId: uuidv4(),
+      smtpMsgId: uuid.v4(),
       response: 'response'
     })).rejects.toThrow();
     await expect(dataService.updateMessageSendResult(client2, messageId1, {
-      smtpMsgId: uuidv4(),
+      smtpMsgId: uuid.v4(),
       response: 'response'
     })).rejects.toThrow();
 
@@ -436,7 +436,7 @@ describe('dataService', () => {
   });
 
   it('should error out on find message with bad id', async () => {
-    const messageId = uuidv4();
+    const messageId = uuid.v4();
     await expect(dataService.readMessage(CLIENT, messageId)).rejects.toThrow();
   });
 
@@ -497,7 +497,7 @@ describe('dataService', () => {
     expect(result.messages[0].email).toBeTruthy();
 
     const msg = await dataService.updateMessageSendResult(CLIENT, result.messages[0].messageId, {
-      smtpMsgId: uuidv4(),
+      smtpMsgId: uuid.v4(),
       response: 'some response'
     });
     expect(msg.sendResult).toBeTruthy();

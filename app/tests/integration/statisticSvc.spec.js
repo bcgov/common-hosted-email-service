@@ -9,7 +9,7 @@
  */
 const helper = require('../common/helper');
 const Knex = require('knex');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 
 const DataConnection = require('../../src/services/dataConn');
 const StatisticsService = require('../../src/services/statisticSvc');
@@ -63,8 +63,8 @@ describe('statisticsService', () => {
       const stat = {
         client: CLIENT,
         operation: 'op',
-        transactionId: uuidv4(),
-        messageId: uuidv4(),
+        transactionId: uuid.v4(),
+        messageId: uuid.v4(),
         status: 'asdfasdf',
         timestamp: new Date(),
         delay: null
@@ -78,8 +78,8 @@ describe('statisticsService', () => {
       const stat = {
         client: CLIENT,
         operation: 'op',
-        transactionId: uuidv4(),
-        messageId: uuidv4(),
+        transactionId: uuid.v4(),
+        messageId: uuid.v4(),
         status: 'asdfasdf',
         timestamp: new Date(),
         delay: null
@@ -93,8 +93,8 @@ describe('statisticsService', () => {
       const stat = {
         client: CLIENT,
         operation: 'op',
-        transactionId: uuidv4(),
-        messageId: uuidv4(),
+        transactionId: uuid.v4(),
+        messageId: uuid.v4(),
         status: 'asdfasdf',
         timestamp: new Date(),
         delay: null

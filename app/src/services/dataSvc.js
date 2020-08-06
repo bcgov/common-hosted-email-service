@@ -12,7 +12,7 @@
 const log = require('npmlog');
 const { Model } = require('objection');
 const { transaction } = require('objection');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 
 const { queueToStatus } = require('../components/state');
 const stackpole = require('../components/stackpole');
@@ -37,7 +37,7 @@ const Trxn = require('./models/trxn');
  */
 const createMessage = async (transactionId, msg, db) => {
   const messageObj = await Message.query(db).insert({
-    messageId: uuidv4(),
+    messageId: uuid.v4(),
     transactionId: transactionId,
     tag: msg.tag,
     email: msg,
@@ -110,7 +110,7 @@ class DataService {
     let trx;
     try {
       trx = await transaction.start(Trxn.knex());
-      const transactionId = uuidv4();
+      const transactionId = uuid.v4();
 
       await Trxn.query(trx).insert({
         transactionId: transactionId,

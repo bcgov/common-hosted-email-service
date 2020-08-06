@@ -6,14 +6,14 @@
   "author": "NR Common Service Showcase <NR.CommonServiceShowcase@gov.bc.ca>",
   "scripts": {
     "build": "echo Nothing to build",
-    "serve": "./node_modules/.bin/nodemon ./bin/www",
+    "serve": "nodemon ./bin/www",
     "start": "node ./bin/www",
-    "lint": "./node_modules/.bin/eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
-    "lint:fix": "./node_modules/.bin/eslint . --fix --ignore-pattern 'node_modules' --ext .js",
+    "lint": "eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
+    "lint:fix": "eslint . --fix --ignore-pattern 'node_modules' --ext .js",
     "test": "npm run test:unit",
-    "test:all": "./node_modules/.bin/jest --verbose",
-    "test:integration": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns unit --collectCoverage false",
-    "test:unit": "./node_modules/.bin/jest --verbose --testPathIgnorePatterns integration",
+    "test:all": "jest --verbose",
+    "test:integration": "jest --verbose --testPathIgnorePatterns unit --collectCoverage false",
+    "test:unit": "jest --verbose --testPathIgnorePatterns integration --forceExit --detectOpenHandles --maxWorkers=10",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
     "posttest": "node ./lcov-fix.js",
@@ -21,38 +21,38 @@
     "rebuild": "npm run clean && npm run build",
     "reinstall": "npm run purge && npm install",
     "migrate": "npm run migrate:latest",
-    "migrate:latest": "./node_modules/.bin/knex migrate:latest",
-    "migrate:rollback": "./node_modules/.bin/knex migrate:rollback",
-    "migrate:up": "./node_modules/.bin/knex migrate:up",
-    "migrate:down": "./node_modules/.bin/knex migrate:down"
+    "migrate:latest": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "migrate:up": "knex migrate:up",
+    "migrate:down": "knex migrate:down"
   },
   "homepage": "https://github.com/bcgov/common-hosted-email-service",
   "dependencies": {
-    "api-problem": "^6.0.1",
+    "api-problem": "^6.1.4",
     "atob": "^2.1.2",
-    "bull": "^3.12.1",
+    "bull": "^3.16.0",
     "bytes": "^3.1.0",
     "compression": "^1.7.4",
-    "config": "^3.2.5",
+    "config": "^3.3.1",
     "express": "^4.17.1",
-    "keycloak-connect": "^8.0.1",
-    "knex": "^0.20.8",
-    "moment": "^2.24.0",
-    "morgan": "^1.9.1",
-    "nodemailer": "^6.4.2",
+    "keycloak-connect": "^11.0.0",
+    "knex": "^0.21.2",
+    "moment": "^2.27.0",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.4.11",
     "npmlog": "^4.1.2",
-    "nunjucks": "^3.2.0",
-    "objection": "^1.6.11",
-    "pg": "^7.18.1",
-    "tmp": "^0.1.0",
-    "uuid": "^3.4.0",
-    "validator": "^12.2.0"
+    "nunjucks": "^3.2.2",
+    "objection": "^2.2.2",
+    "pg": "^8.3.0",
+    "tmp": "^0.2.1",
+    "uuid": "^8.3.0",
+    "validator": "^13.1.1"
   },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "jest": "^25.1.0",
+    "eslint": "^7.6.0",
+    "jest": "^26.2.2",
     "jest-sonar-reporter": "^2.0.0",
-    "nodemon": "^2.0.2",
+    "nodemon": "^2.0.4",
     "supertest": "^4.0.2"
   },
   "eslintConfig": {
@@ -132,6 +132,12 @@
     "reportPath": "coverage"
   },
   "license": "Apache-2.0",
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/**/node_modules",
+      "test"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bcgov/common-hosted-email-service.git"
