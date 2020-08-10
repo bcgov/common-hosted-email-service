@@ -43,7 +43,6 @@ class EmailConnection {
    */
   set configuration(v) {
     this._configuration = v;
-    this._mailer = nodemailer.createTransport(this._configuration);
     this._connected = false;
   }
 
@@ -58,7 +57,7 @@ class EmailConnection {
    *  Get the current nodemailer transport
    */
   get mailer() {
-    return this._mailer;
+    return nodemailer.createTransport(this._configuration);
   }
 
   /** @function host
@@ -113,7 +112,7 @@ class EmailConnection {
    *  Checks the current node mailer connection.
    */
   async checkConnection() {
-    this._connected = await this._mailer.verify();
+    this._connected = await this.mailer.verify();
     return this._connected;
   }
 
