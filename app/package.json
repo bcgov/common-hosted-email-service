@@ -40,6 +40,7 @@
     "moment": "^2.27.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.4.11",
+    "nodemailer-openpgp": "^1.2.0",
     "npmlog": "^4.1.2",
     "nunjucks": "^3.2.2",
     "objection": "^2.2.3",
