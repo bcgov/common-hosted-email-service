@@ -1,12 +1,12 @@
 ---
 openapi: 3.0.2
 info:
-  version: 1.0.0
+  version: 1.1.0
   title: Common Hosted Email Service API
   description: CHES - Powered by NodeMailer (a shared library)
   license:
     name: Apache 2.0
-    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
   contact:
     name: NR Common Service Showcase
     email: NR.CommonServiceShowcase@gov.bc.ca
@@ -26,7 +26,7 @@ paths:
       tags:
         - Health
       responses:
-        '200':
+        "200":
           description: Returns the healthiness of the service dependencies
           content:
             application/json:
@@ -39,17 +39,17 @@ paths:
                     type: array
                     description: A list of Health states
                     items:
-                      $ref: '#/components/schemas/Health'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                      $ref: "#/components/schemas/Health"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
   /email:
     post:
       summary: Send an email
@@ -69,28 +69,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MessageObject'
+              $ref: "#/components/schemas/MessageObject"
       responses:
-        '201':
+        "201":
           description: Returns the message correspondence id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransactionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+                $ref: "#/components/schemas/TransactionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
   /emailMerge:
     post:
       summary: Template mail merge & email sending
@@ -111,24 +111,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MergeRequest'
+              $ref: "#/components/schemas/MergeRequest"
       responses:
-        '201':
+        "201":
           description: Returns an array of message correspondence ids
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MergeResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+                $ref: "#/components/schemas/MergeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
-          $ref: '#/components/responses/Error'
+          $ref: "#/components/responses/Error"
   /emailMerge/preview:
     post:
       summary: Template mail merge validation & preview
@@ -148,9 +148,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MergeRequest'
+              $ref: "#/components/schemas/MergeRequest"
       responses:
-        '200':
+        "200":
           description: Responds with the result of the validation
           content:
             application/json:
@@ -158,21 +158,21 @@ paths:
                 type: array
                 description: A list of merged message objects
                 items:
-                  $ref: '#/components/schemas/MessageObject'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+                  $ref: "#/components/schemas/MessageObject"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
   /status:
     get:
       summary: Queryable message transaction status
@@ -187,12 +187,12 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - $ref: '#/components/parameters/QueryMessageId'
-        - $ref: '#/components/parameters/QueryStatus'
-        - $ref: '#/components/parameters/QueryTag'
-        - $ref: '#/components/parameters/QueryTransactionId'
+        - $ref: "#/components/parameters/QueryMessageId"
+        - $ref: "#/components/parameters/QueryStatus"
+        - $ref: "#/components/parameters/QueryTag"
+        - $ref: "#/components/parameters/QueryTransactionId"
       responses:
-        '200':
+        "200":
           description: Returns the status of message transactions
           content:
             application/json:
@@ -200,20 +200,20 @@ paths:
                 type: array
                 description: A list of message statuses
                 items:
-                  $ref: '#/components/schemas/StatusObject'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+                  $ref: "#/components/schemas/StatusObject"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  '/status/{msgId}':
+                $ref: "#/components/schemas/Error"
+  "/status/{msgId}":
     get:
       summary: Status of a single message
       description: >-
@@ -227,28 +227,28 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - $ref: '#/components/parameters/PathMessageId'
+        - $ref: "#/components/parameters/PathMessageId"
       responses:
-        '200':
+        "200":
           description: Returns the status of the message
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StatusObject'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+                $ref: "#/components/schemas/StatusObject"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
   /cancel:
     delete:
       summary: Cancel multiple delayed messages
@@ -263,12 +263,12 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - $ref: '#/components/parameters/QueryMessageId'
-        - $ref: '#/components/parameters/QueryStatus'
-        - $ref: '#/components/parameters/QueryTag'
-        - $ref: '#/components/parameters/QueryTransactionId'
+        - $ref: "#/components/parameters/QueryMessageId"
+        - $ref: "#/components/parameters/QueryStatus"
+        - $ref: "#/components/parameters/QueryTag"
+        - $ref: "#/components/parameters/QueryTransactionId"
       responses:
-        '202':
+        "202":
           description: Request is acknowledged but not necessarily completed
           headers:
             Content-Location:
@@ -280,19 +280,19 @@ paths:
               schema:
                 type: string
                 format: uri
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-  '/cancel/{msgId}':
+                $ref: "#/components/schemas/Error"
+  "/cancel/{msgId}":
     delete:
       summary: Cancel a single delayed message
       description: >-
@@ -306,9 +306,9 @@ paths:
         - OpenID:
             - EMAILER
       parameters:
-        - $ref: '#/components/parameters/PathMessageId'
+        - $ref: "#/components/parameters/PathMessageId"
       responses:
-        '202':
+        "202":
           description: Request is acknowledged but not necessarily completed
           headers:
             Content-Location:
@@ -319,22 +319,22 @@ paths:
               schema:
                 type: string
                 format: uri
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
         default:
           description: Unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 components:
   parameters:
     PathMessageId:
@@ -397,7 +397,7 @@ components:
       properties:
         content:
           type: string
-          description: 'String, Buffer or a Stream contents for the attachment'
+          description: "String, Buffer or a Stream contents for the attachment"
           example: PGI+SGVsbG8gV29ybGRcITwvYj4=
         contentType:
           type: string
@@ -424,7 +424,7 @@ components:
           example: testfile.txt
     BadRequest:
       allOf:
-        - $ref: '#/components/schemas/Problem'
+        - $ref: "#/components/schemas/Problem"
         - type: object
           properties:
             status:
@@ -432,10 +432,10 @@ components:
             title:
               example: Bad Request
             type:
-              example: 'https://httpstatuses.com/400'
+              example: "https://httpstatuses.com/400"
     Conflict:
       allOf:
-        - $ref: '#/components/schemas/Problem'
+        - $ref: "#/components/schemas/Problem"
         - type: object
           properties:
             status:
@@ -443,7 +443,7 @@ components:
             title:
               example: Conflict
             type:
-              example: 'https://httpstatuses.com/409'
+              example: "https://httpstatuses.com/409"
     ContextObject:
       type: object
       required:
@@ -484,6 +484,19 @@ components:
             Desired UTC time for sending the message. 0 = Queue to send
             immediately
           example: 1570000000
+        encryptionKeys:
+          type: array
+          items:
+            type: string
+          description: >-
+            An optional array of ASCII Armored PGP Public Key Blocks. Newlines
+            must be preserved and encoded as '\n'. Specify multiple key blocks
+            in the array to sign for multiple recipients.
+          example:
+            - >-
+              -----BEGIN PGP PUBLIC KEY
+              BLOCK-----\nPUBLICKEY\nCONTENTS\n-----END PGP PUBLIC KEY
+              BLOCK-----
         tag:
           type: string
           description: A unique string to be associated with the message
@@ -499,7 +512,7 @@ components:
             - baz@gov.bc.ca
     Error:
       allOf:
-        - $ref: '#/components/schemas/Problem'
+        - $ref: "#/components/schemas/Problem"
         - type: object
           properties:
             status:
@@ -507,7 +520,7 @@ components:
             title:
               example: Internal Server Error
             type:
-              example: 'https://httpstatuses.com/500'
+              example: "https://httpstatuses.com/500"
     Health:
       type: object
       required:
@@ -524,8 +537,10 @@ components:
           description: Is the dependency reachable/alive
         info:
           type: string
-          description: Any extra information, generally useful when dependency is unreachable
-          example: 'SMTP Service connected successfully.'
+          description: >-
+            Any extra information, generally useful when dependency is
+            unreachable
+          example: SMTP Service connected successfully.
     MergeRequest:
       type: object
       required:
@@ -539,10 +554,10 @@ components:
           type: array
           description: An array of Attachment objects
           items:
-            $ref: '#/components/schemas/AttachmentObject'
+            $ref: "#/components/schemas/AttachmentObject"
         bodyType:
           type: string
-          description: 'The email body type (html = content with html, text = plaintext)'
+          description: "The email body type (html = content with html, text = plaintext)"
           enum:
             - html
             - text
@@ -553,12 +568,12 @@ components:
             A body template of the message as an Unicode string. Refer to
             https://mozilla.github.io/nunjucks/templating.html for template
             syntax.
-          example: '{{ something.greeting }} {{ something.target }} content'
+          example: "{{ something.greeting }} {{ something.target }} content"
         contexts:
           type: array
           description: An array of context objects
           items:
-            $ref: '#/components/schemas/ContextObject'
+            $ref: "#/components/schemas/ContextObject"
         encoding:
           type: string
           description: >-
@@ -588,14 +603,32 @@ components:
             - high
           default: normal
           example: normal
+        signingKey:
+          type: string
+          description: >-
+            An optional ASCII Armored PGP Private Key Block. Newlines must be
+            preserved and encoded as '\n'. Messages will not be encrypted nor
+            signed unless encryptionKeys attribute is present.
+          example: >-
+            -----BEGIN PGP PRIVATE KEY
+            BLOCK-----\nPRIVATEKEY\nCONTENTS\n-----END PGP PRIVATE KEY
+            BLOCK-----
+        signingKeyPassphrase:
+          type: string
+          description: >-
+            An optional password to decrypt the ASCII Armored PGP Private Key
+            Block specified in signingKey. Newlines must be preserved and
+            encoded as '\n'. Messages will not be encrypted nor signed unless
+            encryptionKeys attribute is present.
+          example: hunter42
         subject:
           type: string
           description: The email subject
-          example: 'Hello {{ someone }}'
+          example: "Hello {{ someone }}"
     MergeResponse:
       type: array
       items:
-        $ref: '#/components/schemas/TransactionResponse'
+        $ref: "#/components/schemas/TransactionResponse"
     MessageAssociation:
       type: object
       required:
@@ -630,7 +663,7 @@ components:
         attachments:
           type: array
           items:
-            $ref: '#/components/schemas/AttachmentObject'
+            $ref: "#/components/schemas/AttachmentObject"
           description: An array of Attachment objects
         bcc:
           type: array
@@ -643,7 +676,7 @@ components:
             - foo@gov.bc.ca
         bodyType:
           type: string
-          description: 'The email body type (html = content with html, text = plaintext)'
+          description: "The email body type (html = content with html, text = plaintext)"
           enum:
             - html
             - text
@@ -679,6 +712,19 @@ components:
             - utf-8
           default: utf-8
           example: utf-8
+        encryptionKeys:
+          type: array
+          items:
+            type: string
+          description: >-
+            An optional array of ASCII Armored PGP Public Key Blocks. Newlines
+            must be preserved and encoded as '\n'. Specify multiple key blocks
+            in the array to sign for multiple recipients.
+          example:
+            - >-
+              -----BEGIN PGP PUBLIC KEY
+              BLOCK-----\nPUBLICKEY\nCONTENTS\n-----END PGP PUBLIC KEY
+              BLOCK-----
         from:
           type: string
           description: >-
@@ -695,6 +741,24 @@ components:
             - low
             - high
           example: normal
+        signingKey:
+          type: string
+          description: >-
+            An optional ASCII Armored PGP Private Key Block. Newlines must be
+            preserved and encoded as '\n'. Messages will not be encrypted nor
+            signed unless encryptionKeys attribute is present.
+          example: >-
+            -----BEGIN PGP PRIVATE KEY
+            BLOCK-----\nPRIVATEKEY\nCONTENTS\n-----END PGP PRIVATE KEY
+            BLOCK-----
+        signingKeyPassphrase:
+          type: string
+          description: >-
+            An optional password to decrypt the ASCII Armored PGP Private Key
+            Block specified in signingKey. Newlines must be preserved and
+            encoded as '\n'. Messages will not be encrypted nor signed unless
+            encryptionKeys attribute is present.
+          example: hunter42
         subject:
           type: string
           description: The email subject
@@ -714,7 +778,7 @@ components:
             - baz@gov.bc.ca
     NotFound:
       allOf:
-        - $ref: '#/components/schemas/Problem'
+        - $ref: "#/components/schemas/Problem"
         - type: object
           properties:
             status:
@@ -722,7 +786,7 @@ components:
             title:
               example: Not Found
             type:
-              example: 'https://httpstatuses.com/404'
+              example: "https://httpstatuses.com/404"
     Problem:
       required:
         - type
@@ -732,10 +796,10 @@ components:
       properties:
         type:
           type: string
-          description: 'What type of problem, link to explanation of problem'
+          description: "What type of problem, link to explanation of problem"
         title:
           type: string
-          description: 'Title of problem, generally the Http Status Code description'
+          description: "Title of problem, generally the Http Status Code description"
         status:
           type: string
           description: The Http Status code
@@ -756,7 +820,7 @@ components:
             type: string
             description: The status message description if applicable
           status:
-            $ref: '#/components/schemas/StatusType'
+            $ref: "#/components/schemas/StatusType"
           timestamp:
             type: integer
             description: The moment in time this log event occured
@@ -788,9 +852,9 @@ components:
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
         status:
-          $ref: '#/components/schemas/StatusType'
+          $ref: "#/components/schemas/StatusType"
         statusHistory:
-          $ref: '#/components/schemas/StatusHistoryObject'
+          $ref: "#/components/schemas/StatusHistoryObject"
         tag:
           type: string
           description: A unique string which is associated with the message
@@ -823,7 +887,7 @@ components:
         messages:
           type: array
           items:
-            $ref: '#/components/schemas/MessageAssociation'
+            $ref: "#/components/schemas/MessageAssociation"
         txId:
           type: string
           description: A corresponding transaction uuid
@@ -831,7 +895,7 @@ components:
           example: 00000000-0000-0000-0000-000000000000
     ValidationError:
       allOf:
-        - $ref: '#/components/schemas/Problem'
+        - $ref: "#/components/schemas/Problem"
         - type: object
           required:
             - errors
@@ -856,26 +920,26 @@ components:
             title:
               example: Unprocessable Entity
             type:
-              example: 'https://httpstatuses.com/422'
+              example: "https://httpstatuses.com/422"
   responses:
     BadRequest:
       description: Request is missing content or is malformed
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/BadRequest'
+            $ref: "#/components/schemas/BadRequest"
     Conflict:
       description: Request conflicts with server state
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Conflict'
+            $ref: "#/components/schemas/Conflict"
     Error:
       description: Unexpected error
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Forbidden:
       description: Lack required role to perform action
     NoContent:
@@ -885,7 +949,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/NotFound'
+            $ref: "#/components/schemas/NotFound"
     UnauthorizedError:
       description: Access token is missing or invalid
     UnprocessableEntity:
@@ -895,4 +959,4 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ValidationError'
+            $ref: "#/components/schemas/ValidationError"
