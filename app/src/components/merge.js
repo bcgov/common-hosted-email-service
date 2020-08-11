@@ -19,6 +19,7 @@ const merge = {
         cc: entry.cc,
         bcc: entry.bcc,
         delayTS: entry.delayTS,
+        encryptionKeys: entry.encryptionKeys,
         subject: merge.renderMerge(subject, entry.context),
         tag: entry.tag,
         to: entry.to
