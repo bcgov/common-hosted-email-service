@@ -5,6 +5,11 @@
     "username": "DB_USERNAME",
     "password": "DB_PASSWORD"
   },
+  "cmnsrv": {
+    "clientId": "CMNSRV_CLIENTID",
+    "clientSecret": "CMNSRV_CLIENTSECRET",
+    "tokenUrl": "CMNSRV_TOKENURL"
+  },
   "keycloak": {
     "clientId": "KC_CLIENTID",
     "clientSecret": "KC_CLIENTSECRET",

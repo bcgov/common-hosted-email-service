@@ -14,6 +14,7 @@
     "test:all": "jest --verbose",
     "test:integration": "jest --verbose --testPathIgnorePatterns unit --collectCoverage false",
     "test:unit": "jest --verbose --testPathIgnorePatterns integration --forceExit --detectOpenHandles --maxWorkers=10",
+    "test:api": "newman run ./src/docs/AUTO.postman_collection.json -e ./src/docs/DEV.postman_environment.json",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
     "posttest": "node ./lcov-fix.js",
@@ -52,6 +53,7 @@
     "eslint": "^7.6.0",
     "jest": "^26.2.2",
     "jest-sonar-reporter": "^2.0.0",
+    "newman": "^5.1.2",
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2"
   },

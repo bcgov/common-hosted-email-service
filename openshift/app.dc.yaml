@@ -169,6 +169,16 @@ objects:
               secretKeyRef:
                 key: password
                 name: redis-${JOB_NAME}-secret
+          - name: CMNSRV_CLIENTID
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: ches-common-service-secret
+          - name: CMNSRV_CLIENTSECRET
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: ches-common-service-secret
           envFrom:
           - configMapRef:
               name: ches-keycloak-config
