@@ -389,8 +389,7 @@ components:
       bearerFormat: JWT
     OpenID:
       type: openIdConnect
-      openIdConnectUrl: >-
-        https://sso.pathfinder.gov.bc.ca/auth/realms/jbd6rnxw/.well-known/openid-configuration
+      openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
   schemas:
     AttachmentObject:
       type: object
