@@ -45,3 +45,13 @@ describe('GET /api/v1/api-spec.yaml', () => {
     expect(response.text).toMatch(/title: Common Hosted Email Service API/);
   });
 });
+
+describe('GET /api/v1/api-spec.json', () => {
+  it('should return the OpenAPI yaml spec', async () => {
+    const response = await request(app).get(`${basePath}/api-spec.json`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.text).toMatch(/"openapi":"3.0.2"/);
+    expect(response.text).toMatch(/"title":"Common Hosted Email Service API"/);
+  });
+});
