@@ -47,6 +47,10 @@ objects:
         ENV NO_UPDATE_NOTIFIER=true
         WORKDIR ${APP_ROOT}
 
+        # Install Git (Needed for OpenPGP)
+        RUN apk --no-cache add git \
+        && rm -rf /var/cache/apk/*
+
         # Install CHES
         COPY . .
         RUN npm ci
