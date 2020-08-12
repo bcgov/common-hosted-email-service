@@ -397,7 +397,7 @@ components:
       bearerFormat: JWT
     OpenID:
       type: openIdConnect
-      openIdConnectUrl: 'https://example.com/.well-known/openid-configuration'
+      openIdConnectUrl: "https://example.com/.well-known/openid-configuration"
   schemas:
     AttachmentObject:
       type: object

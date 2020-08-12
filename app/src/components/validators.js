@@ -152,6 +152,14 @@ const models = {
       return true;
     },
 
+    /** @function encryptionKeys */
+    encryptionKeys: value => {
+      if (value === undefined) return true;
+      return Array.isArray(value) && value.length && value.every(key => {
+        return validatorUtils.isString(key) && new RegExp('-----BEGIN PGP PUBLIC KEY BLOCK-----(?:.|\\n)*-----END PGP PUBLIC KEY BLOCK-----').test(key);
+      });
+    },
+
     /** @function encoding */
     encoding: value => {
       if (value) {
@@ -171,6 +179,12 @@ const models = {
         return validatorUtils.isString(value) && validator.isIn(value, ['normal', 'low', 'high']);
       }
       return true;
+    },
+
+    /** @function signingKey */
+    signingKey: value => {
+      if (value === undefined) return true;
+      return validatorUtils.isString(value) && new RegExp('-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\n)*-----END PGP PRIVATE KEY BLOCK-----').test(value);
     },
 
     /** @function subject */
@@ -274,7 +288,7 @@ const validators = {
   cancelMsg: param => {
     const errors = [];
 
-    if(!param.msgId) {
+    if (!param.msgId) {
       errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
     } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
@@ -330,6 +344,9 @@ const validators = {
               message: `Contexts[${i}] \`context\` is invalid. Names can only contain alphanumeric or underscore characters.`
             });
           }
+          if (!models.message.encryptionKeys(c['encryptionKeys'])) {
+            errors.push({ value: c['encryptionKeys'], message: `Contexts[${i}] invalid value \`encryptionKeys\`.` });
+          }
         });
       }
     } else {
@@ -365,6 +382,12 @@ const validators = {
     if (attachmentErrors) {
       attachmentErrors.forEach(x => errors.push(x));
     }
+    if (!models.message.encryptionKeys(obj['encryptionKeys'])) {
+      errors.push({ value: obj['encryptionKeys'], message: 'Invalid value `encryptionKeys`.' });
+    }
+    if (!models.message.signingKey(obj['signingKey'])) {
+      errors.push({ value: obj['signingKey'], message: 'Invalid value `signingKey`.' });
+    }
 
     return errors;
   },
@@ -387,6 +410,9 @@ const validators = {
     }
     if (!models.message.priority(obj['priority'])) {
       errors.push({ value: obj['priority'], message: 'Invalid value `priority`.' });
+    }
+    if (!models.message.signingKey(obj['signingKey'])) {
+      errors.push({ value: obj['signingKey'], message: 'Invalid value `signingKey`.' });
     }
   },
 
