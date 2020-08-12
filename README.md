@@ -43,7 +43,9 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## License
 
-    Copyright 2019 Province of British Columbia
+Unless otherwise specified, all code in this repository falls under the following license:
+
+    Copyright 2019-2020 Province of British Columbia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -56,3 +58,5 @@ Please note that this project is released with a [Contributor Code of Conduct](C
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+The `nodemailer-openpgp` and `openpgp` library dependencies are licensed under [LGPL-3.0](https://opensource.org/licenses/lgpl-3.0.html).
