@@ -14,7 +14,8 @@ servers:
   - url: /api/v1
     description: This Server
 security:
-  - OpenID: []
+  - BearerAuth: []
+    OpenID: []
 paths:
   /health:
     get:
@@ -61,7 +62,8 @@ paths:
       tags:
         - Email
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       requestBody:
         description: Fields required to perform a mail merge and send
@@ -103,7 +105,8 @@ paths:
       tags:
         - EmailMerge
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       requestBody:
         description: Fields required to perform a mail merge and send
@@ -140,7 +143,8 @@ paths:
       tags:
         - EmailMerge
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       requestBody:
         description: Fields required to perform a mail merge and send
@@ -184,7 +188,8 @@ paths:
       tags:
         - Message
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       parameters:
         - $ref: "#/components/parameters/QueryMessageId"
@@ -224,7 +229,8 @@ paths:
       tags:
         - Message
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       parameters:
         - $ref: "#/components/parameters/PathMessageId"
@@ -260,7 +266,8 @@ paths:
       tags:
         - Message
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       parameters:
         - $ref: "#/components/parameters/QueryMessageId"
@@ -303,7 +310,8 @@ paths:
       tags:
         - Message
       security:
-        - OpenID:
+        - BearerAuth: []
+          OpenID:
             - EMAILER
       parameters:
         - $ref: "#/components/parameters/PathMessageId"
@@ -492,10 +500,11 @@ components:
             must be preserved and encoded as '\n'. Specify multiple key blocks
             in the array to sign for multiple recipients.
           example:
-            - >-
-              -----BEGIN PGP PUBLIC KEY
-              BLOCK-----\nPUBLICKEY\nCONTENTS\n-----END PGP PUBLIC KEY
-              BLOCK-----
+            - |-
+              -----BEGIN PGP PUBLIC KEY BLOCK-----
+              PUBLICKEY
+              CONTENTS
+              -----END PGP PUBLIC KEY BLOCK-----
         tag:
           type: string
           description: A unique string to be associated with the message
@@ -608,10 +617,11 @@ components:
             An optional ASCII Armored PGP Private Key Block. Newlines must be
             preserved and encoded as '\n'. Messages will not be encrypted nor
             signed unless encryptionKeys attribute is present.
-          example: >-
-            -----BEGIN PGP PRIVATE KEY
-            BLOCK-----\nPRIVATEKEY\nCONTENTS\n-----END PGP PRIVATE KEY
-            BLOCK-----
+          example: |-
+            -----BEGIN PGP PRIVATE KEY BLOCK-----
+            PRIVATEKEY
+            CONTENTS
+            -----END PGP PRIVATE KEY BLOCK-----
         signingKeyPassphrase:
           type: string
           description: >-
@@ -720,10 +730,11 @@ components:
             must be preserved and encoded as '\n'. Specify multiple key blocks
             in the array to sign for multiple recipients.
           example:
-            - >-
-              -----BEGIN PGP PUBLIC KEY
-              BLOCK-----\nPUBLICKEY\nCONTENTS\n-----END PGP PUBLIC KEY
-              BLOCK-----
+            - |-
+              -----BEGIN PGP PUBLIC KEY BLOCK-----
+              PUBLICKEY
+              CONTENTS
+              -----END PGP PUBLIC KEY BLOCK-----
         from:
           type: string
           description: >-
@@ -746,10 +757,11 @@ components:
             An optional ASCII Armored PGP Private Key Block. Newlines must be
             preserved and encoded as '\n'. Messages will not be encrypted nor
             signed unless encryptionKeys attribute is present.
-          example: >-
-            -----BEGIN PGP PRIVATE KEY
-            BLOCK-----\nPRIVATEKEY\nCONTENTS\n-----END PGP PRIVATE KEY
-            BLOCK-----
+          example: |-
+            -----BEGIN PGP PRIVATE KEY BLOCK-----
+            PRIVATEKEY
+            CONTENTS
+            -----END PGP PRIVATE KEY BLOCK-----
         signingKeyPassphrase:
           type: string
           description: >-
