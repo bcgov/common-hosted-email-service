@@ -492,7 +492,7 @@ describe('models.context.tag', () => {
 
 });
 
-describe('models.contexts.to', () => {
+describe('models.context.to', () => {
 
   it('should return false for undefined', () => {
     const list = undefined;
@@ -749,6 +749,44 @@ describe('models.message.delayTS', () => {
   });
 });
 
+describe('models.message.encryptionKeys', () => {
+  it('should return true when undefined', () => {
+    const value = undefined;
+    const result = models.message.encryptionKeys(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false when not an array', () => {
+    const value = 'string';
+    const result = models.message.encryptionKeys(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false when empty array', () => {
+    const value = [];
+    const result = models.message.encryptionKeys(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false when elements are not strings', () => {
+    const value = [1];
+    const result = models.message.encryptionKeys(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false when not all elements are valid public key blocks', () => {
+    const value = ['-----BEGIN PGP PUBLIC KEY BLOCK-----\nFOO\n-----END PGP PUBLIC KEY BLOCK-----', '-----BEGIN PGP PRIVATE KEY BLOCK-----\nBAR\n-----END PGP PRIVATE KEY BLOCK-----'];
+    const result = models.message.encryptionKeys(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return true when all elements are valid key blocks', () => {
+    const value = ['-----BEGIN PGP PUBLIC KEY BLOCK-----\nFOO\n-----END PGP PUBLIC KEY BLOCK-----', '-----BEGIN PGP PUBLIC KEY BLOCK-----\nBAR\n-----END PGP PUBLIC KEY BLOCK-----'];
+    const result = models.message.encryptionKeys(value);
+    expect(result).toBeTruthy();
+  });
+});
+
 describe('models.message.encoding', () => {
 
   it('should return true for "base64"', () => {
@@ -909,6 +947,32 @@ describe('models.message.priority', () => {
     expect(result).toBeFalsy();
   });
 
+});
+
+describe('models.message.signingKey', () => {
+  it('should return true when undefined', () => {
+    const value = undefined;
+    const result = models.message.signingKey(value);
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false when not a string', () => {
+    const value = 1;
+    const result = models.message.signingKey(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false when invalid private key block', () => {
+    const value = '-----BEGIN PGP PUBLIC KEY BLOCK-----\nFOO\n-----END PGP PUBLIC KEY BLOCK-----';
+    const result = models.message.signingKey(value);
+    expect(result).toBeFalsy();
+  });
+
+  it('should return true when valid private key block', () => {
+    const value = '-----BEGIN PGP PRIVATE KEY BLOCK-----\nFOO\n-----END PGP PRIVATE KEY BLOCK-----';
+    const result = models.message.signingKey(value);
+    expect(result).toBeTruthy();
+  });
 });
 
 describe('models.message.subject', () => {
@@ -1428,7 +1492,7 @@ describe('validators.email', () => {
     subject: 'Email subject',
     bodyType: 'text',
     body: 'This is the email body.  It is plain text',
-    delayTS: 1570000,
+    delayTS: 1570000000,
     encoding: 'utf-8',
     priority: 'normal',
     tag: 'this is a good tag',
@@ -1438,8 +1502,13 @@ describe('validators.email', () => {
         encoding: 'base64',
         contentType: 'application/pdf',
         content: realSmallFile.content
-      }]
+      }
+    ],
+    encryptionKeys: ['-----BEGIN PGP PUBLIC KEY BLOCK-----\nFOO\n-----END PGP PUBLIC KEY BLOCK-----'],
+    signingKey: '-----BEGIN PGP PRIVATE KEY BLOCK-----\nFOO\n-----END PGP PRIVATE KEY BLOCK-----',
+    signingKeyPassphrase: 'password'
   };
+
 
   it('should return empty error list for a complete and valid email message', async () => {
     const obj = { ...goodEmail };
@@ -1627,48 +1696,65 @@ describe('validators.email', () => {
     expect(result[0].message).toMatch(/delayTS/);
   });
 
+  it('should return an error when invalid encryptionKey', async () => {
+    const obj = { ...goodEmail };
+    obj.encryptionKeys = ['not a good key'];
+    const result = await validators.email(obj);
+    expect(result).toHaveLength(1);
+    expect(result[0].message).toMatch(/encryptionKeys/);
+  });
+
+  it('should return an error when invalid signingKey', async () => {
+    const obj = { ...goodEmail };
+    obj.signingKey = 'not a good key';
+    const result = await validators.email(obj);
+    expect(result).toHaveLength(1);
+    expect(result[0].message).toMatch(/signingKey/);
+  });
+
 });
 
 describe('validators.merge', () => {
 
-  const goodMergeObject = () => {
-    return {
-      attachments: [
-        {
-          filename: 'fileOk.pdf',
-          encoding: 'base64',
-          contentType: 'application/pdf',
-          content: realSmallFile.content
-        }],
-      bodyType: 'text',
-      body: 'This is the email body.  It is plain text',
-      contexts: [
-        {
-          to: ['"Email Recipient" <email@recipient.org>', 'recipient@email.org'],
-          cc: ['"CC Recipient" <cc@recipient.org>'],
-          bcc: ['"BCC Recipient" <cc@recipient.org>'],
-          context: {
-            keyA: 'valueA',
-            keyB: 'valueB',
-            stringArray: ['a', 'b', 'c'],
-            intArray: [1, 2, 3],
-            objArray: [{ a: 1, b: 2, c: 3 }],
-            subObject: {
-              a: 1,
-              b: 2,
-              c: '3'
-            }
-          },
-          delayTS: 157000,
-          tag: 'this is a good tag'
-        }
-      ],
-      encoding: 'utf-8',
-      from: '"Email Sender" <email@sender.org>',
-      priority: 'normal',
-      subject: 'Email subject'
-    };
-  };
+  const goodMergeObject = () => ({
+    attachments: [
+      {
+        filename: 'fileOk.pdf',
+        encoding: 'base64',
+        contentType: 'application/pdf',
+        content: realSmallFile.content
+      }],
+    bodyType: 'text',
+    body: 'This is the email body.  It is plain text',
+    contexts: [
+      {
+        to: ['"Email Recipient" <email@recipient.org>', 'recipient@email.org'],
+        cc: ['"CC Recipient" <cc@recipient.org>'],
+        bcc: ['"BCC Recipient" <cc@recipient.org>'],
+        context: {
+          keyA: 'valueA',
+          keyB: 'valueB',
+          stringArray: ['a', 'b', 'c'],
+          intArray: [1, 2, 3],
+          objArray: [{ a: 1, b: 2, c: 3 }],
+          subObject: {
+            a: 1,
+            b: 2,
+            c: '3'
+          }
+        },
+        delayTS: 157000,
+        tag: 'this is a good tag',
+        encryptionKeys: ['-----BEGIN PGP PUBLIC KEY BLOCK-----\nFOO\n-----END PGP PUBLIC KEY BLOCK-----']
+      }
+    ],
+    encoding: 'utf-8',
+    from: '"Email Sender" <email@sender.org>',
+    priority: 'normal',
+    subject: 'Email subject',
+    signingKey: '-----BEGIN PGP PRIVATE KEY BLOCK-----\nFOO\n-----END PGP PRIVATE KEY BLOCK-----',
+    signingKeyPassphrase: 'password'
+  });
 
   it('should return empty error list for a complete and valid merge message', async () => {
     const obj = goodMergeObject();
@@ -1905,6 +1991,22 @@ describe('validators.merge', () => {
     expect(result).toHaveLength(1);
     expect(result[0].message).toMatch(/Contexts/);
     expect(result[0].message).toMatch(/alphanumeric/);
+  });
+
+  it('should return an error when invalid encryptionKey', async () => {
+    const obj = goodMergeObject();
+    obj.contexts[0].encryptionKeys = ['not a good key'];
+    const result = await validators.merge(obj);
+    expect(result).toHaveLength(1);
+    expect(result[0].message).toMatch(/encryptionKeys/);
+  });
+
+  it('should return an error when invalid signingKey', async () => {
+    const obj = goodMergeObject();
+    obj.signingKey = 'not a good key';
+    const result = await validators.merge(obj);
+    expect(result).toHaveLength(1);
+    expect(result[0].message).toMatch(/signingKey/);
   });
 
 });

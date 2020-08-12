@@ -385,9 +385,6 @@ const validators = {
     if (!models.message.encryptionKeys(obj['encryptionKeys'])) {
       errors.push({ value: obj['encryptionKeys'], message: 'Invalid value `encryptionKeys`.' });
     }
-    if (!models.message.signingKey(obj['signingKey'])) {
-      errors.push({ value: obj['signingKey'], message: 'Invalid value `signingKey`.' });
-    }
 
     return errors;
   },
