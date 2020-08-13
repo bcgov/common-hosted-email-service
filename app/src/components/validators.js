@@ -156,7 +156,7 @@ const models = {
     encryptionKeys: value => {
       if (value === undefined) return true;
       return Array.isArray(value) && value.length && value.every(key => {
-        return validatorUtils.isString(key) && new RegExp('-----BEGIN PGP PUBLIC KEY BLOCK-----(?:.|\\n)*-----END PGP PUBLIC KEY BLOCK-----').test(key);
+        return validatorUtils.isString(key) && new RegExp('-----BEGIN PGP PUBLIC KEY BLOCK-----(?:.|\\n)+-----END PGP PUBLIC KEY BLOCK-----(?:\\n)*').test(key);
       });
     },
 
@@ -184,7 +184,7 @@ const models = {
     /** @function signingKey */
     signingKey: value => {
       if (value === undefined) return true;
-      return validatorUtils.isString(value) && new RegExp('-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\n)*-----END PGP PRIVATE KEY BLOCK-----').test(value);
+      return validatorUtils.isString(value) && new RegExp('-----BEGIN PGP PRIVATE KEY BLOCK-----(?:.|\\n)+-----END PGP PRIVATE KEY BLOCK-----(?:\\n)*').test(value);
     },
 
     /** @function subject */
