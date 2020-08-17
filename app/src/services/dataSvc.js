@@ -10,7 +10,6 @@
  * @exports DataService
  */
 const log = require('npmlog');
-const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuid = require('uuid');
 
