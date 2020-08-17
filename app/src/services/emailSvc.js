@@ -67,6 +67,7 @@ class EmailService {
 
       // Add PGP Encryption stream plugin if necessary
       if (envelope.encryptionKeys) {
+        log.debug('sendMail', 'Enabling PGP stream encryption');
         mailer.use('stream', openpgpEncrypt({
           signingKey: [envelope.signingKey],
           passphrase: envelope.signingKeyPassphrase
