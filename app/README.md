@@ -53,6 +53,7 @@ In order for the application to run correctly, you will need to ensure that the 
 1. All node dependencies have been installed and resolved
 2. You have a Redis-compatible memory store available to connect to.
 3. Environment configurations have been set up
+4. You have a 'ches' psql database to connect to
 
 ### Installation
 
@@ -109,6 +110,16 @@ For more details, please consult the config library [documentation](https://gith
 | `SERVER_MORGANFORMAT` | Morgan format style. Options: `dev`, `combined` |
 | `SERVER_PORT` | Port server is listening to |
 | `SERVER_SMTPHOST` | The SMTP server this app will leerage |
+
+#### Database Connection
+
+The CHES API requires a postgres database
+First create an empty database  named 'ches' (your db connection parameters go in your local.json config file)
+Then can create the db schema by running fron the /app directory:
+
+``` sh
+npm run migrate
+```
 
 ## Commands
 
