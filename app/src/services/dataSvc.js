@@ -10,7 +10,6 @@
  * @exports DataService
  */
 const log = require('npmlog');
-const { Model } = require('objection');
 const { transaction } = require('objection');
 const uuid = require('uuid');
 
@@ -226,11 +225,8 @@ class DataService {
     return Message.query()
       .findById(messageId)
       .whereIn('transactionId', getClientTrxnQuery(client))
-      .eagerAlgorithm(Model.JoinEagerAlgorithm)
-      .eager({
-        statusHistory: true
-      })
-      .modifyEager('statusHistory', builder => {
+      .withGraphJoined('statusHistory')
+      .modifyGraph('statusHistory', builder => {
         builder.orderBy('createdAt', 'desc');
       })
       .throwIfNotFound();
@@ -249,13 +245,8 @@ class DataService {
     return Trxn.query()
       .findById(transactionId)
       .where('client', client)
-      .eagerAlgorithm(Model.JoinEagerAlgorithm)
-      .eager({
-        messages: {
-          statusHistory: true
-        }
-      })
-      .modifyEager('messages.statusHistory', builder => {
+      .withGraphJoined('messages.statusHistory')
+      .modifyGraph('messages.statusHistory', builder => {
         builder.orderBy('createdAt', 'desc');
       })
       .throwIfNotFound();
