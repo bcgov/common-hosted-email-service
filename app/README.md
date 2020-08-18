@@ -18,6 +18,8 @@ Authentication & Password Management
 
 * `keycloak-connect` - Keycloak Node.js adapter ([npm](https://www.npmjs.com/package/keycloak-connect))
 * `openpgp` - OpenPGP library ([npm](https://www.npmjs.com/package/openpgp), LGPL-3.0)
+  * Advisory: The current version of OpenPGP implemented has three known security vulnerabilities, mostly related to key and signature verification. ([NPM-1159](https://www.npmjs.com/advisories/1159), [NPM-1160](https://www.npmjs.com/advisories/1160), [NPM-1161](https://www.npmjs.com/advisories/1161)).
+  * Note: We will be addressing these vulnerabilities in a future release of CHES. However, we believe the risk of leveraging PGP features currently is relatively low because CHES only leverages the generation of PGP encrypted and signed payloads, and not the verification of PGP content.
 
 Networking
 
