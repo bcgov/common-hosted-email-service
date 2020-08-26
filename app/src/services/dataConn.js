@@ -72,13 +72,15 @@ class DataConnection {
   /**
    *  @function checkConnection
    *  Checks the current knex connection to Postgres
+   *  If the connected DB is in read-only mode, transaction_read_only will not be off
    *  @returns {boolean} True if successful, otherwise false
    */
   async checkConnection() {
     try {
-      const data = await this._knex.raw('SELECT 1+1 AS result');
-      const result = data && data.rows && data.rows[0].result === 2;
+      const data = await this.knex.raw('show transaction_read_only');
+      const result = data && data.rows && data.rows[0].transaction_read_only === 'off';
       if (result) log.verbose('DataConnection.checkConnection', 'Database connection ok');
+      else log.warn('DataConnection.checkConnection', 'Database connection is read-only');
       return result;
     } catch (err) {
       log.error('DataConnection.checkConnection', `Error with database connection: ${err.message}`);
