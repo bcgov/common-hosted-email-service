@@ -1,0 +1,1289 @@
+{
+	"info": {
+		"_postman_id": "d0d8c79a-3580-470c-b2ca-e5c2fa2c05e6",
+		"name": "CHES - Hosted Email Service",
+		"description": "# Common Services - APIs\nThis Postman collection demonstrates the APIs available to you with your Common Services client.  \n\n## Services\nPlease review the API documents before proceeding. The more familiar you are with the API calls, the more useful you will find the examples in this collection.  \n\n### CHES\nThe CHES API is capable of doing the following:\n\n* Send emails with attachments and special business tagging. \n* Schedule for delayed delivery, with ability to cancel. \n* Create bulk email merge with your own templates.  \n* Send plain text or HTML emails. \n* Track the status of your request. \n\nReview the v1 API specification [here](https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs).  \n\nSee Showcase application [here](https://mssc.pathfinder.gov.bc.ca/mssc/).  \n\n## Setup\nYou will need to set the [collection variables](https://learning.postman.com/docs/postman/collections/intro-to-collections/), or run the tests with an [environment](https://learning.postman.com/docs/postman/variables-and-environments/managing-environments/) that configures the following:  \n\n| Name | Description |\n| --- | --- |\n| auth\\_host | Host for authentication service to get client token |\n| ches\\_host | Host for CHES Service |\n| service\\_client\\_id | Set this to *YOUR* client id from GETOK |\n| service\\_client\\_secret | Set this to *YOUR* client secret from GETOK |\n| email\\_to | Set this to *YOUR* email, you will get emails from CHES |\n\n  \n\n### Environments \nBy default, the hosts are set to the DEV environment.\n\n| DEV | URL |\n| --- | --- |\n| auth\\_host | https://sso-dev.pathfinder.gov.bc.ca |\n| ches\\_host | https://ches-master-9f0fbe-dev.pathfinder.gov.bc.ca |\n\n| TEST | URL |\n| --- | --- |\n| auth\\_host | https://sso-test.pathfinder.gov.bc.ca |\n| ches\\_host | https://ches-master-9f0fbe-test.pathfinder.gov.bc.ca |\n\n| PROD | URL |\n| --- | --- |\n| auth\\_host | https://sso-prod.pathfinder.gov.bc.ca |\n| ches\\_host | https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca |\n\n## Overview\nOnce you have set the host and client id/secret variables, you can begin running the API calls. The order of the calls is very important, as each call will set variables that are used in subsequent calls. In particular, you will always want to run \"Request a Token\" first.  If you encounter any 401 responses, try getting a new token.  \n\nEach of the calls has a test (ensuring an expected response, checking headers, response values, etc.). Feel free to familiarize yourself with [tests and scripts](https://learning.postman.com/docs/postman/scripts/intro-to-scripts/). There is code in some Pre-request Scripts and Tests.  For example, setting the delayTS variable for delayed emails is done in a Pre-request Script. All ids used for getting or deleting a particular resource are done in Test scripts (read value, set a collection variable for next test).  \n\n\n### Run the collection\nUse the [collection runner](https://learning.postman.com/docs/postman/collection-runs/intro-to-collection-runs/) to completely smoke test your credentials and the Common Services environments.\n\n\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Request a Token",
+			"item": [
+				{
+					"name": "Request a Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bbcccad7-c3bf-44b8-a9b3-73d4889a8709",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('access_token');",
+									"    pm.collectionVariables.set('access_token', jsonData.access_token);",
+									"    pm.collectionVariables.set('session_tag', jsonData.session_state.substring(0,8));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{service_client_secret}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{service_client_id}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								}
+							],
+							"options": {
+								"urlencoded": {}
+							}
+						},
+						"url": {
+							"raw": "{{auth_host}}/auth/realms/jbd6rnxw/protocol/openid-connect/token",
+							"host": [
+								"{{auth_host}}"
+							],
+							"path": [
+								"auth",
+								"realms",
+								"jbd6rnxw",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						},
+						"description": "This request will get an OAuth Access Token that is required for calls to the Common Services API's.\n\nThe reponse from this request (the Access Token) can be attached to the top level 'Common Services' collection and then 'Inherited from parent' by the requests contained inside it."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "V1",
+			"item": [
+				{
+					"name": "health check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "262bfee2-8593-4998-b5c5-7f6fd21c8778",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('dependencies');",
+									"    pm.expect(jsonData.dependencies).to.have.length(3);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/health",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send email message",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "1c992af3-730f-4221-99ac-d317b350ab4c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "c8c63ace-6798-4036-933c-d86e32790c4f",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('txId');",
+									"    pm.expect(jsonData).to.have.property('messages');",
+									"    pm.expect(jsonData.messages).to.have.length(1);",
+									"    pm.expect(jsonData.messages[0]).to.have.property('to');",
+									"    pm.expect(jsonData.messages[0].to[0]).to.eql(pm.variables.get('email_to'));",
+									"    pm.collectionVariables.set('email_msg_id', jsonData.messages[0].msgId);",
+									"    pm.collectionVariables.set('email_tx_id', jsonData.txId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bcc\": [],\n  \"bodyType\": \"html\",\n  \"body\": \"<h1>Welcome to Common Services</h1><p>Sent by <a href='https://bcgov.github.io/common-hosted-email-service/'>CHES</a></p>\",\n  \"cc\": [],\n  \"delayTS\": 0,\n  \"encoding\": \"utf-8\",\n  \"from\": \"{{email_to}}\",\n  \"priority\": \"normal\",\n  \"subject\": \"CHES Email Message\",\n  \"to\": [\"{{email_to}}\"],\n  \"tag\": \"email_{{session_tag}}\",\n  \"attachments\": [\n    {\n      \"content\": \"IyBDb21tb24gSG9zdGVkIEVtYWlsIFNlcnZpY2UKTmVlZCB0byBzZW5kIGVtYWlscz8gTmVlZCB0byBzZW5kIGJ1bGsgZW1haWxzPyBOZWVkIHRvIHNlbmQgdGVtcGxhdGVkIG1lc3NhZ2VzIHBvcHVsYXRlZCBmcm9tIGEgZGF0YXNldD8gTmVlZCB0byBzY2hlZHVsZSBkZWxpdmVyeSBvZiBlbWFpbHM/ICAKClRoZSBDSEVTIEFQSSBpcyBjYXBhYmxlIG9mIGRvaW5nIHRoZSBmb2xsb3dpbmc6CgoqIFNlbmQgZW1haWxzIHdpdGggYXR0YWNobWVudHMgYW5kIHNwZWNpYWwgYnVzaW5lc3MgdGFnZ2luZy4gCiogU2NoZWR1bGUgZm9yIGRlbGF5ZWQgZGVsaXZlcnksIHdpdGggYWJpbGl0eSB0byBjYW5jZWwuIAoqIENyZWF0ZSBidWxrIGVtYWlsIG1lcmdlIHdpdGggeW91ciBvd24gdGVtcGxhdGVzLiAgCiogU2VuZCBwbGFpbiB0ZXh0IG9yIEhUTUwgZW1haWxzLiAKKiBUcmFjayB0aGUgc3RhdHVzIG9mIHlvdXIgcmVxdWVzdC4gCgpSZXZpZXcgdGhlIHYxIEFQSSBzcGVjaWZpY2F0aW9uIFtoZXJlXShodHRwczovL2NoZXMtbWFzdGVyLTlmMGZiZS1wcm9kLnBhdGhmaW5kZXIuZ292LmJjLmNhL2FwaS92MS9kb2NzKS4gIAoKU2VlIFNob3djYXNlIGFwcGxpY2F0aW9uIFtoZXJlXShodHRwczovL21zc2MucGF0aGZpbmRlci5nb3YuYmMuY2EvbXNzYy8pLiAgCgpTZWUgc291cmNlIGNvZGUgW2hlcmVdKGh0dHBzOi8vZ2l0aHViLmNvbS9iY2dvdi9jb21tb24taG9zdGVkLWVtYWlsLXNlcnZpY2UpLiAgCgpNb3JlIGluZm9ybWF0aW9uIFtoZXJlXShodHRwczovL2JjZ292LmdpdGh1Yi5pby9jb21tb24taG9zdGVkLWVtYWlsLXNlcnZpY2UvKS4gIAoKIyBDb21tb24gRG9jdW1lbnQgR2VuZXJhdGlvbiBTZXJ2aWNlCkxldmVyYWdlIHlvdXIgc3RydWN0dXJlZCBkYXRhc2V0cyBhbmQgeW91ciBidXNpbmVzcyB0ZW1wbGF0ZXMgdG8gYXV0b21hdGljYWxseSBwb3B1bGF0ZSBwcmludGFibGUgZG9jdW1lbnRzLCBzcHJlYWRzaGVldHMsIHByZXNlbnRhdGlvbnMsIG9yIFBERnMgdXNpbmcgdGhlIENvbW1vbiBEb2N1bWVudCBHZW5lcmF0aW9uIFNlcnZpY2UuICAKClRoZSBBUEkgY2FuIGdlbmVyYXRlIGFueSBQREYgb3IgWE1MLWJhc2VkIGRvY3VtZW50cyBzdWNoIGFzIGRvY3gsIHhsc3gsIHBwdHgsIG9kdCwgb2RzLCBvZHAsIGFuZCBodG1sLiBFeGFtcGxlcyBvZiBYTUwtYmFzZWQgZWRpdG9ycyBpbmNsdWRlIE1pY3Jvc29mdCBPZmZpY2XihKIsIExpYnJlT2ZmaWNl4oSiIG9yIE9wZW5PZmZpY2XihKIuCgpUaGUgQ0RPR1MgQVBJIGlzIGNhcGFibGUgb2YgZG9pbmcgdGhlIGZvbGxvd2luZzoKCiogTWVyZ2UgY29tcGxleCBkYXRhc2V0cyBpbnRvIGRvY3VtZW50IHRlbXBsYXRlcy4gCiogU3VwcG9ydHMgYW55IFhNTC1iYXNlZCBkb2N1bWVudCB0ZW1wbGF0ZXMgaW5jbHVkaW5nIGJ1dCBub3QgbGltaXRlZCB0byBNaWNyb3NvZnQgT2ZmaWNl4oSiLCBMaWJyZU9mZmljZeKEoiBvciBPcGVuT2ZmaWNl4oSiLiAKKiBSaWNoIHRlbXBsYXRpbmcgbGlicmFyeSBzdXBwb3J0IGxldmVyYWdpbmcgdGhlIENhcmJvbmUgSlMgbGlicmFyeS4gCgpSZXZpZXcgdGhlIHYxIEFQSSBzcGVjaWZpY2F0aW9uIFtoZXJlXShodHRwczovL2Nkb2dzLW1hc3Rlci1pZGNxdmwtcHJvZC5wYXRoZmluZGVyLmdvdi5iYy5jYS9hcGkvdjEvZG9jcyN0YWcvRG9jR2VuKS4gIAoKUmV2aWV3IHRoZSB2MiBBUEkgc3BlY2lmaWNhdGlvbiBbaGVyZV0oaHR0cHM6Ly9jZG9ncy1tYXN0ZXItaWRjcXZsLXByb2QucGF0aGZpbmRlci5nb3YuYmMuY2EvYXBpL3YyL2RvY3MjdGFnL0RvY0dlbikuICAKClNlZSBTaG93Y2FzZSBhcHBsaWNhdGlvbiBbaGVyZV0oaHR0cHM6Ly9kZ3JzYy5wYXRoZmluZGVyLmdvdi5iYy5jYS9kZ3JzYy8pLiAgCgpTZWUgc291cmNlIGNvZGUgW2hlcmVdKGh0dHBzOi8vZ2l0aHViLmNvbS9iY2dvdi9jb21tb24tZG9jdW1lbnQtZ2VuZXJhdGlvbi1zZXJ2aWNlKS4gIAoKTW9yZSBpbmZvcm1hdGlvbiBbaGVyZV0oaHR0cHM6Ly9iY2dvdi5naXRodWIuaW8vY29tbW9uLWRvY3VtZW50LWdlbmVyYXRpb24tc2VydmljZS8pLiAgCgoKIyMjIyBDb21tb24gU2VydmljZXMgU2hvd2Nhc2UKVmlzaXQgW0NvbW1vbiBTZXJ2aWNlcyBTaG93Y2FzZV0oaHR0cHM6Ly9iY2dvdi5naXRodWIuaW8vY29tbW9uLXNlcnZpY2Utc2hvd2Nhc2UvKSBmb3IgbW9yZSBpbmZvcm1hdGlvbjsgaW5jbHVkaW5nIGhvdyB0byBnZXQgYWNjZXNzIHRvIGNvbW1vbiBzZXJ2aWNlcy4gICA=\",\n      \"contentType\": \"text/markdown\",\n      \"encoding\": \"base64\",\n      \"filename\": \"readme.md\"\n    }\n  ]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ches_host}}/api/v1/email",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"email"
+							],
+							"query": [
+								{
+									"key": "devMode",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status history of message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30bf38e9-187b-4946-a7ed-5fd878259dea",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('txId');",
+									"    pm.expect(jsonData).to.have.property('msgId');",
+									"    pm.expect(jsonData).to.have.property('txId',pm.collectionVariables.get('email_tx_id'));",
+									"    pm.expect(jsonData).to.have.property('msgId', pm.collectionVariables.get('email_msg_id'));",
+									"    pm.expect(jsonData).to.have.property('statusHistory');",
+									"    pm.expect(jsonData.statusHistory).to.have.lengthOf.at.least(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status/{{email_msg_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status",
+								"{{email_msg_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status by transaction id (txId)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "eab2e6aa-2a79-4ada-81ba-2b9a91785808",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.lengthOf(1);",
+									"    pm.expect(jsonData[0]).to.have.property('txId',pm.collectionVariables.get('email_tx_id'));",
+									"    pm.expect(jsonData[0]).to.have.property('msgId', pm.collectionVariables.get('email_msg_id'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status?txId={{email_tx_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "txId",
+									"value": "{{email_tx_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status by message id (msgId)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f19b4b5-ec91-4c0a-8284-9bfa6d9f9853",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.lengthOf(1);",
+									"    pm.expect(jsonData[0]).to.have.property('txId',pm.collectionVariables.get('email_tx_id'));",
+									"    pm.expect(jsonData[0]).to.have.property('msgId', pm.collectionVariables.get('email_msg_id'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status?msgId={{email_msg_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "msgId",
+									"value": "{{email_msg_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status by tag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "59489b2c-b306-4a0f-8264-476697126abe",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.length.of.at.least(1);",
+									"    pm.expect(jsonData.some(x => x.txId === pm.collectionVariables.get('email_tx_id')));",
+									"    pm.expect(jsonData.some(x => x.msgId === pm.collectionVariables.get('email_msg_id')));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status?tag=email_{{session_tag}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "email_{{session_tag}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send email merge (bulk emails)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "900c6340-bf92-4650-9ac1-32fd59ca57ed",
+								"exec": [
+									"var d = new Date();",
+									"var delayTS = d.setMinutes(d.getMinutes() + 2);",
+									"pm.variables.set('delay_ts', delayTS);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "9143a77e-e294-49ed-a5b6-d191575cc677",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('txId');",
+									"    pm.expect(jsonData).to.have.property('messages');",
+									"    pm.expect(jsonData.messages).to.have.length(2);",
+									"    pm.expect(jsonData.messages.every(x => x.to === pm.variables.get('email_to')));",
+									"    pm.collectionVariables.set('merge_msg_id', jsonData.messages[0].msgId);",
+									"    pm.collectionVariables.set('merge_tx_id', jsonData.txId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bodyType\": \"text\",\n  \"body\": \"Hello from CHES. The following is filled in by during the merge: {{ hello }}\",\n  \"contexts\": [\n    {\n      \"to\": [\"{{email_to}}\"],\n      \"context\": {\n        \"orange\": {\n          \"target\": \"delay\"\n        },\n        \"hello\": \"This message was sent with a 2 minute delay.\"\n      },\n      \"delayTS\": {{delay_ts}},\n      \"tag\": \"merge_{{session_tag}}\"\n    },\n    {\n      \"to\": [\"{{email_to}}\"],\n      \"context\": {\n        \"orange\": {\n          \"target\": \"immediate\"\n        },\n        \"hello\": \"This message was sent immediately.\"\n      },\n      \"delayTS\": 0,\n      \"tag\": \"merge_{{session_tag}}\"\n    }\n  ],\n  \"encoding\": \"utf-8\",\n  \"from\": \"{{email_to}}\",\n  \"priority\": \"normal\",\n  \"subject\": \"CHES Email Merge {{ orange.target }}\",\n  \"attachments\": [\n    {\n      \"content\": \"IyBDb21tb24gSG9zdGVkIEVtYWlsIFNlcnZpY2UKTmVlZCB0byBzZW5kIGVtYWlscz8gTmVlZCB0byBzZW5kIGJ1bGsgZW1haWxzPyBOZWVkIHRvIHNlbmQgdGVtcGxhdGVkIG1lc3NhZ2VzIHBvcHVsYXRlZCBmcm9tIGEgZGF0YXNldD8gTmVlZCB0byBzY2hlZHVsZSBkZWxpdmVyeSBvZiBlbWFpbHM/ICAKClRoZSBDSEVTIEFQSSBpcyBjYXBhYmxlIG9mIGRvaW5nIHRoZSBmb2xsb3dpbmc6CgoqIFNlbmQgZW1haWxzIHdpdGggYXR0YWNobWVudHMgYW5kIHNwZWNpYWwgYnVzaW5lc3MgdGFnZ2luZy4gCiogU2NoZWR1bGUgZm9yIGRlbGF5ZWQgZGVsaXZlcnksIHdpdGggYWJpbGl0eSB0byBjYW5jZWwuIAoqIENyZWF0ZSBidWxrIGVtYWlsIG1lcmdlIHdpdGggeW91ciBvd24gdGVtcGxhdGVzLiAgCiogU2VuZCBwbGFpbiB0ZXh0IG9yIEhUTUwgZW1haWxzLiAKKiBUcmFjayB0aGUgc3RhdHVzIG9mIHlvdXIgcmVxdWVzdC4gCgpSZXZpZXcgdGhlIHYxIEFQSSBzcGVjaWZpY2F0aW9uIFtoZXJlXShodHRwczovL2NoZXMtbWFzdGVyLTlmMGZiZS1wcm9kLnBhdGhmaW5kZXIuZ292LmJjLmNhL2FwaS92MS9kb2NzKS4gIAoKU2VlIFNob3djYXNlIGFwcGxpY2F0aW9uIFtoZXJlXShodHRwczovL21zc2MucGF0aGZpbmRlci5nb3YuYmMuY2EvbXNzYy8pLiAgCgpTZWUgc291cmNlIGNvZGUgW2hlcmVdKGh0dHBzOi8vZ2l0aHViLmNvbS9iY2dvdi9jb21tb24taG9zdGVkLWVtYWlsLXNlcnZpY2UpLiAgCgpNb3JlIGluZm9ybWF0aW9uIFtoZXJlXShodHRwczovL2JjZ292LmdpdGh1Yi5pby9jb21tb24taG9zdGVkLWVtYWlsLXNlcnZpY2UvKS4gIAoKIyBDb21tb24gRG9jdW1lbnQgR2VuZXJhdGlvbiBTZXJ2aWNlCkxldmVyYWdlIHlvdXIgc3RydWN0dXJlZCBkYXRhc2V0cyBhbmQgeW91ciBidXNpbmVzcyB0ZW1wbGF0ZXMgdG8gYXV0b21hdGljYWxseSBwb3B1bGF0ZSBwcmludGFibGUgZG9jdW1lbnRzLCBzcHJlYWRzaGVldHMsIHByZXNlbnRhdGlvbnMsIG9yIFBERnMgdXNpbmcgdGhlIENvbW1vbiBEb2N1bWVudCBHZW5lcmF0aW9uIFNlcnZpY2UuICAKClRoZSBBUEkgY2FuIGdlbmVyYXRlIGFueSBQREYgb3IgWE1MLWJhc2VkIGRvY3VtZW50cyBzdWNoIGFzIGRvY3gsIHhsc3gsIHBwdHgsIG9kdCwgb2RzLCBvZHAsIGFuZCBodG1sLiBFeGFtcGxlcyBvZiBYTUwtYmFzZWQgZWRpdG9ycyBpbmNsdWRlIE1pY3Jvc29mdCBPZmZpY2XihKIsIExpYnJlT2ZmaWNl4oSiIG9yIE9wZW5PZmZpY2XihKIuCgpUaGUgQ0RPR1MgQVBJIGlzIGNhcGFibGUgb2YgZG9pbmcgdGhlIGZvbGxvd2luZzoKCiogTWVyZ2UgY29tcGxleCBkYXRhc2V0cyBpbnRvIGRvY3VtZW50IHRlbXBsYXRlcy4gCiogU3VwcG9ydHMgYW55IFhNTC1iYXNlZCBkb2N1bWVudCB0ZW1wbGF0ZXMgaW5jbHVkaW5nIGJ1dCBub3QgbGltaXRlZCB0byBNaWNyb3NvZnQgT2ZmaWNl4oSiLCBMaWJyZU9mZmljZeKEoiBvciBPcGVuT2ZmaWNl4oSiLiAKKiBSaWNoIHRlbXBsYXRpbmcgbGlicmFyeSBzdXBwb3J0IGxldmVyYWdpbmcgdGhlIENhcmJvbmUgSlMgbGlicmFyeS4gCgpSZXZpZXcgdGhlIHYxIEFQSSBzcGVjaWZpY2F0aW9uIFtoZXJlXShodHRwczovL2Nkb2dzLW1hc3Rlci1pZGNxdmwtcHJvZC5wYXRoZmluZGVyLmdvdi5iYy5jYS9hcGkvdjEvZG9jcyN0YWcvRG9jR2VuKS4gIAoKUmV2aWV3IHRoZSB2MiBBUEkgc3BlY2lmaWNhdGlvbiBbaGVyZV0oaHR0cHM6Ly9jZG9ncy1tYXN0ZXItaWRjcXZsLXByb2QucGF0aGZpbmRlci5nb3YuYmMuY2EvYXBpL3YyL2RvY3MjdGFnL0RvY0dlbikuICAKClNlZSBTaG93Y2FzZSBhcHBsaWNhdGlvbiBbaGVyZV0oaHR0cHM6Ly9kZ3JzYy5wYXRoZmluZGVyLmdvdi5iYy5jYS9kZ3JzYy8pLiAgCgpTZWUgc291cmNlIGNvZGUgW2hlcmVdKGh0dHBzOi8vZ2l0aHViLmNvbS9iY2dvdi9jb21tb24tZG9jdW1lbnQtZ2VuZXJhdGlvbi1zZXJ2aWNlKS4gIAoKTW9yZSBpbmZvcm1hdGlvbiBbaGVyZV0oaHR0cHM6Ly9iY2dvdi5naXRodWIuaW8vY29tbW9uLWRvY3VtZW50LWdlbmVyYXRpb24tc2VydmljZS8pLiAgCgoKIyMjIyBDb21tb24gU2VydmljZXMgU2hvd2Nhc2UKVmlzaXQgW0NvbW1vbiBTZXJ2aWNlcyBTaG93Y2FzZV0oaHR0cHM6Ly9iY2dvdi5naXRodWIuaW8vY29tbW9uLXNlcnZpY2Utc2hvd2Nhc2UvKSBmb3IgbW9yZSBpbmZvcm1hdGlvbjsgaW5jbHVkaW5nIGhvdyB0byBnZXQgYWNjZXNzIHRvIGNvbW1vbiBzZXJ2aWNlcy4gICA=\",\n      \"contentType\": \"text/markdown\",\n      \"encoding\": \"base64\",\n      \"filename\": \"readme.md\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{ches_host}}/api/v1/emailMerge",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"emailMerge"
+							],
+							"query": [
+								{
+									"key": "devMode",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status of merge messages with txId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "734b0503-e3e2-4ce9-837b-d0a9aeb52691",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.lengthOf(2);",
+									"    pm.expect(jsonData.every(x => x.txId === pm.collectionVariables.get('merge_tx_id')));",
+									"    pm.expect(jsonData.some(x => x.msgId === pm.collectionVariables.get('merge_msg_id')));",
+									"    pm.expect(jsonData.some(x => x.status === 'pending'));",
+									"    pm.collectionVariables.set('pending_msg_id', jsonData.find(x => x.status === 'pending').msgId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b98a8328-a494-4ab5-9c4e-07a6a5d19e8f",
+								"exec": [
+									"setTimeout(function(){}, 2000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status?txId={{merge_tx_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "txId",
+									"value": "{{merge_tx_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send email message with delay",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "fa895d14-24e4-468a-92fe-bf165ba14772",
+								"exec": [
+									"var d = new Date();",
+									"var delayTS = d.setMinutes(d.getMinutes() + 5);",
+									"pm.variables.set('delay_ts', delayTS);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "91134bde-aa19-4ba2-ae37-6ee66c9f0311",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('txId');",
+									"    pm.expect(jsonData).to.have.property('messages');",
+									"    pm.expect(jsonData.messages).to.have.length(1);",
+									"    pm.expect(jsonData.messages[0]).to.have.property('to');",
+									"    pm.expect(jsonData.messages[0].to[0]).to.eql(pm.variables.get('email_to'));",
+									"    pm.collectionVariables.set('delay_msg_id', jsonData.messages[0].msgId);",
+									"    pm.collectionVariables.set('delay_tx_id', jsonData.txId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bcc\": [],\n  \"bodyType\": \"html\",\n  \"body\": \"<h1>Welcome to Common Services</h1><p>Delayed message sent by <a href='https://bcgov.github.io/common-hosted-email-service/'>CHES</a></p>\",\n  \"cc\": [],\n  \"delayTS\": {{delay_ts}},\n  \"encoding\": \"utf-8\",\n  \"from\": \"{{email_to}}\",\n  \"priority\": \"normal\",\n  \"subject\": \"CHES Email Message (Delayed)\",\n  \"to\": [\"{{email_to}}\"],\n  \"tag\": \"delayed_{{session_tag}}\",\n  \"attachments\": []\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ches_host}}/api/v1/email",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"email"
+							],
+							"query": [
+								{
+									"key": "devMode",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cancel delayed message by txId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c390f205-e50d-445d-a04c-c43410051fd1",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(202);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/cancel?txId={{delay_tx_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cancel"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "dd42b60e-d420-4fdb-95fa-e31dd78479eb",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "txId",
+									"value": "{{delay_tx_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status of cancelled message by txId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "035c9ef8-33e9-4e84-bed9-825ca13f8de9",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.lengthOf(1);",
+									"    pm.expect(jsonData[0].txId === pm.collectionVariables.get('delay_tx_id'));",
+									"    pm.expect(jsonData[0].msgId === pm.collectionVariables.get('delay_msg_id'));",
+									"    pm.expect(jsonData[0].status === 'cancelled');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status?txId={{delay_tx_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "txId",
+									"value": "{{delay_tx_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send email message with delay (#2)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6e8f167c-4e58-4436-bb6a-d4964093d9a5",
+								"exec": [
+									"var d = new Date();",
+									"var delayTS = d.setMinutes(d.getMinutes() + 5);",
+									"pm.variables.set('delay_ts', delayTS);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "fab50d4b-1377-4a8f-8381-8c95a256bb48",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('txId');",
+									"    pm.expect(jsonData).to.have.property('messages');",
+									"    pm.expect(jsonData.messages).to.have.length(1);",
+									"    pm.expect(jsonData.messages[0]).to.have.property('to');",
+									"    pm.expect(jsonData.messages[0].to[0]).to.eql(pm.variables.get('email_to'));",
+									"    pm.collectionVariables.set('delay_2_msg_id', jsonData.messages[0].msgId);",
+									"    pm.collectionVariables.set('delay_2_tx_id', jsonData.txId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bcc\": [],\n  \"bodyType\": \"html\",\n  \"body\": \"<h1>Welcome to Common Services</h1><p>Delayed message sent by <a href='https://bcgov.github.io/common-hosted-email-service/'>CHES</a></p>\",\n  \"cc\": [],\n  \"delayTS\": {{delay_ts}},\n  \"encoding\": \"utf-8\",\n  \"from\": \"{{email_to}}\",\n  \"priority\": \"normal\",\n  \"subject\": \"CHES Email Message (Delayed)\",\n  \"to\": [\"{{email_to}}\"],\n  \"tag\": \"delayed_2_{{session_tag}}\",\n  \"attachments\": []\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ches_host}}/api/v1/email",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"email"
+							],
+							"query": [
+								{
+									"key": "devMode",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cancel delayed message by tag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "eb01ddbd-3a6c-451b-99da-e44e9c21f239",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(202);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/cancel?tag=delayed_2_{{session_tag}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cancel"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "dd42b60e-d420-4fdb-95fa-e31dd78479eb",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "delayed_2_{{session_tag}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status of cancelled message by tag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "71b5d914-581a-416d-b2e4-6263d151fefb",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData).to.have.lengthOf(1);",
+									"    pm.expect(jsonData[0].txId === pm.collectionVariables.get('delay_2_tx_id'));",
+									"    pm.expect(jsonData[0].msgId === pm.collectionVariables.get('delay_2_msg_id'));",
+									"    pm.expect(jsonData[0].status === 'cancelled');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status?tag=delayed_2_{{session_tag}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "delayed_2_{{session_tag}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send email message with delay (#3)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6375f9fb-687b-4b74-a7eb-cbf52c6afafa",
+								"exec": [
+									"var d = new Date();",
+									"var delayTS = d.setMinutes(d.getMinutes() + 5);",
+									"pm.variables.set('delay_ts', delayTS);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ec055fd3-8a52-4fb3-886e-27037b5ff21f",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('txId');",
+									"    pm.expect(jsonData).to.have.property('messages');",
+									"    pm.expect(jsonData.messages).to.have.length(1);",
+									"    pm.expect(jsonData.messages[0]).to.have.property('to');",
+									"    pm.expect(jsonData.messages[0].to[0]).to.eql(pm.variables.get('email_to'));",
+									"    pm.collectionVariables.set('delay_3_msg_id', jsonData.messages[0].msgId);",
+									"    pm.collectionVariables.set('delay_3_tx_id', jsonData.txId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bcc\": [],\n  \"bodyType\": \"html\",\n  \"body\": \"<h1>Welcome to Common Services</h1><p>Delayed message sent by <a href='https://bcgov.github.io/common-hosted-email-service/'>CHES</a></p>\",\n  \"cc\": [],\n  \"delayTS\": {{delay_ts}},\n  \"encoding\": \"utf-8\",\n  \"from\": \"{{email_to}}\",\n  \"priority\": \"normal\",\n  \"subject\": \"CHES Email Message (Delayed)\",\n  \"to\": [\"{{email_to}}\"],\n  \"tag\": \"delayed_3_{{session_tag}}\",\n  \"attachments\": []\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ches_host}}/api/v1/email",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"email"
+							],
+							"query": [
+								{
+									"key": "devMode",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status of delayed message (#3)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d2b1e460-26b1-4c3f-bcbb-6d6d58bad478",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.txId === pm.collectionVariables.get('delay_3_tx_id'));",
+									"    pm.expect(jsonData.msgId === pm.collectionVariables.get('delay_3_msg_id'));",
+									"    pm.expect(jsonData.status === 'pending');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status/{{delay_3_msg_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status",
+								"{{delay_3_msg_id}}"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cancel delayed message (#3)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "cb5520fb-30c3-4b7f-a238-9880d93cf2e0",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(202);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/cancel/{{delay_3_msg_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"cancel",
+								"{{delay_3_msg_id}}"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "dd42b60e-d420-4fdb-95fa-e31dd78479eb",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get status of cancelled message (#3)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7b419281-4f97-42b3-84ae-97b92ac7fc8d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.txId === pm.collectionVariables.get('delay_3_tx_id'));",
+									"    pm.expect(jsonData.msgId === pm.collectionVariables.get('delay_3_msg_id'));",
+									"    pm.expect(jsonData.status === 'cancelled');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ches_host}}/api/v1/status/{{delay_3_msg_id}}",
+							"host": [
+								"{{ches_host}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"status",
+								"{{delay_3_msg_id}}"
+							],
+							"query": [
+								{
+									"key": "msgId",
+									"value": "7ebbbdad-0671-44aa-91d9-36151308df73",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"disabled": true
+								},
+								{
+									"key": "tag",
+									"value": "tag",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ac0ef9e0-0f66-463f-8194-e79ebd13d409",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "ac17605e-0d38-4976-85bb-e90d757944e2",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessToken",
+				"value": "{{access_token}}",
+				"type": "string"
+			},
+			{
+				"key": "tokenType",
+				"value": "bearer",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "41d16bf6-b4e4-4d2d-816b-638a5017259e",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "bb177c33-e982-48ab-a2b3-9887afa4e3c7",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "0a8d2ecc-0c95-4cbb-a98e-83fb2669d198",
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"id": "294fcc39-39ab-42c1-9217-8611e1af7c7a",
+			"key": "session_tag",
+			"value": ""
+		},
+		{
+			"id": "d4eac057-da91-4ad8-a4fb-60e9b188fc4e",
+			"key": "auth_host",
+			"value": "https://sso-dev.pathfinder.gov.bc.ca"
+		},
+		{
+			"id": "75409e60-7e01-4948-ac6a-8ec0e265ae19",
+			"key": "ches_host",
+			"value": "https://ches-master-9f0fbe-dev.pathfinder.gov.bc.ca"
+		},
+		{
+			"id": "0cd2e11b-0bf5-4719-b566-709737cf5df2",
+			"key": "service_client_id",
+			"value": "your_service_client_id"
+		},
+		{
+			"id": "17bc84b6-68db-4293-9edf-a60be0bb3e8f",
+			"key": "service_client_secret",
+			"value": "your_service_client_secret"
+		},
+		{
+			"id": "06fd75d0-1019-487d-b5ec-cc8f5d065631",
+			"key": "email_to",
+			"value": "your@email.here"
+		}
+	],
+	"protocolProfileBehavior": {}
+}
