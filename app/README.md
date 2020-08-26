@@ -53,7 +53,7 @@ In order for the application to run correctly, you will need to ensure that the 
 1. All node dependencies have been installed and resolved
 2. You have a Redis-compatible memory store available to connect to.
 3. Environment configurations have been set up
-4. You have a 'ches' psql database to connect to
+4. You have a 'ches' Postgres database to connect to
 
 ### Installation
 
