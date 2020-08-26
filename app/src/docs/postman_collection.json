@@ -1250,94 +1250,39 @@
 	],
 	"variable": [
 		{
-			"id": "9f41a42c-70cf-4ca2-9f97-ef71ac59445c",
+			"id": "0a8d2ecc-0c95-4cbb-a98e-83fb2669d198",
 			"key": "access_token",
 			"value": ""
 		},
 		{
-			"id": "b9eb5529-a08b-47a8-89dd-6a621ebad571",
+			"id": "294fcc39-39ab-42c1-9217-8611e1af7c7a",
 			"key": "session_tag",
 			"value": ""
 		},
 		{
-			"id": "a41d27da-1fce-4bc2-aa8c-85570a40c44b",
+			"id": "d4eac057-da91-4ad8-a4fb-60e9b188fc4e",
 			"key": "auth_host",
 			"value": "https://sso-dev.pathfinder.gov.bc.ca"
 		},
 		{
-			"id": "fad4269f-e62e-4d07-af23-a8ea6bbe4724",
+			"id": "75409e60-7e01-4948-ac6a-8ec0e265ae19",
 			"key": "ches_host",
 			"value": "https://ches-master-9f0fbe-dev.pathfinder.gov.bc.ca"
 		},
 		{
-			"id": "afb42ae2-8b2b-459f-8514-2763ea750446",
+			"id": "0cd2e11b-0bf5-4719-b566-709737cf5df2",
 			"key": "service_client_id",
 			"value": "your_service_client_id"
 		},
 		{
-			"id": "dc82aa73-e1f2-4671-b438-95d24a48d43a",
+			"id": "17bc84b6-68db-4293-9edf-a60be0bb3e8f",
 			"key": "service_client_secret",
 			"value": "your_service_client_secret"
 		},
 		{
-			"id": "16699a46-d932-4f21-af15-46adde400289",
+			"id": "06fd75d0-1019-487d-b5ec-cc8f5d065631",
 			"key": "email_to",
 			"value": "your@email.here"
-		},
-		{
-			"id": "e121b898-497e-4003-afcf-f47d0c91777d",
-			"key": "email_msg_id",
-			"value": ""
-		},
-		{
-			"id": "6f3bd43e-bad6-48c4-b22e-4d0f0c8df018",
-			"key": "email_tx_id",
-			"value": "c3f041f7-135a-4288-9c97-e9298f72055a"
-		},
-		{
-			"id": "4b3f24df-0f22-45db-93b7-3921e268e73b",
-			"key": "merge_msg_id",
-			"value": "6cfc67a2-b2dd-479c-afae-f748e9c7cd36"
-		},
-		{
-			"id": "6d7fd885-4c51-4143-897a-fb3e5715f94f",
-			"key": "merge_tx_id",
-			"value": "1d3a94f4-53fd-45dd-bb90-79566b5c145d"
-		},
-		{
-			"id": "801db660-efa9-4045-aeb1-8f6bd74bb6be",
-			"key": "pending_msg_id",
-			"value": "8228d540-f60a-43c3-8962-7595e10c555e"
-		},
-		{
-			"id": "1c787de0-3e56-4eeb-9add-5fac59410eef",
-			"key": "delay_msg_id",
-			"value": "7f7c9e4a-e7cb-4443-85b5-b4f96d41d5e2"
-		},
-		{
-			"id": "b4ee3580-a53b-4205-8f06-3d4dea2e1b3a",
-			"key": "delay_tx_id",
-			"value": "40f244bc-bf6c-4662-83ee-66214b765762"
-		},
-		{
-			"id": "9d553505-2438-472e-be10-30a9a1ef2f8f",
-			"key": "delay_2_msg_id",
-			"value": "b4278565-3e7b-46e0-85cb-fa7b34729d9e"
-		},
-		{
-			"id": "d1ee1559-0498-4650-b554-a93b6d43b7d8",
-			"key": "delay_2_tx_id",
-			"value": "3902e058-e1d0-487e-a70c-b81159713dc6"
-		},
-		{
-			"id": "2206ba8b-8008-4311-b1b5-34f45de67f90",
-			"key": "delay_3_msg_id",
-			"value": "a08c8793-abc2-4fac-aa1c-ed4e61c197cd"
-		},
-		{
-			"id": "263f8608-450c-4f38-af72-106c34b98055",
-			"key": "delay_3_tx_id",
-			"value": "ff974d07-9650-465f-9e58-99f1b24c86a5"
 		}
 	],
 	"protocolProfileBehavior": {}
