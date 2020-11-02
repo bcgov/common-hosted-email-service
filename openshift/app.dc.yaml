@@ -2,15 +2,20 @@
 apiVersion: v1
 kind: Template
 labels:
+  app.kubernetes.io/component: app
+  app.kubernetes.io/instance: "${APP_NAME}-${JOB_NAME}"
+  app.kubernetes.io/managed-by: jenkins
+  app.kubernetes.io/name: nodejs
+  app.kubernetes.io/part-of: "${APP_NAME}-${JOB_NAME}"
   app: "${APP_NAME}-${JOB_NAME}"
   template: "${REPO_NAME}-template"
 metadata:
   name: "${REPO_NAME}-app-dc"
 objects:
-  # - apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  # - apiVersion: security.devops.gov.bc.ca/v1alpha1
   #   kind: NetworkSecurityPolicy
   #   metadata:
-  #     name: "${APP_NAME}-app-${JOB_NAME}-pods-to-egress-${NAMESPACE}"
+  #     name: "${APP_NAME}-app-${JOB_NAME}-egress-internet"
   #   spec:
   #     description: |
   #       Allow pods to open connections to the internet
@@ -21,10 +26,10 @@ objects:
   #         - role=app
   #     destination:
   #       - - ext:network=any
-  # - apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  # - apiVersion: security.devops.gov.bc.ca/v1alpha1
   #   kind: NetworkSecurityPolicy
   #   metadata:
-  #     name: "${APP_NAME}-app-${JOB_NAME}-pods-to-patroni-master-${NAMESPACE}"
+  #     name: "${APP_NAME}-app-${JOB_NAME}-patroni-master-${NAMESPACE}"
   #   spec:
   #     description: |
   #       Allow pods to open connections to patroni cluster
@@ -40,10 +45,10 @@ objects:
   #         - "cluster-name=${JOB_NAME}"
   #         - "statefulset=patroni-${JOB_NAME}"
   #         - role=master
-  # - apiVersion: secops.pathfinder.gov.bc.ca/v1alpha1
+  # - apiVersion: security.devops.gov.bc.ca/v1alpha1
   #   kind: NetworkSecurityPolicy
   #   metadata:
-  #     name: "${APP_NAME}-app-${JOB_NAME}-pods-to-redis-${NAMESPACE}"
+  #     name: "${APP_NAME}-app-${JOB_NAME}-redis-${NAMESPACE}"
   #   spec:
   #     description: |
   #       Allow pods to open connections to redis
@@ -56,7 +61,6 @@ objects:
   #       - - "$namespace=${NAMESPACE}"
   #         - "app=${APP_NAME}-${JOB_NAME}"
   #         - role=redis
-
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
@@ -251,8 +255,6 @@ objects:
               kind: ImageStreamTag
               name: "${REPO_NAME}-app:${JOB_NAME}"
               namespace: "${NAMESPACE}"
-
-
   - apiVersion: v1
     kind: Service
     metadata:
