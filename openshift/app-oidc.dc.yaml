@@ -1,0 +1,277 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  app.kubernetes.io/component: app
+  app.kubernetes.io/instance: "${APP_NAME}-${JOB_NAME}"
+  app.kubernetes.io/managed-by: jenkins
+  app.kubernetes.io/name: nodejs
+  app.kubernetes.io/part-of: "${APP_NAME}-${JOB_NAME}"
+  app: "${APP_NAME}-${JOB_NAME}"
+  template: "${REPO_NAME}-template"
+metadata:
+  name: "${REPO_NAME}-app-dc"
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      name: "${APP_NAME}-app-${JOB_NAME}"
+    spec:
+      replicas: 2
+      selector:
+        app: "${APP_NAME}-${JOB_NAME}"
+        deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
+        role: app
+      strategy:
+        type: Rolling
+        rollingParams:
+          timeoutSeconds: 600
+          pre:
+            failurePolicy: Abort
+            execNewPod:
+              command:
+                - npm
+                - run
+                - migrate
+              containerName: app
+              env:
+                - name: NODE_ENV
+                  value: production
+                - name: DB_DATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-name
+                      name: patroni-master-secret
+                - name: DB_HOST
+                  value: patroni-master
+                - name: DB_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-username
+                      name: patroni-master-secret
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-password
+                      name: patroni-master-secret
+          resources: {}
+      template:
+        metadata:
+          labels:
+            app: "${APP_NAME}-${JOB_NAME}"
+            deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
+            role: app
+        spec:
+          containers:
+            - image: docker-registry.default.svc:5000/${NAMESPACE}/${REPO_NAME}-app:master
+              name: app
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /
+                  port: 3000
+                  scheme: HTTP
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              command:
+                - /bin/sh
+              args:
+                - -c
+                # start node app and pipe stdout logs to a log file /var/log/app.log
+                - "npm run start 2>&1 | tee /var/log/app.log"
+              ports:
+                - containerPort: 3000
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /
+                  port: 3000
+                  scheme: HTTP
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources: {}
+              env:
+                - name: NODE_ENV
+                  value: production
+                - name: DB_DATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-name
+                      name: patroni-master-secret
+                - name: DB_HOST
+                  value: patroni-master
+                - name: DB_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-username
+                      name: patroni-master-secret
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: app-db-password
+                      name: patroni-master-secret
+                - name: KC_CLIENTID
+                  valueFrom:
+                    secretKeyRef:
+                      key: username
+                      name: ches-keycloak-secret
+                - name: KC_CLIENTSECRET
+                  valueFrom:
+                    secretKeyRef:
+                      key: password
+                      name: ches-keycloak-secret
+                - name: REDIS_HOST
+                  value: "redis-master"
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: password
+                      name: redis-master-secret
+              envFrom:
+                - configMapRef:
+                    name: ches-keycloak-config-oidc
+                - configMapRef:
+                    name: ches-server-config
+              volumeMounts:
+                # mount log file location
+                - name: log-storage
+                  mountPath: /var/log
+
+            # Fluent-bit sidecar
+            - image: fluent/fluent-bit:1.5
+              imagePullPolicy: Always
+              name: fluent-bit
+              resources:
+                requests:
+                  cpu: "${LOGGING_CPU_REQUEST}"
+                  memory: "${LOGGING_MEMORY_REQUEST}"
+                limits:
+                  cpu: "${LOGGING_CPU_LIMIT}"
+                  memory: "${LOGGING_MEMORY_LIMIT}"
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /
+                  port: 2020
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 60
+                successThreshold: 1
+                timeoutSeconds: 1
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /
+                  port: 2020
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              volumeMounts:
+                # mount log file location
+                - name: log-storage
+                  mountPath: /var/log
+                # mount fluent-bit config file
+                - name: fluent-bit-config
+                  mountPath: /fluent-bit/etc/
+              ports:
+                - containerPort: 2020
+                  name: metrics
+                  protocol: TCP
+                - containerPort: 80
+                  name: http-plugin
+                  protocol: TCP
+          volumes:
+            # log file volume
+            - name: log-storage
+              emptyDir: {}
+            # fluent-bit config file
+            - name: fluent-bit-config
+              configMap:
+                name: fluent-bit-config
+      test: false
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - app
+            from:
+              kind: ImageStreamTag
+              name: "${REPO_NAME}-app:master"
+              namespace: "${NAMESPACE}"
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: "${APP_NAME}-app-${JOB_NAME}"
+    spec:
+      ports:
+        - name: 3000-tcp
+          port: 3000
+          protocol: TCP
+          targetPort: 3000
+      selector:
+        app: "${APP_NAME}-${JOB_NAME}"
+        deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
+        role: app
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      name: "${APP_NAME}-app-${JOB_NAME}"
+    spec:
+      host: "${HOST_ROUTE}"
+      path: /
+      port:
+        targetPort: 3000-tcp
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
+      to:
+        kind: Service
+        name: "${APP_NAME}-app-${JOB_NAME}"
+        weight: 100
+      wildcardPolicy: None
+parameters:
+  - name: REPO_NAME
+    description: Application repository name
+    displayName: Repository Name
+    required: true
+  - name: JOB_NAME
+    description: Job identifier (i.e. 'pr-5' OR 'master')
+    displayName: Job Branch Name
+    required: true
+  - name: NAMESPACE
+    description: Target namespace reference (i.e. '9f0fbe-dev')
+    displayName: Target Namespace
+    required: true
+  - name: APP_NAME
+    description: Application name
+    displayName: Application name
+    required: true
+  - name: HOST_ROUTE
+    description: The host the route will use to expose service outside cluster
+    displayName: Host route
+    required: true
+  # parameters for logging sidecar
+  - name: LOGGING_CPU_LIMIT
+    description: Limit Peak CPU per pod (in millicores ex. 1000m)
+    displayName: CPU Limit
+    value: 100m
+  - name: LOGGING_CPU_REQUEST
+    description: Requested CPU per pod (in millicores ex. 500m)
+    displayName: CPU Request
+    value: 10m
+  - name: LOGGING_MEMORY_LIMIT
+    description: Limit Peak Memory per pod (in gigabytes Gi or megabytes Mi ex. 2Gi)
+    displayName: Memory Limit
+    value: 64Mi
+  - name: LOGGING_MEMORY_REQUEST
+    description: Requested Memory per pod (in gigabytes Gi or megabytes Mi ex. 500Mi)
+    displayName: Memory Request
+    value: 16Mi
