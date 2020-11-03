@@ -12,55 +12,6 @@ labels:
 metadata:
   name: "${REPO_NAME}-app-dc"
 objects:
-  # - apiVersion: security.devops.gov.bc.ca/v1alpha1
-  #   kind: NetworkSecurityPolicy
-  #   metadata:
-  #     name: "${APP_NAME}-app-${JOB_NAME}-egress-internet"
-  #   spec:
-  #     description: |
-  #       Allow pods to open connections to the internet
-  #     source:
-  #       - - "$namespace=${NAMESPACE}"
-  #         - "app=${APP_NAME}-${JOB_NAME}"
-  #         - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
-  #         - role=app
-  #     destination:
-  #       - - ext:network=any
-  # - apiVersion: security.devops.gov.bc.ca/v1alpha1
-  #   kind: NetworkSecurityPolicy
-  #   metadata:
-  #     name: "${APP_NAME}-app-${JOB_NAME}-patroni-master-${NAMESPACE}"
-  #   spec:
-  #     description: |
-  #       Allow pods to open connections to patroni cluster
-  #     source:
-  #       - - "$namespace=${NAMESPACE}"
-  #         - "app=${APP_NAME}-${JOB_NAME}"
-  #         - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
-  #         - role=app
-  #       - - "$namespace=${NAMESPACE}"
-  #         - "openshift.io/deployer-pod.type=hook-pre"
-  #     destination:
-  #       - - "$namespace=${NAMESPACE}"
-  #         - "cluster-name=${JOB_NAME}"
-  #         - "statefulset=patroni-${JOB_NAME}"
-  #         - role=master
-  # - apiVersion: security.devops.gov.bc.ca/v1alpha1
-  #   kind: NetworkSecurityPolicy
-  #   metadata:
-  #     name: "${APP_NAME}-app-${JOB_NAME}-redis-${NAMESPACE}"
-  #   spec:
-  #     description: |
-  #       Allow pods to open connections to redis
-  #     source:
-  #       - - "$namespace=${NAMESPACE}"
-  #         - "app=${APP_NAME}-${JOB_NAME}"
-  #         - "deploymentconfig=${APP_NAME}-app-${JOB_NAME}"
-  #         - role=app
-  #     destination:
-  #       - - "$namespace=${NAMESPACE}"
-  #         - "app=${APP_NAME}-${JOB_NAME}"
-  #         - role=redis
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
@@ -90,19 +41,19 @@ objects:
                   valueFrom:
                     secretKeyRef:
                       key: app-db-name
-                      name: "patroni-${JOB_NAME}-secret"
+                      name: patroni-master-secret
                 - name: DB_HOST
-                  value: "patroni-${JOB_NAME}"
+                  value: patroni-master
                 - name: DB_USERNAME
                   valueFrom:
                     secretKeyRef:
                       key: app-db-username
-                      name: "patroni-${JOB_NAME}-secret"
+                      name: patroni-master-secret
                 - name: DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       key: app-db-password
-                      name: "patroni-${JOB_NAME}-secret"
+                      name: patroni-master-secret
           resources: {}
       template:
         metadata:
@@ -112,7 +63,7 @@ objects:
             role: app
         spec:
           containers:
-            - image: docker-registry.default.svc:5000/${NAMESPACE}/${REPO_NAME}-app:${JOB_NAME}
+            - image: docker-registry.default.svc:5000/${NAMESPACE}/${REPO_NAME}-app:master
               name: app
               imagePullPolicy: IfNotPresent
               livenessProbe:
@@ -150,19 +101,19 @@ objects:
                   valueFrom:
                     secretKeyRef:
                       key: app-db-name
-                      name: "patroni-${JOB_NAME}-secret"
+                      name: patroni-master-secret
                 - name: DB_HOST
-                  value: "patroni-${JOB_NAME}"
+                  value: patroni-master
                 - name: DB_USERNAME
                   valueFrom:
                     secretKeyRef:
                       key: app-db-username
-                      name: "patroni-${JOB_NAME}-secret"
+                      name: patroni-master-secret
                 - name: DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       key: app-db-password
-                      name: "patroni-${JOB_NAME}-secret"
+                      name: patroni-master-secret
                 - name: KC_CLIENTID
                   valueFrom:
                     secretKeyRef:
@@ -174,15 +125,15 @@ objects:
                       key: password
                       name: ches-keycloak-secret
                 - name: REDIS_HOST
-                  value: "redis-${JOB_NAME}"
+                  value: "redis-master"
                 - name: REDIS_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       key: password
-                      name: redis-${JOB_NAME}-secret
+                      name: redis-master-secret
               envFrom:
                 - configMapRef:
-                    name: ches-keycloak-config
+                    name: ches-keycloak-config-oidc
                 - configMapRef:
                     name: ches-server-config
               volumeMounts:
@@ -253,7 +204,7 @@ objects:
               - app
             from:
               kind: ImageStreamTag
-              name: "${REPO_NAME}-app:${JOB_NAME}"
+              name: "${REPO_NAME}-app:master"
               namespace: "${NAMESPACE}"
   - apiVersion: v1
     kind: Service
