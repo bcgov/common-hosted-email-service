@@ -152,7 +152,7 @@ npm run lint
 ## API Usage
 
 This API is defined and described in OpenAPI 3.0 specification.
-When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). A hosted instance of the API can be found at: <https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs>
+When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). A hosted instance of the API can be found at: <https://ches.pathfinder.gov.bc.ca/api/v1/docs>
 
 ### General Design
 

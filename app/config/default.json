@@ -5,7 +5,7 @@
   },
   "keycloak": {
     "realm": "jbd6rnxw",
-    "serverUrl": "https://sso-dev.pathfinder.gov.bc.ca/auth"
+    "serverUrl": "https://dev.oidc.gov.bc.ca/auth"
   },
   "redis": {
     "host": "127.0.0.1",
