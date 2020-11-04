@@ -26,7 +26,7 @@ In order to prepare an environment, you will need to ensure that all of the foll
 ```sh
 oc create -n 9f0fbe-<env> configmap ches-keycloak-config \
   --from-literal=KC_REALM=jbd6rnxw \
-  --from-literal=KC_SERVERURL=https://sso-dev.pathfinder.gov.bc.ca/auth
+  --from-literal=KC_SERVERURL=https://dev.oidc.gov.bc.ca/auth
 ```
 
 *Note: Change KC_SERVERURL's sso-dev to sso-test or sso depending on the environment!*
@@ -113,7 +113,7 @@ Deployment configurations will emit and handle the deployment lifecycles of runn
 The Jenkins pipeline will handle deployment invocation automatically. However should you need to run it manually, you can do so with the following for example:
 
 ```sh
-oc -n 9f0fbe-<env> process -f openshift/app.dc.yaml -p REPO_NAME=common-hosted-email-service -p JOB_NAME=master -p NAMESPACE=9f0fbe-<env> -p APP_NAME=ches -p HOST_ROUTE=ches-master-9f0fbe-<env>.pathfinder.gov.bc.ca -o yaml | oc -n 9f0fbe-<env> apply -f -
+oc -n 9f0fbe-<env> process -f openshift/app.dc.yaml -p REPO_NAME=common-hosted-email-service -p JOB_NAME=master -p NAMESPACE=9f0fbe-<env> -p APP_NAME=ches -p HOST_ROUTE=ches-<env>.pathfinder.gov.bc.ca -o yaml | oc -n 9f0fbe-<env> apply -f -
 ```
 
 Due to the triggers that are set in the deploymentconfig, the deployment will begin automatically. However, you can deploy manually by use the following command for example:
