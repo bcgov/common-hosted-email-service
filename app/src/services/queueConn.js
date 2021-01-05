@@ -23,6 +23,9 @@ class QueueConnection {
    */
   constructor() {
     const configuration = {
+      // Prefix must be explicitly defined with brackets to support Redis Clustering
+      // https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#redis-cluster
+      prefix: '{bull}',
       redis: {
         host: config.get('redis.host'),
         password: config.get('redis.password')
