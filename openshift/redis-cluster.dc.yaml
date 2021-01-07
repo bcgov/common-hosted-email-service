@@ -8,13 +8,13 @@ metadata:
     openshift.io/display-name: Redis Cluster (Persistent)
     openshift.io/long-description: This template deploys a HA Redis Cluster with persistent storage.
     tags: redis
-  name: ${NAME}-cluster-dc
+  name: ${NAME}-cluster
 labels:
   app: ${NAME}-${INSTANCE}
   app.kubernetes.io/component: redis
   app.kubernetes.io/instance: ${INSTANCE}
   app.kubernetes.io/name: redis
-  app.kubernetes.io/managed-by: jenkins
+  app.kubernetes.io/managed-by: template
   app.kubernetes.io/part-of: ${NAME}-${INSTANCE}
   app.kubernetes.io/version: "6"
   template: ${NAME}-cluster-template
@@ -57,12 +57,12 @@ objects:
       name: ${NAME}-${INSTANCE}
     spec:
       ports:
-        - port: 6379
+        - name: redis
+          port: 6379
           targetPort: 6379
-          name: client
-        - port: 16379
+        - name: gossip
+          port: 16379
           targetPort: 16379
-          name: gossip
       selector:
         app: ${NAME}-${INSTANCE}
         statefulset: ${NAME}-${INSTANCE}
@@ -82,7 +82,13 @@ objects:
         metadata:
           labels:
             app: ${NAME}-${INSTANCE}
+            app.kubernetes.io/component: redis
+            app.kubernetes.io/instance: ${INSTANCE}
             app.kubernetes.io/name: redis
+            app.kubernetes.io/managed-by: template
+            app.kubernetes.io/part-of: ${NAME}-${INSTANCE}
+            app.kubernetes.io/version: "6"
+            role: redis
             statefulset: ${NAME}-${INSTANCE}
         spec:
           containers:
@@ -102,7 +108,7 @@ objects:
                   valueFrom:
                     secretKeyRef:
                       key: password
-                      name: redis-master-secret
+                      name: ${NAME}-${INSTANCE}-secret
               lifecycle:
                 preStop:
                   exec:
@@ -121,7 +127,7 @@ objects:
                 failureThreshold: 3
               ports:
                 - containerPort: 6379
-                  name: client
+                  name: redis
                 - containerPort: 16379
                   name: gossip
               readinessProbe:
@@ -153,7 +159,7 @@ objects:
           volumes:
             - name: conf
               secret:
-                secretName: redis-master-secret
+                secretName: ${NAME}-${INSTANCE}-secret
             - name: script
               configMap:
                 name: ${NAME}-${INSTANCE}
