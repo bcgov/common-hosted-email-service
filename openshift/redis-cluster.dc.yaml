@@ -7,7 +7,7 @@ metadata:
     iconClass: icon-redis
     openshift.io/display-name: Redis Cluster (Persistent)
     openshift.io/long-description: This template deploys a HA Redis Cluster with persistent storage.
-    tags: postgresql
+    tags: redis
   name: ${NAME}-cluster-dc
 labels:
   app: ${NAME}-${INSTANCE}
