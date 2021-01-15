@@ -1,5 +1,6 @@
 const log = require('npmlog');
 const moment = require('moment');
+var now = require('performance-now');
 
 /**
  * @module transform
@@ -45,6 +46,8 @@ const transformer = {
    * @see Trxn
    */
   toTransactionResponse: trxn => {
+
+    var t2 = now();
     const result = {
       messages: trxn.messages ? trxn.messages.map(m => {
         return {
@@ -54,6 +57,8 @@ const transformer = {
       }) : [],
       txId: trxn.transactionId ? trxn.transactionId : null
     };
+    var t3 = now();
+    log.warn('toTransactionResponse took ' + (t3 - t2) + ' milliseconds.');
 
     return result;
   },

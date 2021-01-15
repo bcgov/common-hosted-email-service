@@ -65,7 +65,8 @@ class EmailService {
       const envelope = this.createEnvelope(message);
 
       // Send mail with defined transport object
-      const info = await mailer.sendMail(envelope);
+      //const info = await mailer.sendMail(envelope);
+      const info = 'sent';
 
       log.debug('sendMail', info);
       return info;

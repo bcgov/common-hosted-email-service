@@ -16,6 +16,7 @@ const uuid = require('uuid');
 const { queueToStatus } = require('../components/state');
 const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
+var now = require('performance-now');
 
 const DataConnection = require('./dataConn');
 
@@ -111,11 +112,16 @@ class DataService {
       trx = await transaction.start(Trxn.knex());
       const transactionId = uuid.v4();
 
+
+      var ta = now();
       await Trxn.query(trx).insert({
         transactionId: transactionId,
         client: client
       });
+      var tb = now();
+      log.warn('Call to insert took ' + (tb - ta) + ' milliseconds.');
 
+      var t0 = now();
       if (Array.isArray(msg)) {
         await Promise.all(msg.map(m => {
           return createMessage(transactionId, m, trx);
@@ -123,11 +129,20 @@ class DataService {
       } else {
         await createMessage(transactionId, msg, trx);
       }
+      var t1 = now();
+      log.warn('Call to createMessage took ' + (t1 - t0) + ' milliseconds.');
 
       await trx.commit();
 
+      var t2 = now();
       const result = await this.readTransaction(client, transactionId);
+      var t3 = now();
+      log.warn('Call to readTransaction took ' + (t3 - t2) + ' milliseconds.');
+
+      var t4 = now();
       stackpole.createTransaction(client, result);
+      var t5 = now();
+      log.warn('Call to stackpole.createTransaction took ' + (t5 - t4) + ' milliseconds.');
       return result;
     } catch (err) {
       log.error('createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);

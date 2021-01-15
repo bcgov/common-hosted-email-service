@@ -16,6 +16,7 @@
 const log = require('npmlog');
 const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
+var now = require('performance-now');
 
 const mergeComponent = require('../components/merge');
 const transformer = require('../components/transformer');
@@ -274,12 +275,18 @@ class ChesService {
         return result;
       } else {
         // create the transaction...
+        var t0 = now();
         const trxn = await this.dataService.createTransaction(client, message);
+        var t1 = now();
+        log.warn('Call to dataService.createTransaction took ' + (t1 - t0) + ' milliseconds.');
 
         // queue up the messages...
         const delayTS = trxn.messages[0].delayTimestamp;
         const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
+        var t2 = now();
         await this.queueService.enqueue(client, trxn.messages[0], { delay: delay });
+        var t3 = now();
+        log.warn('Call to queueService.enqueue took ' + (t3 - t2) + ' milliseconds.');
 
         //return to caller in API format
         return transformer.toTransactionResponse(trxn);
