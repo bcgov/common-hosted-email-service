@@ -62,6 +62,7 @@ class EmailService {
    */
   async sendMail (mailer, message) {
     try {
+      // eslint-disable-next-line no-unused-vars
       const envelope = this.createEnvelope(message);
 
       // Send mail with defined transport object
