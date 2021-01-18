@@ -261,6 +261,7 @@ class DataService {
       .findById(transactionId)
       .where('client', client)
       .withGraphJoined('messages.statusHistory')
+      .orderBy('messages:statusHistory.createdAt', 'desc')
       .throwIfNotFound();
   }
 
