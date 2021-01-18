@@ -246,9 +246,7 @@ class DataService {
       .findById(transactionId)
       .where('client', client)
       .withGraphJoined('messages.statusHistory')
-      .modifyGraph('messages.statusHistory', builder => {
-        builder.orderBy('createdAt', 'desc');
-      })
+      .orderBy('messages:statusHistory.createdAt', 'desc')
       .throwIfNotFound();
   }
 
