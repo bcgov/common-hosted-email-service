@@ -8,10 +8,11 @@ helper.logHelper();
 describe('toStatusResponse', () => {
   const nullPopulatedExpectations = result => {
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.createdTS).toBeNull();
     expect(result.delayTS).toBeNull();
     expect(result.msgId).toBeNull();
+    expect(result.smtpResponse).toBeNull();
     expect(result.status).toBeNull();
     expect(Array.isArray(result.statusHistory)).toBeTruthy();
     expect(result.statusHistory).toHaveLength(0);
@@ -50,7 +51,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.createdTS).toBe(1571679721833);
   });
 
@@ -60,7 +61,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.delayTS).toBe(0);
   });
 
@@ -70,9 +71,21 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.msgId).toBe('00000000-0000-0000-0000-000000000000');
   });
+
+  it('should return an object with smtpResponse', () => {
+    const smtp = '{"smtpMsgId": "<00000000-0000-0000-0000-000000000000@gov.bc.ca>","response": "250 2.6.0 <00000000-0000-0000-0000-000000000000@gov.bc.ca> [InternalId=abc, Hostname=E6PEDG06.idir.BCGOV] 4596 bytes in 0.105, 42.525 KB/sec Queued mail for delivery"}';
+    const result = transformer.toStatusResponse({
+      sendResult: smtp
+    });
+
+    expect(result).toBeTruthy();
+    expect(Object.keys(result)).toHaveLength(9);
+    expect(result.smtpResponse).toBe(smtp);
+  });
+
 
   it('should return an object with status', () => {
     const result = transformer.toStatusResponse({
@@ -80,7 +93,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.status).toBe('completed');
   });
 
@@ -99,7 +112,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.statusHistory).toHaveLength(2);
     expect(result.statusHistory[0].description).toBe('text');
     expect(result.statusHistory[0].status).toBe('stuff');
@@ -112,7 +125,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.tag).toBe('tag');
   });
 
@@ -122,7 +135,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.txId).toBe('00000000-0000-0000-0000-000000000000');
   });
 
@@ -132,7 +145,7 @@ describe('toStatusResponse', () => {
     });
 
     expect(result).toBeTruthy();
-    expect(Object.keys(result)).toHaveLength(8);
+    expect(Object.keys(result)).toHaveLength(9);
     expect(result.updatedTS).toBe(1571679721833);
   });
 });
