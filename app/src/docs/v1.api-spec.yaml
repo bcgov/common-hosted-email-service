@@ -742,6 +742,18 @@ components:
         detail:
           type: string
           description: Short description of why this problem was raised.
+    SmtpObject:
+      type: object
+      description: The saved response object from the SMTP server if applicable
+      properties:
+        smtpMsgId:
+          type: string
+          description: The downstream smtp ID from the server
+          example: '<11111111-1111-1111-1111-111111111111@gov.bc.ca>'
+        response:
+          type: string
+          description: The downstream response message from the server
+          example: '250 2.6.0 <11111111-1111-1111-1111-111111111111@gov.bc.ca> [InternalId=82420422419525, Hostname=E6PEDG05.idir.BCGOV] 1464 bytes in 0.225, 6.333 KB/sec Queued mail for delivery'
     StatusHistoryObject:
       type: array
       description: A list of status changes to this message
@@ -766,6 +778,7 @@ components:
         - createdTS
         - delayTS
         - msgId
+        - smtpResponse
         - status
         - statusHistory
         - tag
@@ -787,6 +800,8 @@ components:
           description: This message instance uuid
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
+        smtpResponse:
+          $ref: '#/components/schemas/SmtpObject'
         status:
           $ref: '#/components/schemas/StatusType'
         statusHistory:

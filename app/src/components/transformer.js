@@ -20,6 +20,7 @@ const transformer = {
       createdTS: msg.createdAt ? moment.utc(msg.createdAt).valueOf() : null,
       delayTS: msg.delayTimestamp ? moment.utc(Number(msg.delayTimestamp)).valueOf() : null,
       msgId: msg.messageId ? msg.messageId : null,
+      smtpResponse: msg.sendResult ? msg.sendResult : null,
       status: msg.status ? msg.status : null,
       statusHistory: msg.statusHistory ? msg.statusHistory.map(h => {
         return {
