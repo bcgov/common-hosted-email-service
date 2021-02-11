@@ -35,10 +35,6 @@ pipeline {
     DEV_HOST_ROUTE = "${APP_NAME}-${JOB_NAME}-${DEV_PROJECT}.${APP_DOMAIN}"
     TEST_HOST_ROUTE = "${APP_NAME}-${JOB_NAME}-${TEST_PROJECT}.${APP_DOMAIN}"
     PROD_HOST_ROUTE = "${APP_NAME}-${JOB_NAME}-${PROD_PROJECT}.${APP_DOMAIN}"
-
-    // SonarQube Endpoint URL
-    SONARQUBE_URL_INT = 'http://sonarqube:9000'
-    SONARQUBE_URL_EXT = "https://sonarqube-${TOOLS_PROJECT}.${APP_DOMAIN}"
   }
 
   options {
@@ -64,54 +60,6 @@ pipeline {
             echo 'DEBUG - All pipeline environment variables:'
             echo sh(returnStdout: true, script: 'env')
           }
-        }
-      }
-    }
-
-    stage('Tests') {
-      agent any
-      steps {
-        notifyStageStatus('Tests', 'PENDING')
-
-        script {
-          dir('app') {
-            try {
-              timeout(10) {
-                echo 'Installing NPM Dependencies...'
-                sh 'npm ci'
-
-                echo 'Reporting Outdated and Vulnerable Dependencies...'
-                sh 'npm audit || true'
-                sh 'npm outdated || true'
-
-                echo 'Linting and Testing...'
-                sh 'npm run test'
-
-                echo 'Lint Checks and Tests passed'
-              }
-            } catch (e) {
-              echo 'Lint Checks and Tests failed'
-              throw e
-            }
-          }
-
-          echo 'Performing SonarQube static code analysis...'
-          sh """
-          sonar-scanner \
-            -Dsonar.host.url='${SONARQUBE_URL_INT}' \
-            -Dsonar.projectKey='${REPO_NAME}-${JOB_NAME}' \
-            -Dsonar.projectName='Common Hosted Email Service (${JOB_NAME.toUpperCase()})'
-          """
-        }
-      }
-      post {
-        success {
-          echo 'All Lint Checks and Tests passed'
-          notifyStageStatus('Tests', 'SUCCESS')
-        }
-        failure {
-          echo 'Some Lint Checks and Tests failed'
-          notifyStageStatus('Tests', 'FAILURE')
         }
       }
     }
@@ -374,21 +322,21 @@ def notifyStageStatus(String name, String status) {
 
 // Create deployment status and pass to Jenkins-GitHub library
 def createDeploymentStatus(String environment, String status, String hostUrl) {
-  def ghDeploymentId = new GitHubHelper().createDeployment(
-    this,
-    SOURCE_REPO_REF,
-    [
-      'environment': environment,
-      'task': "deploy:master"
-    ]
-  )
+  // def ghDeploymentId = new GitHubHelper().createDeployment(
+  //   this,
+  //   SOURCE_REPO_REF,
+  //   [
+  //     'environment': environment,
+  //     'task': "deploy:master"
+  //   ]
+  // )
 
-  new GitHubHelper().createDeploymentStatus(
-    this,
-    ghDeploymentId,
-    status,
-    ['targetUrl': "https://${hostUrl}"]
-  )
+  // new GitHubHelper().createDeploymentStatus(
+  //   this,
+  //   ghDeploymentId,
+  //   status,
+  //   ['targetUrl': "https://${hostUrl}"]
+  // )
 
   if (status.equalsIgnoreCase('SUCCESS')) {
     echo "${environment} deployment successful at https://${hostUrl}"

@@ -43,14 +43,10 @@ objects:
       type: Git
       dockerfile: |-
         FROM BuildConfig
-        ARG APP_ROOT=/opt/app-root/src
         ENV NO_UPDATE_NOTIFIER=true
-        WORKDIR ${APP_ROOT}
-
-        # Install CHES
+        WORKDIR /opt/app-root/src
         COPY . .
         RUN npm ci
-
         EXPOSE 3000
         CMD ["npm", "run", "start"]
     strategy:
@@ -62,7 +58,7 @@ objects:
           value: notice
         from:
           kind: DockerImage
-          name: "mhart/alpine-node:12"
+          name: docker.io/node:lts-alpine
       type: Docker
     successfulBuildsHistoryLimit: 3
 parameters:
