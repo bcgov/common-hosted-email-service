@@ -51,7 +51,6 @@
   "devDependencies": {
     "eslint": "^7.7.0",
     "jest": "^26.4.0",
-    "jest-sonar-reporter": "^2.0.0",
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2"
   },
@@ -125,11 +124,7 @@
       "!src/services/*.*",
       "!src/services/migrations/*.*",
       "!src/services/models/*.*"
-    ],
-    "testResultsProcessor": "jest-sonar-reporter"
-  },
-  "jestSonar": {
-    "reportPath": "coverage"
+    ]
   },
   "license": "Apache-2.0",
   "nodemonConfig": {
