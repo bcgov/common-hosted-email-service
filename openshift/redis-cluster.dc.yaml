@@ -19,21 +19,29 @@ labels:
   app.kubernetes.io/version: "6"
   template: ${NAME}-cluster-template
 objects:
-  - apiVersion: security.devops.gov.bc.ca/v1alpha1
-    kind: NetworkSecurityPolicy
-    metadata:
-      name: ${NAME}-${INSTANCE}-cluster-comms
-    spec:
-      description: |
-        Allow redis pods to open connections to other cluster pods
-      source:
-        - - "$namespace=${NAMESPACE}"
-          - "app=${NAME}-${INSTANCE}"
-          - "statefulset=${NAME}-${INSTANCE}"
-      destination:
-        - - "$namespace=${NAMESPACE}"
-          - "app=${NAME}-${INSTANCE}"
-          - "statefulset=${NAME}-${INSTANCE}"
+  # - apiVersion: networking.k8s.io/v1
+  #   kind: NetworkPolicy
+  #   metadata:
+  #     name: "allow-redis-${INSTANCE}-to-redis-${INSTANCE}-cluster"
+  #   spec:
+  #     # Allow Redis pods to talk to its cluster
+  #     ingress:
+  #       - from:
+  #           - podSelector:
+  #               matchLabels:
+  #                 app: "${NAME}-${INSTANCE}"
+  #                 statefulset: "${NAME}-${INSTANCE}"
+  #                 role: redis
+  #         ports:
+  #           - port: 6379
+  #             protocol: TCP
+  #           - port: 16379
+  #             protocol: TCP
+  #     podSelector:
+  #       matchLabels:
+  #         app: "${NAME}-${INSTANCE}"
+  #         statefulset: "${NAME}-${INSTANCE}"
+  #         role: redis
   - apiVersion: v1
     kind: ConfigMap
     metadata:
