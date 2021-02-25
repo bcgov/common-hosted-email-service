@@ -8,7 +8,7 @@
   "keycloak": {
     "clientId": "KC_CLIENTID",
     "clientSecret": "KC_CLIENTSECRET",
-    "publicKey": "SERVER_KC_PUBLICKEY",
+    "publicKey": "KC_PUBLICKEY",
     "realm": "KC_REALM",
     "serverUrl": "KC_SERVERURL"
   },
