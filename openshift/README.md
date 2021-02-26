@@ -23,10 +23,15 @@ In order to prepare an environment, you will need to ensure that all of the foll
 
 *Note: Replace anything in angle brackets with the appropriate value!*
 
+*Note 2:* The Keycloak Public Key can be found in the Keycloak Admin Panel under Realm Settings > Keys. Look for the Public key button (normally under RS256 row), and click to see the key. The key should begin with a pattern of `MIIBIjANB...`.
+
 ```sh
+export PUBLIC_KEY=<yourkeycloakpublickey>
+
 oc create -n 9f0fbe-<env> configmap ches-keycloak-config \
   --from-literal=KC_REALM=jbd6rnxw \
   --from-literal=KC_SERVERURL=https://dev.oidc.gov.bc.ca/auth
+  --from-literal=KC_PUBLICKEY=$PUBLIC_KEY \
 ```
 
 *Note: Change KC_SERVERURL's sso-dev to sso-test or sso depending on the environment!*
