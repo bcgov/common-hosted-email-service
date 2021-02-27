@@ -253,9 +253,7 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
               echo "Processing Redis Secret..."
               def dcRedisSecretTemplate = openshift.process('-f',
                 'openshift/redis.secret.yaml',
-                "REPO_NAME=${REPO_NAME}",
-                "JOB_NAME=${JOB_NAME}",
-                "APP_NAME=${APP_NAME}"
+                "INSTANCE=${JOB_NAME}"
               )
 
               echo "Creating Redis Secret..."
@@ -265,10 +263,8 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
             // Apply Redis Deployment
             echo "Processing DeploymentConfig Redis.."
             def dcRedisTemplate = openshift.process('-f',
-              'openshift/redis.dc.yaml',
-              "REPO_NAME=${REPO_NAME}",
-              "JOB_NAME=${JOB_NAME}",
-              "APP_NAME=${APP_NAME}"
+              'openshift/redis-sentinel.dc.yaml',
+              "INSTANCE=${JOB_NAME}"
             )
 
             echo "Applying Redis Deployment..."

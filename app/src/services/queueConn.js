@@ -28,6 +28,11 @@ class QueueConnection {
         password: config.get('redis.password')
       }
     };
+    if (config.has('redis.name') || config.has('redis.sentinels')) {
+      configuration.redis.name = config.get('redis.name');
+      configuration.redis.sentinels = JSON.parse(config.get('redis.sentinels'));
+    }
+    console.log(configuration.redis);
     this.queue = new Bull('ches', configuration);
   }
 

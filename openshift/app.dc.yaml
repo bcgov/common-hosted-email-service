@@ -175,11 +175,15 @@ objects:
                       name: ches-keycloak-secret
                 - name: REDIS_HOST
                   value: "redis-${JOB_NAME}"
+                - name: REDIS_NAME
+                  value: "${JOB_NAME}"
                 - name: REDIS_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       key: password
                       name: redis-${JOB_NAME}-secret
+                - name: REDIS_SENTINELS
+                  value: '[{"host":"redis-${JOB_NAME}-announce-0","port":26379},{"host":"redis-${JOB_NAME}-announce-1","port":26379},{"host":"redis-${JOB_NAME}-announce-2","port":26379}]'
               envFrom:
                 - configMapRef:
                     name: ches-keycloak-config
