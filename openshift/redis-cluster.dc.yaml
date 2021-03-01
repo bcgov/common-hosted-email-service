@@ -194,10 +194,6 @@ parameters:
     description: The name of this instance of the application
     displayName: Application Instance Name
     required: true
-  - name: NAMESPACE
-    description: Target namespace reference (i.e. 'b160aa-dev')
-    displayName: Target Namespace
-    required: true
   - name: REPLICAS
     description: The number of StatefulSet replicas to use.
     displayName: Replicas
