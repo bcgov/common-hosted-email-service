@@ -215,63 +215,59 @@ def deployStage(String stageEnv, String projectEnv, String hostRouteEnv) {
       }
 
       timeout(10) {
-        parallel(
-          Patroni: {
-            // Apply Patroni Secret
-            if(openshift.selector('secret', "patroni-${JOB_NAME}-secret").exists()) {
-              echo "Patroni Secret already exists. Skipping..."
-            } else {
-              echo "Processing Patroni Secret..."
-              def dcPatroniSecretTemplate = openshift.process('-f',
-                'openshift/patroni.secret.yaml',
-                "APP_DB_NAME=${APP_NAME}",
-                "INSTANCE=${JOB_NAME}"
-              )
+        // Apply Patroni Secret
+        if(openshift.selector('secret', "patroni-${JOB_NAME}-secret").exists()) {
+          echo "Patroni Secret already exists. Skipping..."
+        } else {
+          echo "Processing Patroni Secret..."
+          def dcPatroniSecretTemplate = openshift.process('-f',
+            'openshift/patroni.secret.yaml',
+            "APP_DB_NAME=${APP_NAME}",
+            "INSTANCE=${JOB_NAME}"
+          )
 
-              echo "Creating Patroni Secret..."
-              openshift.create(dcPatroniSecretTemplate)
-            }
+          echo "Creating Patroni Secret..."
+          openshift.create(dcPatroniSecretTemplate)
+        }
 
-            // Apply Patroni Database
-            echo "Processing Patroni StatefulSet.."
-            def dcPatroniTemplate = openshift.process('-f',
-              'openshift/patroni.dc.yaml',
-              "INSTANCE=${JOB_NAME}",
-              "NAMESPACE=${projectEnv}"
-            )
-
-            echo "Applying Patroni StatefulSet..."
-            def dcPatroni = openshift.apply(dcPatroniTemplate).narrow('statefulset')
-            dcPatroni.rollout().status('--watch=true')
-          },
-
-          Redis: {
-            // Apply Redis Secret
-            if(openshift.selector('secret', "redis-${JOB_NAME}-secret").exists()) {
-              echo "Redis Secret already exists. Skipping..."
-            } else {
-              echo "Processing Redis Secret..."
-              def dcRedisSecretTemplate = openshift.process('-f',
-                'openshift/redis.secret.yaml',
-                "INSTANCE=${JOB_NAME}"
-              )
-
-              echo "Creating Redis Secret..."
-              openshift.create(dcRedisSecretTemplate)
-            }
-
-            // Apply Redis Deployment
-            echo "Processing DeploymentConfig Redis.."
-            def dcRedisTemplate = openshift.process('-f',
-              'openshift/redis-sentinel.dc.yaml',
-              "INSTANCE=${JOB_NAME}"
-            )
-
-            echo "Applying Redis Deployment..."
-            def dcRedis = openshift.apply(dcRedisTemplate).narrow('dc')
-            dcRedis.rollout().status('--watch=true')
-          }
+        // Apply Patroni Database
+        echo "Processing Patroni StatefulSet.."
+        def dcPatroniTemplate = openshift.process('-f',
+          'openshift/patroni.dc.yaml',
+          "INSTANCE=${JOB_NAME}",
+          "NAMESPACE=${projectEnv}"
         )
+
+        echo "Applying Patroni StatefulSet..."
+        def dcPatroni = openshift.apply(dcPatroniTemplate).narrow('statefulset')
+        dcPatroni.rollout().status('--watch=true')
+      }
+
+      timeout(10) {
+        // Apply Redis Secret
+        if(openshift.selector('secret', "redis-${JOB_NAME}-secret").exists()) {
+          echo "Redis Secret already exists. Skipping..."
+        } else {
+          echo "Processing Redis Secret..."
+          def dcRedisSecretTemplate = openshift.process('-f',
+            'openshift/redis.secret.yaml',
+            "INSTANCE=${JOB_NAME}"
+          )
+
+          echo "Creating Redis Secret..."
+          openshift.create(dcRedisSecretTemplate)
+        }
+
+        // Apply Redis Deployment
+        echo "Processing DeploymentConfig Redis.."
+        def dcRedisTemplate = openshift.process('-f',
+          'openshift/redis-sentinel.dc.yaml',
+          "INSTANCE=${JOB_NAME}"
+        )
+
+        echo "Applying Redis Deployment..."
+        def dcRedis = openshift.apply(dcRedisTemplate).narrow('dc')
+        dcRedis.rollout().status('--watch=true')
       }
 
       createDeploymentStatus(projectEnv, 'PENDING', hostRouteEnv)

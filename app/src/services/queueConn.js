@@ -24,15 +24,17 @@ class QueueConnection {
   constructor() {
     const configuration = {
       redis: {
-        host: config.get('redis.host'),
-        password: config.get('redis.password')
+        password: config.get('redis.password'),
+        // Only reconnect when the error contains "READONLY"
+        reconnectOnError: (err) => err.message.includes('READONLY')
       }
     };
     if (config.has('redis.name') || config.has('redis.sentinels')) {
       configuration.redis.name = config.get('redis.name');
       configuration.redis.sentinels = JSON.parse(config.get('redis.sentinels'));
+    } else {
+      configuration.redis.host = config.get('redis.host');
     }
-    console.log(configuration.redis);
     this.queue = new Bull('ches', configuration);
   }
 
