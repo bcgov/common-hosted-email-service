@@ -14,28 +14,39 @@ const config = require('config');
 const log = require('npmlog');
 const utils = require('../components/utils');
 
-let globalQueue;
-
 class QueueConnection {
   /**
    * Creates a new QueueConnection with default configuration.
    * @class
    */
   constructor() {
-    const configuration = {
-      redis: {
-        password: config.get('redis.password'),
-        // Only reconnect when the error contains "READONLY"
-        reconnectOnError: (err) => err.message.includes('READONLY')
+    if (!QueueConnection.instance) {
+      const configuration = {
+        redis: {
+          password: config.get('redis.password'),
+          // Only reconnect when the error contains "READONLY"
+          reconnectOnError: (err) => {
+            if (err.message.includes('READONLY')) {
+              log.warn('ioredis', 'Connection is READONLY. Attempting to reconnect to master...');
+              return true;
+            }
+          },
+          showFriendlyErrorStack: true
+        }
+      };
+
+      if (config.has('redis.name') || config.has('redis.sentinels')) {
+        configuration.redis.name = config.get('redis.name');
+        configuration.redis.sentinels = JSON.parse(config.get('redis.sentinels'));
+      } else {
+        configuration.redis.host = config.get('redis.host');
       }
-    };
-    if (config.has('redis.name') || config.has('redis.sentinels')) {
-      configuration.redis.name = config.get('redis.name');
-      configuration.redis.sentinels = JSON.parse(config.get('redis.sentinels'));
-    } else {
-      configuration.redis.host = config.get('redis.host');
+
+      this.queue = new Bull('ches', configuration);
+      QueueConnection.instance = this;
     }
-    this.queue = new Bull('ches', configuration);
+
+    return QueueConnection.instance;
   }
 
   /**
@@ -55,7 +66,6 @@ class QueueConnection {
   set queue(v) {
     this._queue = v;
     this._connected = false;
-    globalQueue = this._queue;
   }
 
   /** @function connected
@@ -70,9 +80,9 @@ class QueueConnection {
    *  Will close the globally stored QueueConnection
    */
   static close() {
-    if (globalQueue) {
+    if (this._connected && this.queue) {
       try {
-        globalQueue.close();
+        this.queue.close();
         this._connected = false;
         log.info('QueueConnection', 'Disconnected');
       } catch (e) {

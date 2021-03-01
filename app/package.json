@@ -13,7 +13,7 @@
     "test": "npm run test:unit",
     "test:all": "jest --verbose",
     "test:integration": "jest --verbose --testPathIgnorePatterns unit --collectCoverage false",
-    "test:unit": "jest --verbose --testPathIgnorePatterns integration --forceExit --detectOpenHandles --maxWorkers=10",
+    "test:unit": "jest --verbose --testPathIgnorePatterns integration --forceExit --detectOpenHandles",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
     "posttest": "node ./lcov-fix.js",
