@@ -13,6 +13,7 @@
     "serverUrl": "KC_SERVERURL"
   },
   "redis": {
+    "clusterMode": "REDIS_CLUSTERMODE",
     "host": "REDIS_HOST",
     "password": "REDIS_PASSWORD"
   },

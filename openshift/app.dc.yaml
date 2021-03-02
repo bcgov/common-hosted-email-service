@@ -184,6 +184,11 @@ objects:
                     secretKeyRef:
                       key: password
                       name: ches-keycloak-secret
+                - name: REDIS_CLUSTERMODE
+                  valueFrom:
+                    secretKeyRef:
+                      key: clustermode
+                      name: redis-${JOB_NAME}-secret
                 - name: REDIS_HOST
                   value: "redis-${JOB_NAME}"
                 - name: REDIS_PASSWORD

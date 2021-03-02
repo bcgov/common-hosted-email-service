@@ -21,42 +21,54 @@ class QueueConnection {
    * @class
    */
   constructor() {
-    if (!QueueConnection.instance) {
-      this._connected = false;
-      this.queue = new Bull('ches', {
-        // Prefix must be explicitly defined with brackets to support Redis Clustering
-        // https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#redis-cluster
-        prefix: '{bull}',
-        createClient: () => {
-          // The Cluster instance must be created inside the function to behave correctly
-          // https://github.com/OptimalBits/bull/issues/1401#issuecomment-519443898
-          const cluster = new Redis.Cluster([{
-            host: config.get('redis.host'),
-            port: 6379
+    /**
+     * Configuration object for Bull queue
+     */
+    const bullConfig = {
+      // Prefix must be explicitly defined with brackets to support Redis Clustering
+      // https://github.com/OptimalBits/bull/blob/master/PATTERNS.md#redis-cluster
+      prefix: '{bull}',
+      // The Cluster instance must be created inside createClient to behave correctly
+      // https://github.com/OptimalBits/bull/issues/1401#issuecomment-519443898
+      createClient: () => {
+        let redis;
+        if (config.get('redis.clusterMode') === 'yes') {
+          redis = new Redis.Cluster([{
+            host: config.get('redis.host')
           }], {
             redisOptions: {
               password: config.get('redis.password')
             }
           });
-
-          cluster.on('error', (error) => {
-            log.error(`Redis Errored: ${error}`);
+        } else {
+          redis = new Redis({
+            host: config.get('redis.host'),
+            password: config.get('redis.password')
           });
-          cluster.on('end', (error) => {
-            log.error(`Redis Ended: ${error}`);
-          });
-          cluster.on('ready', () => {
-            log.debug('Redis Ready.');
-          });
-          cluster.on('connect', () => {
-            log.debug('Redis Connected');
-            this._connected = true;
-          });
-
-          return cluster;
         }
-      });
 
+        redis.on('error', (error) => {
+          log.error(`Redis Errored: ${error}`);
+        });
+        redis.on('end', (error) => {
+          log.error(`Redis Ended: ${error}`);
+          this._connected = false;
+        });
+        redis.on('ready', () => {
+          log.debug('Redis Ready.');
+        });
+        redis.on('connect', () => {
+          log.debug('Redis Connected');
+          this._connected = true;
+        });
+
+        return redis;
+      }
+    };
+
+    if (!QueueConnection.instance) {
+      this._connected = false;
+      this.queue = new Bull('ches', bullConfig);
       QueueConnection.instance = this;
     }
 
@@ -74,15 +86,14 @@ class QueueConnection {
   /**
    *  @function queue
    *  Sets the underlying Bull queue
-   *  Also sets the globalQueue object
    *  @param {object} v - a new Bull instance
    */
   set queue(v) {
     this._queue = v;
-    // this._connected = false;
   }
 
-  /** @function connected
+  /**
+   *  @function connected
    *  True or false if connected.
    */
   get connected() {
@@ -112,15 +123,20 @@ class QueueConnection {
    *  @returns boolean True if queue is connected
    */
   async checkConnection(timeout = 5) {
+    const status = [
+      this.queue.clientInitialized,
+      this.queue.subscriberInitialized,
+      this.queue.bclientInitialized
+    ];
+
     // Redis does not establish connection immediately.
     // You need a small grace period checking for the status.
     for (let i = 0; i < timeout; i++) {
-      // this._connected = this.queue.clients[0].status === 'ready';
-      if (this.connected) break;
+      if (this.connected && status.every(x => x)) break;
       await utils.wait(1000);
     }
     if (!this.connected) {
-      log.error('QueueConnection', 'Unable to connect to queue');
+      log.error('QueueConnection', 'Unable to connect to queue', status);
     }
 
     return this._connected;
