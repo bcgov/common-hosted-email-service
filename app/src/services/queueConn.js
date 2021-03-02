@@ -12,8 +12,8 @@
 const Bull = require('bull');
 const config = require('config');
 const log = require('npmlog');
+const Redis = require('ioredis');
 const utils = require('../components/utils');
-
 class QueueConnection {
   /**
    * Creates a new QueueConnection with default configuration.
@@ -21,32 +21,57 @@ class QueueConnection {
    */
   constructor() {
     if (!QueueConnection.instance) {
-      const configuration = {
-        redis: {
-          password: config.get('redis.password'),
-          // Only reconnect when the error contains "READONLY"
-          reconnectOnError: (err) => {
-            if (err.message.includes('READONLY')) {
-              log.warn('ioredis', 'Connection is READONLY. Attempting to reconnect to master...');
-              return true;
-            }
-          },
-          showFriendlyErrorStack: true
-        }
-      };
-
-      if (config.has('redis.name') || config.has('redis.sentinels')) {
-        configuration.redis.name = config.get('redis.name');
-        configuration.redis.sentinels = JSON.parse(config.get('redis.sentinels'));
-      } else {
-        configuration.redis.host = config.get('redis.host');
-      }
-
-      this.queue = new Bull('ches', configuration);
+      this._connected = false;
+      this.queue = new Bull('ches', {
+        // The redis instance must be created inside the function to behave correctly
+        // https://github.com/OptimalBits/bull/issues/1401#issuecomment-519443898
+        createClient: this._createClient()
+      });
       QueueConnection.instance = this;
     }
 
     return QueueConnection.instance;
+  }
+
+  _createClient() {
+    const redisConfig = {
+      host: config.get('redis.host'),
+      password: config.get('redis.password'),
+      // Force reconnect when the error contains "READONLY"
+      reconnectOnError: (err) => {
+        if (err.message.includes('READONLY')) {
+          log.warn('ioredis', 'Connection is READONLY. Attempting to reconnect to master...');
+          return true;
+        }
+      },
+      showFriendlyErrorStack: true
+    };
+
+    if (config.has('redis.name') || config.has('redis.sentinels')) {
+      redisConfig.name = config.get('redis.name');
+      redisConfig.sentinels = JSON.parse(config.get('redis.sentinels'));
+    }
+
+    console.log(redisConfig);
+
+    const redis = new Redis(redisConfig);
+
+    redis.on('error', (error) => {
+      log.error(`Redis Errored: ${error}`);
+    });
+    redis.on('end', (error) => {
+      log.error(`Redis Ended: ${error}`);
+      this._connected = false;
+    });
+    redis.on('ready', () => {
+      log.info('Redis Ready.');
+    });
+    redis.on('connect', () => {
+      log.info('Redis Connected');
+      this._connected = true;
+    });
+
+    return redis;
   }
 
   /**
@@ -65,7 +90,7 @@ class QueueConnection {
    */
   set queue(v) {
     this._queue = v;
-    this._connected = false;
+    // this._connected = false;
   }
 
   /** @function connected
@@ -101,7 +126,7 @@ class QueueConnection {
     // Redis does not establish connection immediately.
     // You need a small grace period checking for the status.
     for (let i = 0; i < timeout; i++) {
-      this._connected = this.queue.clients[0].status === 'ready';
+      // this._connected = this.queue.clients[0].status === 'ready';
       if (this.connected) break;
       await utils.wait(1000);
     }

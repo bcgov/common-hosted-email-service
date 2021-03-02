@@ -13,8 +13,10 @@
     "serverUrl": "KC_SERVERURL"
   },
   "redis": {
+    "name": "REDIS_NAME",
     "host": "REDIS_HOST",
-    "password": "REDIS_PASSWORD"
+    "password": "REDIS_PASSWORD",
+    "sentinels": "REDIS_SENTINELS"
   },
   "server": {
     "attachmentLimit": "SERVER_ATTACHMENTLIMIT",
