@@ -15,7 +15,7 @@ labels:
   app.kubernetes.io/instance: ${INSTANCE}
   app.kubernetes.io/name: redis
   app.kubernetes.io/managed-by: template
-  app.kubernetes.io/part-of: ${NAME}-${INSTANCE}
+  app.kubernetes.io/part-of: ${APP_NAME}-${INSTANCE}
   app.kubernetes.io/version: "6"
   template: ${NAME}-ephemeral-template
 objects:
@@ -123,6 +123,10 @@ objects:
       triggers:
         - type: ConfigChange
 parameters:
+  - name: APP_NAME
+    description: The name of the application which will use this.
+    displayName: Application client name
+    required: true
   - name: NAME
     description: The name of the application for labelling all artifacts.
     displayName: Application Name
