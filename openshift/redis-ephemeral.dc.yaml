@@ -36,7 +36,8 @@ objects:
     metadata:
       name: ${NAME}-${INSTANCE}
     spec:
-      replicas: 1
+      replicas: ${{REPLICAS}}
+      revisionHistoryLimit: 10
       selector:
         app: ${NAME}-${INSTANCE}
         deploymentconfig: ${NAME}-${INSTANCE}
@@ -131,6 +132,11 @@ parameters:
     description: The name of this instance of the application
     displayName: Application Instance Name
     required: true
+  - name: REPLICAS
+    description: The number of StatefulSet replicas to use.
+    displayName: Replicas
+    required: true
+    value: "1"
   - name: IMAGE_REGISTRY
     description: The base docker registry
     displayName: Docker Image Registry
