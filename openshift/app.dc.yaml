@@ -70,13 +70,13 @@ objects:
               protocol: TCP
       podSelector:
         matchLabels:
-          app: "${APP_NAME}-${JOB_NAME}"
+          app: "redis-${JOB_NAME}"
           role: redis
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
       annotations:
-        app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"StatefulSet","name":"patroni-${JOB_NAME}"},{"apiVersion":"apps/v1","kind":"StatefulSet","name":"redis-${JOB_NAME}"}]'
+        app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"StatefulSet","name":"patroni-${JOB_NAME}"},{"apiVersion":"apps/v1","kind":"StatefulSet","name":"redis-${JOB_NAME}"},{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"redis-${JOB_NAME}"}]'
       name: "${APP_NAME}-app-${JOB_NAME}"
     spec:
       replicas: 2

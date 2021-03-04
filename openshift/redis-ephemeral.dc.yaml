@@ -53,7 +53,7 @@ objects:
             app.kubernetes.io/instance: ${INSTANCE}
             app.kubernetes.io/name: redis
             app.kubernetes.io/managed-by: template
-            app.kubernetes.io/part-of: ${NAME}-${INSTANCE}
+            app.kubernetes.io/part-of: ${APP_NAME}-${INSTANCE}
             app.kubernetes.io/version: "6"
             deploymentconfig: ${NAME}-${INSTANCE}
             role: redis

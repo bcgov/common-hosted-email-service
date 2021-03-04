@@ -148,6 +148,7 @@ def runStageDeploy(String stageEnv, String projectEnv, String hostEnv, String pa
             } else {
               dcRedisTemplate = openshift.process('-f',
                 'openshift/redis-cluster.dc.yaml',
+                "APP_NAME=${APP_NAME}",
                 "INSTANCE=${JOB_NAME}"
               )
             }
