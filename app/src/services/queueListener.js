@@ -50,9 +50,8 @@ class QueueListener {
     if (typeof job.id !== 'undefined') {
       log.error('onError', `Job ${job.id} errored`);
       QueueListener.queueService.updateStatus(job, queueState.ERRORED);
-    } else if (QueueListener.queueService.queue.clients[0].status === 'ready') {
-      // An error occured, but wasn't caused by Redis going offline
-      log.error('onError', 'A Job failed');
+    } else {
+      log.error('onError', job.message);
     }
   }
 
