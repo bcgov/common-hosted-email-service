@@ -38,9 +38,9 @@ const mailApiTracker = async (req, res, next) => {
         const body = Buffer.concat(chunks).toString('utf8');
         const obj = JSON.parse(body);
         res._transactionId = obj.txId;
-        res._messageIds = obj.messages.map(m => m.msgId).join(',');
+        res._messageIds = obj.messages ? obj.messages.map(m => m.msgId).join(',') : undefined;
       } catch (err) {
-        log.error('mailApiTracker', err);
+        if (!(err instanceof SyntaxError)) log.error('mailApiTracker', err);
       }
       defaultEnd.apply(res, restArgs);
     };

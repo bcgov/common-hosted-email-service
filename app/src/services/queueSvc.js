@@ -129,14 +129,18 @@ class QueueService {
    */
   async enqueue(client, message, opts = {}) {
     await this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
-    await this.queue.add({
-      client: client,
-      messageId: message.messageId
-    }, Object.assign(opts, {
-      jobId: message.messageId
-    }))
-      .then(job => log.info('QueueService.enqueue', `Job ${job.id} enqueued`))
-      .catch(e => log.error(e));
+    try {
+      const job = await this.queue.add({
+        client: client,
+        messageId: message.messageId
+      }, Object.assign(opts, {
+        jobId: message.messageId
+      }));
+      log.info('QueueService.enqueue', `Job ${job.id} enqueued`);
+    } catch (e) {
+      e.message = 'Queue Error: ' + e.message;
+      throw e;
+    }
   }
 
   /**
