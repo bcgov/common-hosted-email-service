@@ -67,10 +67,10 @@ class EmailService {
       // Send mail with defined transport object
       const info = await mailer.sendMail(envelope);
 
-      log.debug('sendMail', info);
+      log.debug('EmailService.sendMail', info);
       return info;
     } catch (error) {
-      log.error('sendMail', error.message);
+      log.error('EmailService.sendMail', error.message);
       throw error;
     }
   }
@@ -86,7 +86,7 @@ class EmailService {
       const etherealConnection = await EmailConnection.getEtherealConnection();
       const info = await this.sendMail(etherealConnection.mailer, message);
       const url = etherealConnection.getTestMessageUrl(info);
-      log.info(`Ethereal test url = ${url}`);
+      log.info('EmailService.send', `Ethereal test url = ${url}`);
       return url;
     }
     return await this.sendMail(this.connection.mailer, message);

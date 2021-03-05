@@ -36,7 +36,7 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onCompleted(job) {
-    log.info('onCompleted', `Job ${job.id} completed`);
+    log.info('QueueListener.onCompleted', `Job ${job.id} completed`);
     await QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
     QueueListener.queueService.updateContent(job);
   }
@@ -48,10 +48,10 @@ class QueueListener {
    */
   static async onError(job) {
     if (typeof job.id !== 'undefined') {
-      log.error('onError', `Job ${job.id} errored`);
+      log.error('QueueListener.onError', `Job ${job.id} errored`);
       QueueListener.queueService.updateStatus(job, queueState.ERRORED);
     } else {
-      log.error('onError', job.message);
+      log.error('QueueListener.onError', job.message);
     }
   }
 
@@ -61,7 +61,7 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onFailed(job) {
-    log.error('onFailed', `Job ${job.id} failed`);
+    log.error('QueueListener.onFailed', `Job ${job.id} failed`);
     await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
     QueueListener.queueService.updateContent(job);
   }
@@ -72,13 +72,13 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onProcess(job) {
-    log.info('onProcess', `Job ${job.id} is processing...`);
+    log.info('QueueListener.onProcess', `Job ${job.id} is processing...`);
 
     try {
       if (job.data.messageId && job.data.client) {
         await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
         await QueueListener.queueService.sendMessage(job);
-        log.info('onProcess', `Job ${job.id} delivered`);
+        log.info('QueueListener.onProcess', `Job ${job.id} delivered`);
         QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
       } else {
         throw new Error('Message information missing or formatted incorrectly');
