@@ -189,6 +189,7 @@ class QueueService {
       } catch (e) {
         log.error('sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
         log.error(utils.prettyStringify(e));
+        throw(e);
       }
     }
   }
