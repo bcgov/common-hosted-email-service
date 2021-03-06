@@ -128,7 +128,6 @@ class QueueService {
    * @param {object} opts - Bull opts, including setting delay time
    */
   async enqueue(client, message, opts = {}) {
-    await this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
     try {
       const job = await this.queue.add({
         client: client,
@@ -141,6 +140,7 @@ class QueueService {
       e.message = 'Queue Error: ' + e.message;
       throw e;
     }
+    await this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
   }
 
   /**
