@@ -47,18 +47,15 @@ class QueueConnection {
           });
         }
 
-        redis.on('error', (error) => {
-          log.error(`Redis Errored: ${error}`);
-        });
         redis.on('end', (error) => {
-          log.error(`Redis Ended: ${error}`);
+          log.error('QueueConnection', `Redis Ended: ${error}`);
           this._connected = false;
         });
         redis.on('ready', () => {
-          log.debug('Redis Ready.');
+          log.debug('QueueConnection', 'Redis Ready');
         });
         redis.on('connect', () => {
-          log.debug('Redis Connected');
+          log.debug('QueueConnection', 'Redis Connected');
           this._connected = true;
         });
 
@@ -109,7 +106,7 @@ class QueueConnection {
       try {
         this.queue.close();
         this._connected = false;
-        log.info('QueueConnection', 'Disconnected');
+        log.info('QueueConnection.close', 'Disconnected');
       } catch (e) {
         log.error(e);
       }
@@ -136,7 +133,7 @@ class QueueConnection {
       await utils.wait(1000);
     }
     if (!this.connected) {
-      log.error('QueueConnection', 'Unable to connect to queue', status);
+      log.error('QueueConnection.checkConnection', 'Unable to connect to queue', status);
     }
 
     return this._connected;

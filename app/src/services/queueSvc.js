@@ -129,14 +129,18 @@ class QueueService {
    */
   async enqueue(client, message, opts = {}) {
     await this.dataService.updateStatus(client, message.messageId, queueState.ENQUEUED);
-    await this.queue.add({
-      client: client,
-      messageId: message.messageId
-    }, Object.assign(opts, {
-      jobId: message.messageId
-    }))
-      .then(job => log.info('enqueue', `Job ${job.id} enqueued`))
-      .catch(e => log.error(e));
+    try {
+      const job = await this.queue.add({
+        client: client,
+        messageId: message.messageId
+      }, Object.assign(opts, {
+        jobId: message.messageId
+      }));
+      log.info('QueueService.enqueue', `Job ${job.id} enqueued`);
+    } catch (e) {
+      e.message = 'Queue Error: ' + e.message;
+      throw e;
+    }
   }
 
   /**
@@ -155,7 +159,7 @@ class QueueService {
         await job.update(null); // Scrub out client and message id
       }
     } catch (e) {
-      log.error('updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
+      log.error('QueueService.updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
     }
   }
 
@@ -187,8 +191,9 @@ class QueueService {
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
-        log.error('sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
+        log.error('QueueService.sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
         log.error(utils.prettyStringify(e));
+        throw(e);
       }
     }
   }
@@ -222,7 +227,7 @@ class QueueService {
         this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
         this.updateContent(job);
 
-        log.info('removeJob', `Message ${job.data.messageId} removed from queue`);
+        log.info('QueueService.removeJob', `Message ${job.data.messageId} removed from queue`);
         return true;
       }
     } else {

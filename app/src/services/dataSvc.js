@@ -130,7 +130,7 @@ class DataService {
       stackpole.createTransaction(client, result);
       return result;
     } catch (err) {
-      log.error('createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
+      log.error('DataService.createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -157,13 +157,13 @@ class DataService {
       const cItems = await Message.query(trx)
         .patch({ email: null })
         .where('messageId', messageId);
-      log.info(`Updated ${cItems} message email records...`);
+      log.info('DataService.deleteMessageEmail', `Updated ${cItems} message email records...`);
 
       await trx.commit();
 
       return await this.readMessage(client, messageId);
     } catch (err) {
-      log.error('deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`);
+      log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -271,13 +271,13 @@ class DataService {
       const cItems = await Message.query(trx)
         .patch({ sendResult: sendResult })
         .where('messageId', messageId);
-      log.info(`Updated ${cItems} message (result) records...`);
+      log.info('DataService.updateMessageSendResult', `Updated ${cItems} message (result) records...`);
 
       await trx.commit();
 
       return await this.readMessage(client, messageId);
     } catch (err) {
-      log.error('updateMessageSendResult', `Error updating message send result record: ${err.message}. Rolling back...`);
+      log.error('DataService.updateMessageSendResult', `Error updating message send result record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;
@@ -330,7 +330,7 @@ class DataService {
       stackpole.updateStatus(client, result);
       return result;
     } catch (err) {
-      log.error('updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);
+      log.error('DataService.updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);
       log.error(err);
       if (trx) await trx.rollback();
       throw err;

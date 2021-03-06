@@ -117,16 +117,16 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {
-        log.info('cancelMessage', e.message);
+        log.info('ChesService.cancelMessage', e.message);
         throw new Problem(403, { detail: e.message });
       } else if (e instanceof DataIntegrityError) {
-        log.error('cancelMessage', e.message);
+        log.error('ChesService.cancelMessage', e.message);
         throw new Problem(500, { detail: e.message });
       } else if (e instanceof NotFoundError) {
-        log.info('cancelMessage', `Message ${messageId} from client ${client} not found.`);
+        log.info('ChesService.cancelMessage', `Message ${messageId} from client ${client} not found.`);
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UncancellableError) {
-        log.info('cancelMessage', e.message);
+        log.info('ChesService.cancelMessage', e.message);
         throw new Problem(409, { detail: e.message });
       } else {
         throw e;
@@ -161,9 +161,9 @@ class ChesService {
         } catch (e) {
           if (e instanceof ClientMismatchError || e instanceof NotFoundError ||
               e instanceof UncancellableError) {
-            log.info('findCancelMessages', e.message);
+            log.info('ChesService.findCancelMessages', e.message);
           } else if (e instanceof DataIntegrityError) {
-            log.error('findCancelMessages', e.message);
+            log.error('ChesService.findCancelMessages', e.message);
             integrityList.push(msg.messageId);
           } else {
             throw e; // We want to throw and not return an error object in this case
@@ -173,7 +173,7 @@ class ChesService {
       }).filter(e => !!e)); // Drop undefined elements from array
 
       if (integrityList && integrityList.length) {
-        log.error('findCancelMessages', `Message(s) ${integrityList} inconsistent or corrupted.`);
+        log.error('ChesService.findCancelMessages', `Message(s) ${integrityList} inconsistent or corrupted.`);
         throw new Problem(500, {
           detail: 'Some message(s) are inconsistent or corrupted.',
           messages: integrityList
@@ -181,11 +181,11 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.info('findCancelMessages', 'No messages found');
+        log.info('ChesService.findCancelMessages', 'No messages found');
       } else if (e instanceof Problem) {
         throw e;
       } else {
-        log.error('findCancelMessages', e.message);
+        log.error('ChesService.findCancelMessages', e.message);
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
       }
     }
@@ -209,10 +209,10 @@ class ChesService {
       return result.map(msg => transformer.toStatusResponse(msg));
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.verbose('findStatuses', 'No messages found');
+        log.verbose('ChesService.findStatuses', 'No messages found');
         return [];
       } else {
-        log.error('findStatuses', e.message);
+        log.error('ChesService.findStatuses', e.message);
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
       }
     }
@@ -241,10 +241,10 @@ class ChesService {
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.error('getStatus', `Message ${messageId} from client ${client} not found.`);
+        log.error('ChesService.getStatus', `Message ${messageId} from client ${client} not found.`);
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else {
-        log.error('getStatus', `Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`);
+        log.error('ChesService.getStatus', `Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`);
         log.error(utils.prettyStringify(e));
         throw new Problem(500, { detail: `Unable retrieve status of message ${messageId}. ${e.message}` });
       }
@@ -285,7 +285,7 @@ class ChesService {
         return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
-      log.error('sendEmail', e.message);
+      log.error('ChesService.sendEmail', e.message);
       log.error(utils.prettyStringify(e));
       throw new Problem(500, { detail: `Error sending email. ${e.message}` });
     }
@@ -338,7 +338,7 @@ class ChesService {
         return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
-      log.error('sendEmailMerge', `Send Email Merge error. ${e.message}`);
+      log.error('ChesService.sendEmailMerge', `Send Email Merge error. ${e.message}`);
       log.error(utils.prettyStringify(e));
       throw new Problem(500, { detail: `Error sending email merge. ${e.message}` });
     }
