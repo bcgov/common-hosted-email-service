@@ -279,7 +279,7 @@ class ChesService {
         // queue up the messages...
         const delayTS = trxn.messages[0].delayTimestamp;
         const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
-        await this.queueService.enqueue(client, trxn.messages[0], { delay: delay });
+        this.queueService.enqueue(client, trxn.messages[0], { delay: delay });
 
         //return to caller in API format
         return transformer.toTransactionResponse(trxn);
@@ -328,11 +328,11 @@ class ChesService {
         let trxn = await this.dataService.createTransaction(client, contexts);
 
         // Send all mail messages with defined transport object
-        await Promise.all(trxn.messages.map(msg => {
+        trxn.messages.forEach(msg => {
           const delayTS = msg.delayTimestamp;
           const delay = delayTS ? utils.calculateDelayMS(delayTS) : undefined;
           this.queueService.enqueue(client, msg, { delay: delay });
-        }));
+        });
 
         // return transaction in API format
         return transformer.toTransactionResponse(trxn);
