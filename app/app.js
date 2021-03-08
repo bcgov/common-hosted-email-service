@@ -76,22 +76,27 @@ if (process.env.NODE_ENV !== 'test') {
 // Use Keycloak OIDC Middleware
 app.use(keycloak.middleware());
 
-// GetOK Base API Directory
-apiRouter.get('/', (_req, res) => {
+// Block requests until service is ready and mounted
+app.use((_req, res, next) => {
   if (state.shutdown) {
     throw new Error('Server shutting down');
-  } else if (!state.ready) {
-    throw new Error('Server is not ready');
+  } else if (!state.ready || !state.mounted) {
+    new Problem(503, { details: 'Server is not ready' }).send(res);
   } else {
-    res.status(200).json({
-      endpoints: [
-        '/api/v1'
-      ],
-      versions: [
-        1
-      ]
-    });
+    next();
   }
+});
+
+// GetOK Base API Directory
+apiRouter.get('/', (_req, res) => {
+  res.status(200).json({
+    endpoints: [
+      '/api/v1'
+    ],
+    versions: [
+      1
+    ]
+  });
 });
 
 // v1 Router
