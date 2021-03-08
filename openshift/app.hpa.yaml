@@ -1,0 +1,27 @@
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    autoscaling.alpha.kubernetes.io/behavior: >-
+      {"ScaleUp":{"StabilizationWindowSeconds":30,"SelectPolicy":"Max","Policies":[{"Type":"Percent","Value":100,"PeriodSeconds":30}]},"ScaleDown":{"StabilizationWindowSeconds":120,"SelectPolicy":"Max","Policies":[{"Type":"Percent","Value":10,"PeriodSeconds":120}]}}
+  name: ches-app-master
+  labels:
+    app: ches-master
+    app.kubernetes.io/component: app
+    app.kubernetes.io/instance: ches-master
+    app.kubernetes.io/managed-by: jenkins
+    app.kubernetes.io/name: nodejs
+    app.kubernetes.io/part-of: ches-master
+    template: common-hosted-email-service-app-dc-template
+spec:
+  scaleTargetRef:
+    kind: DeploymentConfig
+    name: ches-app-master
+    apiVersion: apps.openshift.io/v1
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 50
