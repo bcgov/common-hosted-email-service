@@ -15,6 +15,42 @@ const log = require('npmlog');
 const Redis = require('ioredis');
 const utils = require('../components/utils');
 
+/**
+ * @function _createClient
+ * Creates and returns an ioredis connection
+ * @returns Object An ioredis object
+ */
+const _createClient = () => {
+  let redis;
+
+  const redisOpts = {
+    password: config.get('redis.password'),
+    reconnectOnError: (err) => err.message.toUpperCase().includes('READONLY')
+  };
+  if (config.get('redis.clusterMode') === 'yes') {
+    redis = new Redis.Cluster([{
+      host: config.get('redis.host')
+    }], {
+      redisOptions: redisOpts
+    });
+  } else {
+    redisOpts.host = config.get('redis.host');
+    redis = new Redis(redisOpts);
+  }
+
+  redis.on('ready', () => {
+    log.debug('QueueConnection', 'Redis Ready');
+  });
+  redis.on('reconnecting', () => {
+    log.debug('QueueConnection', 'Redis Reconnecting...');
+  });
+  redis.on('connect', () => {
+    log.debug('QueueConnection', 'Redis Connected');
+  });
+
+  return redis;
+};
+
 class QueueConnection {
   /**
    * Creates a new QueueConnection with default configuration.
@@ -30,41 +66,10 @@ class QueueConnection {
       prefix: '{bull}',
       // The Cluster instance must be created inside createClient to behave correctly
       // https://github.com/OptimalBits/bull/issues/1401#issuecomment-519443898
-      createClient: () => {
-        let redis;
-        if (config.get('redis.clusterMode') === 'yes') {
-          redis = new Redis.Cluster([{
-            host: config.get('redis.host')
-          }], {
-            redisOptions: {
-              password: config.get('redis.password')
-            }
-          });
-        } else {
-          redis = new Redis({
-            host: config.get('redis.host'),
-            password: config.get('redis.password')
-          });
-        }
-
-        redis.on('end', (error) => {
-          log.error('QueueConnection', `Redis Ended: ${error}`);
-          this._connected = false;
-        });
-        redis.on('ready', () => {
-          log.debug('QueueConnection', 'Redis Ready');
-          this._connected = true;
-        });
-        redis.on('connect', () => {
-          log.debug('QueueConnection', 'Redis Connected');
-        });
-
-        return redis;
-      }
+      createClient: _createClient
     };
 
     if (!QueueConnection.instance) {
-      this._connected = false;
       this.queue = new Bull('ches', bullConfig);
       QueueConnection.instance = this;
     }
@@ -86,6 +91,7 @@ class QueueConnection {
    *  @param {object} v - a new Bull instance
    */
   set queue(v) {
+    this._connected = false;
     this._queue = v;
   }
 
@@ -119,23 +125,29 @@ class QueueConnection {
    *  @param {integer} [timeout=5] Number of seconds to retry before failing out
    *  @returns boolean True if queue is connected
    */
-  async checkConnection(timeout = 5) {
-    let status = false;
-    // Redis does not establish connection immediately.
-    // You need a small grace period checking for the status.
-    for (let i = 0; i < timeout; i++) {
-      this.queue.client.ping((_err, result) => {
-        if (result === 'PONG') status = true;
-      });
-      if (status) break;
-      await utils.wait(1000);
-    }
-    if (!status) {
-      log.error('QueueConnection.checkConnection', 'Unable to connect to queue');
+  async checkConnection() {
+    let isReady = await Promise.all([
+      this.checkRedis(this.queue.clientInitialized, this.queue.client),
+      this.checkRedis(this.queue.subscriberInitialized, this.queue.sclient),
+      this.checkRedis(this.queue.bclientInitialized, this.queue.bclient)
+    ]);
+
+    if (!isReady) {
+      log.error('QueueConnection.checkConnection', 'Redis connections not ready');
     }
 
-    this._connected = status;
-    return status;
+    this._connected = isReady;
+    return this.connected;
+  }
+
+  async checkRedis(initialized, client, timeout = 5) {
+    // Bull and Redis needs a small grace period to initialize.
+    for (let i = 0; i < timeout; i++) {
+      if (initialized) break;
+      await utils.wait(1000);
+    }
+
+    return client && client.status === 'ready';
   }
 }
 
