@@ -53,10 +53,10 @@ class QueueConnection {
         });
         redis.on('ready', () => {
           log.debug('QueueConnection', 'Redis Ready');
+          this._connected = true;
         });
         redis.on('connect', () => {
           log.debug('QueueConnection', 'Redis Connected');
-          this._connected = true;
         });
 
         return redis;
@@ -120,23 +120,22 @@ class QueueConnection {
    *  @returns boolean True if queue is connected
    */
   async checkConnection(timeout = 5) {
-    const status = [
-      this.queue.clientInitialized,
-      this.queue.subscriberInitialized,
-      this.queue.bclientInitialized
-    ];
-
+    let status = false;
     // Redis does not establish connection immediately.
     // You need a small grace period checking for the status.
     for (let i = 0; i < timeout; i++) {
-      if (this.connected && status.every(x => x)) break;
+      this.queue.client.ping((_err, result) => {
+        if (result === 'PONG') status = true;
+      });
+      if (status) break;
       await utils.wait(1000);
     }
-    if (!this.connected) {
-      log.error('QueueConnection.checkConnection', 'Unable to connect to queue', status);
+    if (!status) {
+      log.error('QueueConnection.checkConnection', 'Unable to connect to queue');
     }
 
-    return this._connected;
+    this._connected = status;
+    return status;
   }
 }
 
