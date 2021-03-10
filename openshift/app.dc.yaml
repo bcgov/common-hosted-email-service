@@ -133,13 +133,13 @@ objects:
                 - /bin/sh
               args:
                 - -c
-                - "npm run start 2>&1 | tee /var/log/app.log"
+                - "npm start 2>&1 | tee /var/log/app.log"
               livenessProbe:
                 httpGet:
                   path: /
                   port: 3000
                   scheme: HTTP
-                initialDelaySeconds: 10
+                initialDelaySeconds: 15
                 timeoutSeconds: 1
                 failureThreshold: 3
               ports:
@@ -150,7 +150,7 @@ objects:
                   path: /
                   port: 3000
                   scheme: HTTP
-                initialDelaySeconds: 10
+                initialDelaySeconds: 15
                 timeoutSeconds: 1
                 failureThreshold: 3
               resources:

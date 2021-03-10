@@ -51,6 +51,24 @@ const _createClient = () => {
   return redis;
 };
 
+/**
+ * @function _checkRedis
+ * Checks a Bull Redis connection status
+ * @param {boolean} initialized Bull queue initialization state for this connection
+ * @param {object} client Bull queue ioredis object for this connection
+ * @param {integer} [timeout=5] Number of seconds to retry before failing out
+ * @returns boolean True if initialized and ready, false otherwise
+ */
+const _checkRedis = async (initialized, client, timeout = 5) => {
+  // Bull and Redis needs a small grace period to initialize.
+  for (let i = 0; i < timeout; i++) {
+    if (initialized && client && client.status === 'ready') return true;
+    await utils.wait(1000);
+  }
+
+  return false;
+};
+
 class QueueConnection {
   /**
    * Creates a new QueueConnection with default configuration.
@@ -78,17 +96,17 @@ class QueueConnection {
   }
 
   /**
-   *  @function queue
-   *  Gets the underlying Bull queue
+   * @function queue
+   * Gets the underlying Bull queue
    */
   get queue() {
     return this._queue;
   }
 
   /**
-   *  @function queue
-   *  Sets the underlying Bull queue
-   *  @param {object} v - a new Bull instance
+   * @function queue
+   * Sets the underlying Bull queue
+   * @param {object} v - a new Bull instance
    */
   set queue(v) {
     this._connected = false;
@@ -96,16 +114,16 @@ class QueueConnection {
   }
 
   /**
-   *  @function connected
-   *  True or false if connected.
+   * @function connected
+   * True or false if connected.
    */
   get connected() {
     return this._connected;
   }
 
   /**
-   *  @function close
-   *  Will close the QueueConnection
+   * @function close
+   * Will close the QueueConnection
    */
   static close() {
     if (this.queue) {
@@ -120,17 +138,28 @@ class QueueConnection {
   }
 
   /**
-   *  @function checkConnection
-   *  Checks the current QueueConnection
-   *  @param {integer} [timeout=5] Number of seconds to retry before failing out
-   *  @returns boolean True if queue is connected
+   * @function checkReachable
+   * Checks that Redis is reachable
+   * @param {integer} [timeout=5] Number of seconds to retry before failing out
+   * @returns boolean True if queue is reachable
+   */
+  async checkReachable() {
+    // Bull and Redis needs a small grace period to initialize.
+    return _checkRedis(this.queue.clientInitialized, this.queue.client);
+  }
+
+  /**
+   * @function checkConnection
+   * Checks that all Queue Connections are ready
+   * @returns boolean True if queue is connected
    */
   async checkConnection() {
-    let isReady = await Promise.all([
-      this.checkRedis(this.queue.clientInitialized, this.queue.client),
-      this.checkRedis(this.queue.subscriberInitialized, this.queue.sclient),
-      this.checkRedis(this.queue.bclientInitialized, this.queue.bclient)
+    const readiness = await Promise.all([
+      _checkRedis(this.queue.clientInitialized, this.queue.client),
+      _checkRedis(this.queue.subscriberInitialized, this.queue.eclient),
+      _checkRedis(this.queue.bclientInitialized, this.queue.bclient)
     ]);
+    const isReady = readiness.every(x => x);
 
     if (!isReady) {
       log.error('QueueConnection.checkConnection', 'Redis connections not ready');
@@ -138,16 +167,6 @@ class QueueConnection {
 
     this._connected = isReady;
     return this.connected;
-  }
-
-  async checkRedis(initialized, client, timeout = 5) {
-    // Bull and Redis needs a small grace period to initialize.
-    for (let i = 0; i < timeout; i++) {
-      if (initialized) break;
-      await utils.wait(1000);
-    }
-
-    return client && client.status === 'ready';
   }
 }
 

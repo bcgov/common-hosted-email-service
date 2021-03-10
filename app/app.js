@@ -138,8 +138,8 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 /**
- *  @function shutdown
- *  Begins shutting down this application. It will hard exit after 3 seconds.
+ * @function shutdown
+ * Begins shutting down this application. It will hard exit after 3 seconds.
  */
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
@@ -150,16 +150,16 @@ function shutdown() {
 }
 
 /**
- *  @function initializeConnections
- *  Initializes the database, queue and email connections
- *  This will force the application to exit if it fails
+ * @function initializeConnections
+ * Initializes the database, queue and email connections
+ * This will force the application to exit if it fails
  */
 function initializeConnections() {
   // Initialize connections and exit if unsuccessful
   try {
     const tasks = [
       dataConnection.checkAll(),
-      queueConnection.checkConnection()
+      queueConnection.checkReachable()
     ];
 
     if (process.env.NODE_ENV == 'production') {
@@ -174,9 +174,9 @@ function initializeConnections() {
           state.connections.email = results[2];
         }
 
-        if (state.connections.data) log.info('DataConnection', 'Connected');
-        if (state.connections.queue) log.info('QueueConnection', 'Connected');
-        if (state.connections.email) log.info('EmailConnection', 'Connected');
+        if (state.connections.data) log.info('DataConnection', 'Reachable');
+        if (state.connections.queue) log.info('QueueConnection', 'Reachable');
+        if (state.connections.email) log.info('EmailConnection', 'Reachable');
       })
       .catch(error => {
         log.error(error);
@@ -193,40 +193,38 @@ function initializeConnections() {
     if (!state.ready) shutdown();
   }
 
-  // Start asynchronous connection probe
-  connectionProbe();
+  // Start periodic 10 second connection probe check
+  setInterval(checkConnections, 10000);
 }
 
 /**
- *  @function connectionProbe
- *  Periodically checks the status of the connections at a specific interval
- *  This will force the application to exit a connection fails
- *  @param {integer} [interval=10000] Number of milliseconds to wait before
+ * @function checkConnections
+ * Checks Database and Redis connectivity
+ * This will force the application to exit if a connection fails
  */
-function connectionProbe(interval = 10000) {
-  const checkConnections = () => {
-    if (!state.shutdown) {
-      const tasks = [
-        dataConnection.checkConnection(),
-        queueConnection.checkConnection()
-      ];
+function checkConnections() {
+  const wasMounted = state.mounted;
+  if (!state.shutdown) {
+    const tasks = [
+      dataConnection.checkConnection(),
+      queueConnection.checkConnection()
+    ];
 
+    Promise.all(tasks).then(results => {
+      state.connections.data = results[0];
+      state.connections.queue = results[1];
+      state.ready = Object.values(state.connections).every(x => x);
+      state.mounted = results[1];
+      if (!wasMounted && state.mounted) log.info('Service ready to accept traffic');
       log.verbose(JSON.stringify(state));
-      Promise.all(tasks).then(results => {
-        state.connections.data = results[0];
-        state.connections.queue = results[1];
-        state.ready = Object.values(state.connections).every(x => x);
-        if (!state.ready) shutdown();
-      });
-    }
-  };
-
-  setInterval(checkConnections, interval);
+      if (!state.ready) shutdown();
+    });
+  }
 }
 
 /**
- *  @function mountServices
- *  Registers the queue listener workers and stackpole services
+ * @function mountServices
+ * Registers the queue listener workers and stackpole services
  */
 function mountServices() {
   if (state.ready && !state.mounted) {
@@ -244,8 +242,6 @@ function mountServices() {
     stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
     stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
     log.debug('StatisticsService', 'Stackpole registered');
-
-    state.mounted = true;
   }
 }
 
