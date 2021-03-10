@@ -14,7 +14,7 @@ const { transaction } = require('objection');
 const uuid = require('uuid');
 
 const { queueToStatus } = require('../components/state');
-const stackpole = require('../components/stackpole');
+// const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -127,7 +127,7 @@ class DataService {
       await trx.commit();
 
       const result = await this.readTransaction(client, transactionId);
-      stackpole.createTransaction(client, result);
+      // stackpole.createTransaction(client, result);
       return result;
     } catch (err) {
       log.error('DataService.createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
@@ -327,7 +327,7 @@ class DataService {
       await trx.commit();
 
       const result = await this.readMessage(client, messageId);
-      stackpole.updateStatus(client, result);
+      // stackpole.updateStatus(client, result);
       return result;
     } catch (err) {
       log.error('DataService.updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);

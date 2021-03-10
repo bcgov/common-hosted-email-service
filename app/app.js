@@ -7,19 +7,19 @@ const morgan = require('morgan');
 const Problem = require('api-problem');
 
 const keycloak = require('./src/components/keycloak');
-const stackpole = require('./src/components/stackpole');
-const transformer = require('./src/components/transformer');
+// const stackpole = require('./src/components/stackpole');
+// const transformer = require('./src/components/transformer');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
 
 const { authorizedParty } = require('./src/middleware/authorizedParty');
-const initializeMailApiTracker = require('./src/middleware/mailApiTracker');
+// const initializeMailApiTracker = require('./src/middleware/mailApiTracker');
 
 const DataConnection = require('./src/services/dataConn');
 const EmailConnection = require('./src/services/emailConn');
 const QueueConnection = require('./src/services/queueConn');
 const QueueListener = require('./src/services/queueListener');
-const StatisticsService = require('./src/services/statisticSvc');
+// const StatisticsService = require('./src/services/statisticSvc');
 
 const apiRouter = express.Router();
 const state = {
@@ -66,7 +66,7 @@ const emailConnection = new EmailConnection();
 if (process.env.NODE_ENV !== 'test') {
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
-  initializeMailApiTracker(app);
+  // initializeMailApiTracker(app);
   // load up morgan to log the requests
   app.use(morgan(config.get('server.morganFormat')));
   // Initialize connections and exit if unsuccessful
@@ -237,11 +237,11 @@ function mountServices() {
 
     // StackpoleService requires the data connection created and initialized...
     // since it is, let's hook in the write statistic
-    const writeFn = new StatisticsService().write;
-    stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
-    stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
-    stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
-    log.debug('StatisticsService', 'Stackpole registered');
+    // const writeFn = new StatisticsService().write;
+    // stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
+    // stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
+    // stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
+    // log.debug('StatisticsService', 'Stackpole registered');
   }
 }
 
