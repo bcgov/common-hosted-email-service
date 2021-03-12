@@ -129,11 +129,6 @@ objects:
             - name: app
               image: "${IMAGE_REGISTRY}/${NAMESPACE}/${REPO_NAME}-app:${JOB_NAME}"
               imagePullPolicy: IfNotPresent
-              command:
-                - /bin/sh
-              args:
-                - -c
-                - "npm start 2>&1 | tee /var/log/app.log"
               livenessProbe:
                 httpGet:
                   path: /
@@ -202,6 +197,8 @@ objects:
                     secretKeyRef:
                       key: password
                       name: redis-${JOB_NAME}-secret
+                - name: SERVER_LOGFILE
+                  value: "/var/log/app.log"
               envFrom:
                 - configMapRef:
                     name: ches-keycloak-config

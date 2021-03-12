@@ -20,6 +20,7 @@
   "server": {
     "attachmentLimit": "SERVER_ATTACHMENTLIMIT",
     "bodyLimit": "SERVER_BODYLIMIT",
+    "logFile": "SERVER_LOGFILE",
     "logLevel": "SERVER_LOGLEVEL",
     "morganFormat": "SERVER_MORGANFORMAT",
     "port": "SERVER_PORT",
