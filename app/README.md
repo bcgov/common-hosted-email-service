@@ -98,18 +98,25 @@ For more details, please consult the config library [documentation](https://gith
 
 | Environment Variable | Description |
 | --- | --- |
+| `DB_DATABASE` | Database name |
+| `DB_HOST` | Database hostname |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
 | `KC_CLIENTID` | Keycloak Client username |
 | `KC_CLIENTSECRET` | Keycloak Client password |
+| `KC_PUBLICKEY` | Keycloak Public key signature for JWT validation |
 | `KC_REALM` | Associated Keycloak realm |
 | `KC_SERVERURL` | Base authentication url for Keycloak |
+| `REDIS_CLUSTERMODE` | Run Redis in Cluster mode. Options: `yes`, `no` |
 | `REDIS_HOST` | URL to access Redis |
 | `REDIS_PASSWORD` | The Redis password |
 | `SERVER_ATTACHMENTLIMIT` | Maximum attachment size the API will accept |
 | `SERVER_BODYLIMIT` | Maximum body length the API will accept |
+| `SERVER_LOGFILE` | Writes logs to specific file location if defined |
 | `SERVER_LOGLEVEL` | Server log verbosity. Options: `silly`, `verbose`, `debug`, `info`, `warn`, `error` |
 | `SERVER_MORGANFORMAT` | Morgan format style. Options: `dev`, `combined` |
 | `SERVER_PORT` | Port server is listening to |
-| `SERVER_SMTPHOST` | The SMTP server this app will leerage |
+| `SERVER_SMTPHOST` | The SMTP server this app will leverage |
 
 #### Database Connection
 
@@ -152,7 +159,7 @@ npm run lint
 ## API Usage
 
 This API is defined and described in OpenAPI 3.0 specification.
-When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). A hosted instance of the API can be found at: <https://ches.pathfinder.gov.bc.ca/api/v1/docs>
+When the API is running, you should be able to view the specification through ReDoc at <http://localhost:3000/api/v1/docs> (assuming you are running this microservice locally). A hosted instance of the API can be found at: <https://ches.nrs.gov.bc.ca/api/v1/docs>
 
 ### General Design
 

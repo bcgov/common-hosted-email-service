@@ -1,10 +1,12 @@
 const compression = require('compression');
 const config = require('config');
 const express = require('express');
+const fs = require('fs');
 const log = require('npmlog');
 const moment = require('moment');
 const morgan = require('morgan');
 const Problem = require('api-problem');
+const Writable = require('stream').Writable;
 
 const keycloak = require('./src/components/keycloak');
 // const stackpole = require('./src/components/stackpole');
@@ -44,9 +46,24 @@ app.use(express.urlencoded({
 
 // Logging Setup
 log.level = config.get('server.logLevel');
-log.addLevel('debug', 1500, {
-  fg: 'cyan'
-});
+log.addLevel('debug', 1500, { fg: 'cyan' });
+
+let logFileStream;
+let teeStream;
+if (config.has('server.logFile')) {
+  // Write to logFile in append mode
+  logFileStream = fs.createWriteStream(config.get('server.logFile'), { flags: 'a' });
+  teeStream = new Writable({
+    objectMode: true,
+    write: (data, _, done) => {
+      process.stdout.write(data);
+      logFileStream.write(data);
+      done();
+    }
+  });
+  log.disableColor();
+  log.stream = teeStream;
+}
 
 // Print out configuration settings in verbose startup
 log.verbose('Config', utils.prettyStringify(config));
@@ -67,8 +84,12 @@ if (process.env.NODE_ENV !== 'test') {
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
   // initializeMailApiTracker(app);
+  const morganOpts = {};
+  if (config.has('server.logFile')) {
+    morganOpts.stream = teeStream;
+  }
   // load up morgan to log the requests
-  app.use(morgan(config.get('server.morganFormat')));
+  app.use(morgan(config.get('server.morganFormat'), morganOpts));
   // Initialize connections and exit if unsuccessful
   initializeConnections();
 }
