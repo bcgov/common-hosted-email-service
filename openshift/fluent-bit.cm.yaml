@@ -102,7 +102,7 @@ parameters:
     displayName: Job Branch Name
     required: true
   - name: NAMESPACE
-    description: Target namespace reference (i.e. '9f0fbe-dev')
+    description: Target namespace reference (i.e. 'b160aa-dev')
     displayName: Target Namespace
     required: true
   - name: LOGGING_HOST_NAME

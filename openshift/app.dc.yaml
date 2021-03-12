@@ -317,7 +317,7 @@ parameters:
     required: true
     value: image-registry.openshift-image-registry.svc:5000
   - name: NAMESPACE
-    description: Target namespace reference (i.e. '9f0fbe-dev')
+    description: Target namespace reference (i.e. 'b160aa-dev')
     displayName: Target Namespace
     required: true
   - name: REPO_NAME
