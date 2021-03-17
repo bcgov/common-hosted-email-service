@@ -91,6 +91,25 @@ class QueueListener {
     }
   }
 
+  /**
+   * @function onDrained
+   * Notify when queue has caught up with backlog
+   */
+  static onDrained() {
+    log.info('QueueListener.onDrained', 'Job backlog is clear');
+  }
+
+  /**
+   * @function onRemoved
+   * Remove the message job task
+   * @param {object} job A Bull Queue Job object
+   */
+  static async onRemoved(job) {
+    log.info('QueueListener.onRemoved', `Job ${job.id} removed`);
+    await QueueListener.queueService.updateStatus(job, queueState.REMOVED);
+    await QueueListener.queueService.updateContent(job);
+  }
+
 }
 
 module.exports = QueueListener;

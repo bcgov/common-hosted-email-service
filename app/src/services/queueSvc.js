@@ -218,10 +218,6 @@ class QueueService {
       } else {
         // Immediately remove from queue
         await job.remove();
-        // Update DB with cancelled status
-        this.dataService.updateStatus(client, job.data.messageId, queueState.REMOVED);
-        this.updateContent(job);
-
         log.info('QueueService.removeJob', `Message ${job.data.messageId} removed from queue`);
         return true;
       }

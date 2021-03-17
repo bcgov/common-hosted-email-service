@@ -258,6 +258,8 @@ function mountServices() {
   queueConnection.queue.on('completed', QueueListener.onCompleted);
   queueConnection.queue.on('error', QueueListener.onError);
   queueConnection.queue.on('failed', QueueListener.onFailed);
+  queueConnection.queue.on('drained', QueueListener.onDrained);
+  queueConnection.queue.on('removed', QueueListener.onRemoved);
   log.debug('QueueConnection', 'Listener workers attached');
 
   // if (state.ready && !state.mounted) {
