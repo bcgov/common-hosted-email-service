@@ -78,6 +78,7 @@ moment.createFromInputFallback = config => {
 const dataConnection = new DataConnection();
 const queueConnection = new QueueConnection();
 const emailConnection = new EmailConnection();
+mountServices();
 
 // Skip if running tests
 if (process.env.NODE_ENV !== 'test') {
@@ -200,18 +201,19 @@ function initializeConnections() {
         if (state.connections.email) log.info('EmailConnection', 'Reachable');
       })
       .catch(error => {
-        log.error(error);
+        log.error(error.message);
         log.error('initializeConnections', `Initialization failed: Database OK = ${state.connections.data}, Queue OK = ${state.connections.queue}, Email OK = ${state.connections.email}`);
       })
       .finally(() => {
         state.ready = Object.values(state.connections).every(x => x);
-        if (!state.ready) shutdown();
-        mountServices();
       });
 
   } catch (error) {
     log.error('initializeConnections', 'Connection initialization failure', error.message);
-    if (!state.ready) shutdown();
+    if (!state.ready) {
+      process.exitCode = 1;
+      shutdown();
+    }
   }
 
   // Start periodic 10 second connection probe check
@@ -236,9 +238,12 @@ function checkConnections() {
       state.connections.queue = results[1];
       state.ready = Object.values(state.connections).every(x => x);
       state.mounted = results[1];
-      if (!wasMounted && state.mounted) log.info('Service ready to accept traffic');
+      if (!wasMounted && state.mounted && state.ready) log.info('Service ready to accept traffic');
       log.verbose(JSON.stringify(state));
-      if (!state.ready) shutdown();
+      if (!state.ready) {
+        process.exitCode = 1;
+        shutdown();
+      }
     });
   }
 }
@@ -248,22 +253,22 @@ function checkConnections() {
  * Registers the queue listener workers and stackpole services
  */
 function mountServices() {
-  if (state.ready && !state.mounted) {
-    // Register the listener worker when everything is connected
-    queueConnection.queue.process(QueueListener.onProcess);
-    queueConnection.queue.on('completed', QueueListener.onCompleted);
-    queueConnection.queue.on('error', QueueListener.onError);
-    queueConnection.queue.on('failed', QueueListener.onFailed);
-    log.debug('QueueConnection', 'Listener workers attached');
+  // Register the listener worker when everything is connected
+  queueConnection.queue.process(QueueListener.onProcess);
+  queueConnection.queue.on('completed', QueueListener.onCompleted);
+  queueConnection.queue.on('error', QueueListener.onError);
+  queueConnection.queue.on('failed', QueueListener.onFailed);
+  log.debug('QueueConnection', 'Listener workers attached');
 
-    // StackpoleService requires the data connection created and initialized...
-    // since it is, let's hook in the write statistic
-    // const writeFn = new StatisticsService().write;
-    // stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
-    // stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
-    // stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
-    // log.debug('StatisticsService', 'Stackpole registered');
-  }
+  // if (state.ready && !state.mounted) {
+  //   // StackpoleService requires the data connection created and initialized...
+  //   // since it is, let's hook in the write statistic
+  //   const writeFn = new StatisticsService().write;
+  //   stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
+  //   stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
+  //   stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
+  //   log.debug('StatisticsService', 'Stackpole registered');
+  // }
 }
 
 module.exports = app;
