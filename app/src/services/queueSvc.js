@@ -156,7 +156,8 @@ class QueueService {
         if (job.data.messageId && job.data.client) {
           await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
         }
-        await job.update(null); // Scrub out client and message id
+        // No longer needed if we remove entire job on complete/fail
+        // await job.update(null); // Scrub out client and message id
       }
     } catch (e) {
       log.error('QueueService.updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
