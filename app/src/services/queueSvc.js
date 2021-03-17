@@ -19,7 +19,6 @@
 const log = require('npmlog');
 
 const { queueState } = require('../components/state');
-const utils = require('../components/utils');
 
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
@@ -152,12 +151,8 @@ class QueueService {
    */
   async updateContent(job) {
     try {
-      if (job && job.data) {
-        if (job.data.messageId && job.data.client) {
-          await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
-        }
-        // No longer needed if we remove entire job on complete/fail
-        // await job.update(null); // Scrub out client and message id
+      if (job && job.data && job.data.messageId && job.data.client) {
+        await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
       }
     } catch (e) {
       log.error('QueueService.updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
@@ -192,9 +187,8 @@ class QueueService {
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
-        log.error('QueueService.sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}. ${e.message}`);
-        log.error(utils.prettyStringify(e));
-        throw(e);
+        log.error('QueueService.sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}.`);
+        throw (e);
       }
     }
   }

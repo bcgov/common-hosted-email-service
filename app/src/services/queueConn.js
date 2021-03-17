@@ -87,7 +87,8 @@ class QueueConnection {
       createClient: _createClient,
       defaultJobOptions: {
         // Remove Job objects completely from Redis to limit memory proliferation
-        removeOnComplete: true
+        removeOnComplete: true,
+        removeOnFail: true
       }
     };
 

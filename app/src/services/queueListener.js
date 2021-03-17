@@ -38,20 +38,20 @@ class QueueListener {
   static async onCompleted(job) {
     log.info('QueueListener.onCompleted', `Job ${job.id} completed`);
     await QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
-    QueueListener.queueService.updateContent(job);
+    await QueueListener.queueService.updateContent(job);
   }
 
   /**
    * @function onError
    * Log the job error upon encountering an error
-   * @param {object} job A Bull Queue Job object
+   * @param {object} error A Bull Queue Job object
    */
-  static async onError(job) {
-    if (typeof job.id !== 'undefined') {
-      log.error('QueueListener.onError', `Job ${job.id} errored`);
-      QueueListener.queueService.updateStatus(job, queueState.ERRORED);
+  static async onError(error) {
+    if (typeof error.id !== 'undefined') {
+      log.error('QueueListener.onError', `Job ${error.id} errored`);
+      await QueueListener.queueService.updateStatus(error, queueState.ERRORED);
     } else {
-      log.error('QueueListener.onError', job.message);
+      log.error('QueueListener.onError', error.message);
     }
   }
 
@@ -63,7 +63,7 @@ class QueueListener {
   static async onFailed(job) {
     log.error('QueueListener.onFailed', `Job ${job.id} failed`);
     await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
-    QueueListener.queueService.updateContent(job);
+    await QueueListener.queueService.updateContent(job);
   }
 
   /**
@@ -87,7 +87,7 @@ class QueueListener {
       await job.moveToFailed({
         message: error.message
       }, true);
-      await job.finished();
+      throw error;
     }
   }
 
