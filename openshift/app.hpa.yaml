@@ -18,7 +18,7 @@ spec:
     kind: DeploymentConfig
     name: ches-app-master
     apiVersion: apps.openshift.io/v1
-  minReplicas: 2
+  minReplicas: 4
   maxReplicas: 16
   metrics:
     - type: Resource

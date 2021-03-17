@@ -166,14 +166,27 @@ def runStageDeploy(String stageEnv, String projectEnv, String hostEnv, String pa
         openshift.tag("${TOOLS_PROJECT}/${REPO_NAME}-app:${JOB_NAME}", "${REPO_NAME}-app:${JOB_NAME}")
 
         echo "Processing DeploymentConfig ${REPO_NAME}-app-${JOB_NAME}..."
-        def dcAppTemplate = openshift.process('-f',
-          'openshift/app.dc.yaml',
-          "REPO_NAME=${REPO_NAME}",
-          "JOB_NAME=${JOB_NAME}",
-          "NAMESPACE=${projectEnv}",
-          "APP_NAME=${APP_NAME}",
-          "HOST_ROUTE=${hostEnv}"
-        )
+        def dcAppTemplate
+        if(JOB_BASE_NAME.startsWith('PR-')) {
+          dcAppTemplate = openshift.process('-f',
+            'openshift/app.dc.yaml',
+            "REPO_NAME=${REPO_NAME}",
+            "JOB_NAME=${JOB_NAME}",
+            "NAMESPACE=${projectEnv}",
+            "APP_NAME=${APP_NAME}",
+            "HOST_ROUTE=${hostEnv}"
+          )
+        } else {
+          dcAppTemplate = openshift.process('-f',
+            'openshift/app.dc.yaml',
+            "REPLICAS=4",
+            "REPO_NAME=${REPO_NAME}",
+            "JOB_NAME=${JOB_NAME}",
+            "NAMESPACE=${projectEnv}",
+            "APP_NAME=${APP_NAME}",
+            "HOST_ROUTE=${hostEnv}"
+          )
+        }
 
         echo "Applying ${REPO_NAME}-app-${JOB_NAME} Deployment..."
         def dcApp = openshift.apply(dcAppTemplate).narrow('dc')
