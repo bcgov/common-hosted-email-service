@@ -79,7 +79,7 @@ objects:
         app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"StatefulSet","name":"patroni-${JOB_NAME}"},{"apiVersion":"apps/v1","kind":"StatefulSet","name":"redis-${JOB_NAME}"},{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"redis-${JOB_NAME}"}]'
       name: "${APP_NAME}-app-${JOB_NAME}"
     spec:
-      replicas: 2
+      replicas: ${{REPLICAS}}
       revisionHistoryLimit: 10
       selector:
         app: "${APP_NAME}-${JOB_NAME}"
@@ -311,6 +311,11 @@ parameters:
     description: Job identifier (i.e. 'pr-5' OR 'master')
     displayName: Job Branch Name
     required: true
+  - name: REPLICAS
+    description: The number of StatefulSet replicas to use.
+    displayName: Replicas
+    required: true
+    value: "2"
   - name: IMAGE_REGISTRY
     description: The base OpenShift docker registry
     displayName: Docker Image Registry

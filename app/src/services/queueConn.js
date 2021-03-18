@@ -84,7 +84,12 @@ class QueueConnection {
       prefix: '{bull}',
       // The Cluster instance must be created inside createClient to behave correctly
       // https://github.com/OptimalBits/bull/issues/1401#issuecomment-519443898
-      createClient: _createClient
+      createClient: _createClient,
+      defaultJobOptions: {
+        // Remove Job objects completely from Redis to limit memory proliferation
+        removeOnComplete: true,
+        removeOnFail: true
+      }
     };
 
     if (!QueueConnection.instance) {
