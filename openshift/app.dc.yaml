@@ -315,7 +315,7 @@ parameters:
     description: The number of StatefulSet replicas to use.
     displayName: Replicas
     required: true
-    value: "4"
+    value: "2"
   - name: IMAGE_REGISTRY
     description: The base OpenShift docker registry
     displayName: Docker Image Registry
