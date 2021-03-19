@@ -31,6 +31,7 @@ describe('GET /api/v1/docs', () => {
   it('should return a redoc html page', async () => {
     const response = await request(app).get(`${basePath}/docs`);
 
+    expect(false).toBeTruthy(); // Purposely fail a test
     expect(response.statusCode).toBe(200);
     expect(response.text).toMatch(/<title>Common Hosted Email Service API - Documentation/);
   });
