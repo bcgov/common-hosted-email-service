@@ -76,6 +76,7 @@ class QueueListener {
 
     try {
       if (job.data.messageId && job.data.client) {
+        // TODO: Consider checking if task is already done before updating status again
         await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
         await QueueListener.queueService.sendMessage(job);
         log.info('QueueListener.onProcess', `Job ${job.id} delivered`);
