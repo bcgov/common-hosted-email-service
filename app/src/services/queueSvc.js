@@ -45,6 +45,13 @@ class UncancellableError extends Error {
   }
 }
 
+class UnpromotableError extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, UnpromotableError);
+  }
+}
+
 class QueueService {
   /**
    * Creates a new QueueService with default connection, dataService and emailService.
@@ -225,6 +232,39 @@ class QueueService {
       return false;
     }
   }
+
+  /**
+   * @function dispatchJob
+   * Attempts to promote the job to run as soon as possible in the queue.
+   *
+   * @param {string} client - the authorized party / client
+   * @param {object} jobId - the job id of the desired message
+   * @throws ClientMismatchError if job client does not match `client`
+   * @throws DataIntegrityError if job data is in an inconsistent state
+   * @throws UncancellableError if job state must is not 'delayed'
+   * @returns {boolean} True if successful, false if job was not found
+   */
+  async dispatchJob(client, jobId) {
+    const job = await this.queue.getJob(jobId);
+
+    if (job && job.data && job.data.client && job.data.messageId) {
+      // Job found with proper structure
+      if (job.data.messageId !== jobId) {
+        throw new DataIntegrityError(`Message ${jobId} data is inconsistent or corrupted.`);
+      } else if (job.data.client !== client) {
+        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${job.data.client}.`);
+      } else if (await job.getState() !== 'delayed') {
+        throw new UnpromotableError(`Message ${jobId} is not promotable.`);
+      } else {
+        // Immediately promote in queue
+        await job.promote();
+        log.info('QueueService.dispatchJob', `Message ${job.data.messageId} promoted in queue`);
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
 }
 
-module.exports = { ClientMismatchError, DataIntegrityError, UncancellableError, QueueService };
+module.exports = { ClientMismatchError, DataIntegrityError, UncancellableError, UnpromotableError, QueueService };
