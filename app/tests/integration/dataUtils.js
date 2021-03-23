@@ -4,7 +4,6 @@ const { transaction } = require('objection');
 const Message = require('../../src/services/models/message');
 const Queue = require('../../src/services/models/queue');
 const Status = require('../../src/services/models/status');
-const Statistic = require('../../src/services/models/statistic');
 const Trxn = require('../../src/services/models/trxn');
 
 /**
@@ -46,49 +45,4 @@ async function deleteTransactionsByClient(client) {
   }
 }
 
-/**
- *  @functioncountStatisticsByClient
- *  Utility function to count records in Statistic table for a client.
- *  @param {string} client - The client name...
- */
-async function countStatisticsByClient(client) {
-  if (!client) {
-    throw Error('Cannot count statistics by client without providing a client name.');
-  }
-  try {
-    const counts = await Statistic.query().count('statisticId').where('client', client);
-    log.info(`Counted ${counts[0].count} statistic records...`);
-    return Number(counts[0].count);
-  } catch (err) {
-    log.error(`Error counting statistic records: ${err.message}. Rolling back...`);
-    log.error(err);
-    throw err;
-  }
-}
-
-/**
- *  @function deleteStatisticsByClient
- *  Utility function to delete records in Statistic table for a client.
- *  @param {string} client - The client name...
- */
-async function deleteStatisticsByClient(client) {
-  if (!client) {
-    throw Error('Cannot delete statistics by client without providing a client name.');
-  }
-  let trx;
-  try {
-    trx = await transaction.start(Statistic.knex());
-
-    const items = await Statistic.query(trx).delete().where('client', client);
-    log.info(`Deleted ${items} statistic records...`);
-
-    await trx.commit();
-  } catch (err) {
-    log.error(`Error deleting statistic records: ${err.message}. Rolling back...`);
-    log.error(err);
-    if (trx) await trx.rollback();
-    throw err;
-  }
-}
-
-module.exports = { countStatisticsByClient, deleteStatisticsByClient, deleteTransactionsByClient };
+module.exports = { deleteTransactionsByClient };

@@ -14,7 +14,6 @@ const { transaction } = require('objection');
 const uuid = require('uuid');
 
 const { queueToStatus } = require('../components/state');
-// const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -125,10 +124,7 @@ class DataService {
       }
 
       await trx.commit();
-
-      const result = await this.readTransaction(client, transactionId);
-      // stackpole.createTransaction(client, result);
-      return result;
+      return this.readTransaction(client, transactionId);
     } catch (err) {
       log.error('DataService.createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -160,8 +156,7 @@ class DataService {
       log.info('DataService.deleteMessageEmail', `Updated ${cItems} message email records...`);
 
       await trx.commit();
-
-      return await this.readMessage(client, messageId);
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -274,8 +269,7 @@ class DataService {
       log.info('DataService.updateMessageSendResult', `Updated ${cItems} message (result) records...`);
 
       await trx.commit();
-
-      return await this.readMessage(client, messageId);
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error('DataService.updateMessageSendResult', `Error updating message send result record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -325,10 +319,7 @@ class DataService {
       });
 
       await trx.commit();
-
-      const result = await this.readMessage(client, messageId);
-      // stackpole.updateStatus(client, result);
-      return result;
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error('DataService.updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);
       log.error(err);
