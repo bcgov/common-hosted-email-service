@@ -64,8 +64,8 @@ if (config.has('server.logFile')) {
 // Print out configuration settings in verbose startup
 log.verbose('Config', utils.prettyStringify(config));
 
-// this will suppress a console warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
-// we will just force it to use the new Date constructor.
+// Suppresses warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
+// We will just force it to use the new Date constructor - https://stackoverflow.com/a/34521624
 moment.createFromInputFallback = config => {
   config._d = new Date(config._i);
 };

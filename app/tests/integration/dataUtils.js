@@ -1,10 +1,7 @@
 const log = require('npmlog');
 const { transaction } = require('objection');
 
-const Message = require('../../src/services/models/message');
-const Queue = require('../../src/services/models/queue');
-const Status = require('../../src/services/models/status');
-const Trxn = require('../../src/services/models/trxn');
+const { Message, Queue, Status, Trxn } = require('../../src/services/models');
 
 /**
  *  @function deleteTransactionsByClient
