@@ -8,6 +8,7 @@
  * @property {string} ENQUEUED - Message has been added to the queue
  * @property {string} FAILED - Message had an error during processing - terminal state
  * @property {string} PROCESSING - Message is being handled
+ * @property {string} PROMOTED - Message has been promoted and will be processed soon
  * @property {string} REMOVED - Message removed from queue by client request
  */
 const queueState = Object.freeze({
@@ -18,6 +19,7 @@ const queueState = Object.freeze({
   ENQUEUED: 'enqueued',
   FAILED: 'failed',
   PROCESSING: 'processing',
+  PROMOTED: 'promoted',
   REMOVED: 'removed'
 });
 
@@ -57,6 +59,7 @@ function queueToStatus(queueStatus) {
     [queueState.ENQUEUED, statusState.PENDING],
     [queueState.FAILED, statusState.FAILED],
     [queueState.PROCESSING, statusState.PENDING],
+    [queueState.PROMOTED, statusState.PENDING],
     [queueState.REMOVED, statusState.CANCELLED]
   ]);
 

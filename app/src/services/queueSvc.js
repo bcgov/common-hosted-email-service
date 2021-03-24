@@ -258,6 +258,7 @@ class QueueService {
       } else {
         // Immediately promote in queue
         await job.promote();
+        await this.updateStatus(job, queueState.PROMOTED, 'Promotion requested');
         log.info('QueueService.dispatchJob', `Message ${job.data.messageId} promoted in queue`);
         return true;
       }

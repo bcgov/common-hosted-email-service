@@ -296,8 +296,8 @@ class DataService {
       trx = await transaction.start(Message.knex());
 
       const businessStatus = queueToStatus(status);
-      // Update business status if it is different than current state
-      if (msg.status !== businessStatus) {
+      // Update business status if it has a description or is different than current state
+      if (description || msg.status !== businessStatus) {
         // Update message status and add a new status record
         await msg.$query(trx).patch({ status: businessStatus });
         await Status.query(trx).insert({
