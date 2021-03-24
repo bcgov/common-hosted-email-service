@@ -79,7 +79,7 @@ class QueueListener {
         await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
         await QueueListener.queueService.sendMessage(job);
         log.info('QueueListener.onProcess', `Job ${job.id} delivered`);
-        QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
+        await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
       } else {
         throw new Error('Message information missing or formatted incorrectly');
       }
