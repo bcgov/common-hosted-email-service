@@ -27,6 +27,7 @@ const {
   ClientMismatchError,
   DataIntegrityError,
   UncancellableError,
+  UnpromotableError,
   QueueService
 } = require('./queueSvc');
 
@@ -127,6 +128,47 @@ class ChesService {
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UncancellableError) {
         log.info('ChesService.cancelMessage', e.message);
+        throw new Problem(409, { detail: e.message });
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * @function dispatchMessage
+   * @description Dispatches message `messageId` if it is still waiting to send
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if message is not found or conflicts with internal state
+   */
+  async dispatchMessage(client, messageId) {
+    if (!client || !messageId) {
+      throw new Problem(400, { detail: 'Error dispatching message. Client and messageId cannot be null' });
+    }
+
+    try {
+      // Try promoting directly from queue first
+      const success = await this.queueService.dispatchJob(client, messageId);
+      if (!success) {
+        // Check why a job was not found
+        const exists = await this.dataService.messageExists(client, messageId);
+        throw (!exists) ? new NotFoundError() :
+          new UnpromotableError(`Message ${messageId} is not dispatchable.`);
+      }
+    } catch (e) {
+      if (e instanceof ClientMismatchError) {
+        log.info('ChesService.dispatchMessage', e.message);
+        throw new Problem(403, { detail: e.message });
+      } else if (e instanceof DataIntegrityError) {
+        log.error('ChesService.dispatchMessage', e.message);
+        throw new Problem(500, { detail: e.message });
+      } else if (e instanceof NotFoundError) {
+        log.info('ChesService.dispatchMessage', `Message ${messageId} from client ${client} not found.`);
+        throw new Problem(404, { detail: `Message ${messageId} not found.` });
+      } else if (e instanceof UnpromotableError) {
+        log.info('ChesService.dispatchMessage', e.message);
         throw new Problem(409, { detail: e.message });
       } else {
         throw e;
