@@ -7,12 +7,14 @@ const yaml = require('js-yaml');
 const keycloak = require('../components/keycloak');
 const { authorizedPartyValidator } = require('../middleware/authorizedParty');
 
-const cancelRouter = require('./v1/cancel');
-const dispatchRouter = require('./v1/dispatch');
-const emailRouter = require('./v1/email');
-const healthRouter = require('./v1/health');
-const mergeRouter = require('./v1/merge');
-const statusRouter = require('./v1/status');
+const {
+  cancelRouter,
+  dispatchRouter,
+  emailRouter,
+  healthRouter,
+  mergeRouter,
+  statusRouter
+} = require('./v1/');
 
 const clientId = config.get('keycloak.clientId');
 

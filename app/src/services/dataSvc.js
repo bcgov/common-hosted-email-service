@@ -17,7 +17,7 @@ const { queueToStatus } = require('../components/state');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
-const { Message, Queue, Status, Trxn } = require('./models');
+const { Message, Queue, Status, Trxn } = require('./models/');
 
 /**
  * @function createMessage
