@@ -234,7 +234,7 @@ class QueueService {
   }
 
   /**
-   * @function dispatchJob
+   * @function promoteJob
    * Attempts to promote the job to run as soon as possible in the queue.
    *
    * @param {string} client - the authorized party / client
@@ -244,7 +244,7 @@ class QueueService {
    * @throws UncancellableError if job state must is not 'delayed'
    * @returns {boolean} True if successful, false if job was not found
    */
-  async dispatchJob(client, jobId) {
+  async promoteJob(client, jobId) {
     const job = await this.queue.getJob(jobId);
 
     if (job && job.data && job.data.client && job.data.messageId) {
@@ -259,7 +259,7 @@ class QueueService {
         // Immediately promote in queue
         await job.promote();
         await this.updateStatus(job, queueState.PROMOTED, 'Promotion requested');
-        log.info('QueueService.dispatchJob', `Message ${job.data.messageId} promoted in queue`);
+        log.info('QueueService.promoteJob', `Message ${job.data.messageId} promoted in queue`);
         return true;
       }
     } else {

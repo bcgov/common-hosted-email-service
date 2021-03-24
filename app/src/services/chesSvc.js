@@ -136,47 +136,6 @@ class ChesService {
   }
 
   /**
-   * @function dispatchMessage
-   * @description Dispatches message `messageId` if it is still waiting to send
-   *
-   * @param {string} client - the authorized party / client
-   * @param {string} messageId - the id of the desired message
-   * @throws Problem if message is not found or conflicts with internal state
-   */
-  async dispatchMessage(client, messageId) {
-    if (!client || !messageId) {
-      throw new Problem(400, { detail: 'Error dispatching message. Client and messageId cannot be null' });
-    }
-
-    try {
-      // Try promoting directly from queue first
-      const success = await this.queueService.dispatchJob(client, messageId);
-      if (!success) {
-        // Check why a job was not found
-        const exists = await this.dataService.messageExists(client, messageId);
-        throw (!exists) ? new NotFoundError() :
-          new UnpromotableError(`Message ${messageId} is not dispatchable.`);
-      }
-    } catch (e) {
-      if (e instanceof ClientMismatchError) {
-        log.info('ChesService.dispatchMessage', e.message);
-        throw new Problem(403, { detail: e.message });
-      } else if (e instanceof DataIntegrityError) {
-        log.error('ChesService.dispatchMessage', e.message);
-        throw new Problem(500, { detail: e.message });
-      } else if (e instanceof NotFoundError) {
-        log.info('ChesService.dispatchMessage', `Message ${messageId} from client ${client} not found.`);
-        throw new Problem(404, { detail: `Message ${messageId} not found.` });
-      } else if (e instanceof UnpromotableError) {
-        log.info('ChesService.dispatchMessage', e.message);
-        throw new Problem(409, { detail: e.message });
-      } else {
-        throw e;
-      }
-    }
-  }
-
-  /**
    * @function findCancelMessages
    * @description Finds and attempts to cancel the set of messages matching the search criteria
    *
@@ -202,7 +161,7 @@ class ChesService {
           this.queueService.removeJob(client, msg.messageId);
         } catch (e) {
           if (e instanceof ClientMismatchError || e instanceof NotFoundError ||
-              e instanceof UncancellableError) {
+            e instanceof UncancellableError) {
             log.info('ChesService.findCancelMessages', e.message);
           } else if (e instanceof DataIntegrityError) {
             log.error('ChesService.findCancelMessages', e.message);
@@ -289,6 +248,47 @@ class ChesService {
         log.error('ChesService.getStatus', `Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`);
         log.error(utils.prettyStringify(e));
         throw new Problem(500, { detail: `Unable retrieve status of message ${messageId}. ${e.message}` });
+      }
+    }
+  }
+
+  /**
+   * @function promoteMessage
+   * @description Promotes message `messageId` if it is still waiting to send
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if message is not found or conflicts with internal state
+   */
+  async promoteMessage(client, messageId) {
+    if (!client || !messageId) {
+      throw new Problem(400, { detail: 'Error promoting message. Client and messageId cannot be null' });
+    }
+
+    try {
+      // Try promoting directly from queue first
+      const success = await this.queueService.promoteJob(client, messageId);
+      if (!success) {
+        // Check why a job was not found
+        const exists = await this.dataService.messageExists(client, messageId);
+        throw (!exists) ? new NotFoundError() :
+          new UnpromotableError(`Message ${messageId} is not promotable.`);
+      }
+    } catch (e) {
+      if (e instanceof ClientMismatchError) {
+        log.info('ChesService.promoteMessage', e.message);
+        throw new Problem(403, { detail: e.message });
+      } else if (e instanceof DataIntegrityError) {
+        log.error('ChesService.promoteMessage', e.message);
+        throw new Problem(500, { detail: e.message });
+      } else if (e instanceof NotFoundError) {
+        log.info('ChesService.promoteMessage', `Message ${messageId} from client ${client} not found.`);
+        throw new Problem(404, { detail: `Message ${messageId} not found.` });
+      } else if (e instanceof UnpromotableError) {
+        log.info('ChesService.promoteMessage', e.message);
+        throw new Problem(409, { detail: e.message });
+      } else {
+        throw e;
       }
     }
   }

@@ -2,7 +2,7 @@ const Problem = require('api-problem');
 const request = require('supertest');
 
 const helper = require('../../../common/helper');
-const router = require('../../../../src/routes/v1/dispatch');
+const router = require('../../../../src/routes/v1/promote');
 
 const ChesService = require('../../../../src/services/chesSvc');
 
@@ -13,7 +13,7 @@ const app = helper.expressHelper(basePath, router);
 jest.mock('../../../../src/services/chesSvc');
 
 describe(`POST ${basePath}/:msgId`, () => {
-  const spy = ChesService.prototype.dispatchMessage;
+  const spy = ChesService.prototype.promoteMessage;
 
   afterEach(() => {
     spy.mockClear();
@@ -26,7 +26,7 @@ describe(`POST ${basePath}/:msgId`, () => {
     const response = await request(app).post(`${basePath}/${id}`);
     expect(response.statusCode).toBe(202);
     expect(response.header).toHaveProperty('content-location');
-    expect(response.header['content-location']).toMatch(response.req.path.replace('dispatch', 'status'));
+    expect(response.header['content-location']).toMatch(response.req.path.replace('promote', 'status'));
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(undefined, id);
   });

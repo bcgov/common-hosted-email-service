@@ -9,10 +9,10 @@ const { authorizedPartyValidator } = require('../middleware/authorizedParty');
 
 const {
   cancelRouter,
-  dispatchRouter,
   emailRouter,
   healthRouter,
   mergeRouter,
+  promoteRouter,
   statusRouter
 } = require('./v1/');
 
@@ -32,11 +32,11 @@ router.get('/', (_req, res) => {
       '/api-spec.json',
       '/api-spec.yaml',
       '/cancel',
-      '/dispatch',
       '/docs',
       '/email',
       '/emailMerge',
       '/health',
+      '/promote',
       '/status'
     ]
   });
@@ -73,7 +73,7 @@ router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyVa
 /** Cancel Router */
 router.use('/cancel', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, cancelRouter);
 
-/** Dispatch Router */
-router.use('/dispatch', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, dispatchRouter);
+/** Promote Router */
+router.use('/promote', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, promoteRouter);
 
 module.exports = router;

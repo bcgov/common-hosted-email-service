@@ -1418,7 +1418,7 @@ describe('validators.cancelQuery', () => {
   });
 });
 
-describe('validators.dispatchMsg', () => {
+describe('validators.promoteMsg', () => {
   let param;
 
   beforeEach(() => {
@@ -1428,7 +1428,7 @@ describe('validators.dispatchMsg', () => {
   });
 
   it('should return an empty error array when valid', () => {
-    const result = validators.dispatchMsg(param);
+    const result = validators.promoteMsg(param);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -1438,7 +1438,7 @@ describe('validators.dispatchMsg', () => {
   it('should return an error when msgId is missing', () => {
     param.msgId = undefined;
 
-    const result = validators.dispatchMsg(param);
+    const result = validators.promoteMsg(param);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();
@@ -1450,7 +1450,7 @@ describe('validators.dispatchMsg', () => {
   it('should return an error when msgId is invalid', () => {
     param.msgId = 'garbage';
 
-    const result = validators.dispatchMsg(param);
+    const result = validators.promoteMsg(param);
 
     expect(result).toBeTruthy();
     expect(Array.isArray(result)).toBeTruthy();

@@ -20,12 +20,12 @@ describe('GET /api/v1', () => {
     expect(response.body.endpoints).toContain('/api-spec.json');
     expect(response.body.endpoints).toContain('/api-spec.yaml');
     expect(response.body.endpoints).toContain('/docs');
-    expect(response.body.endpoints).toContain('/dispatch');
     expect(response.body.endpoints).toContain('/email');
     expect(response.body.endpoints).toContain('/emailMerge');
     expect(response.body.endpoints).toContain('/health');
     expect(response.body.endpoints).toContain('/status');
     expect(response.body.endpoints).toContain('/cancel');
+    expect(response.body.endpoints).toContain('/promote');
   });
 });
 

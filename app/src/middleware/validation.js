@@ -24,11 +24,6 @@ const validation = {
     handleValidationErrors(res, next, errors);
   },
 
-  validateDispatchMsg: (req, res, next) => {
-    const errors = validators.dispatchMsg(req.params);
-    handleValidationErrors(res, next, errors);
-  },
-
   validateEmail: async (req, res, next) => {
     const errors = await validators.email(req.body, config.get('server.attachmentLimit'));
     handleValidationErrors(res, next, errors);
@@ -37,7 +32,11 @@ const validation = {
   validateMerge: async (req, res, next) => {
     const errors = await validators.merge(req.body, config.get('server.attachmentLimit'));
     handleValidationErrors(res, next, errors);
+  },
 
+  validatePromoteMsg: (req, res, next) => {
+    const errors = validators.promoteMsg(req.params);
+    handleValidationErrors(res, next, errors);
   },
 
   validateStatusFetch: (req, res, next) => {
