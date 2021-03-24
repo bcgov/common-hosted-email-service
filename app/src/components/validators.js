@@ -338,6 +338,18 @@ const validators = {
     return errors;
   },
 
+  dispatchMsg: param => {
+    const errors = [];
+
+    if(!param.msgId) {
+      errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
+    } else if (!models.queryParams.msgId(param.msgId)) {
+      errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
+    }
+
+    return errors;
+  },
+
   email: async (obj, attachmentSizeLimit = DEFAULT_ATTACHMENT_SIZE) => {
     // validate the email object
     // completely valid object will return an empty array of errors.
