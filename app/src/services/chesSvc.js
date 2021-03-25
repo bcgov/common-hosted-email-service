@@ -18,6 +18,7 @@ const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
 
 const mergeComponent = require('../components/merge');
+const { queueState } = require('../components/state');
 const transformer = require('../components/transformer');
 const utils = require('../components/utils');
 
@@ -271,8 +272,8 @@ class ChesService {
       if (!success) {
         // Check why a job was not found
         const exists = await this.dataService.messageExists(client, messageId);
-        throw (!exists) ? new NotFoundError() :
-          new UnpromotableError(`Message ${messageId} is not promotable.`);
+        if (!exists) throw new NotFoundError();
+        await this.recoverMessage(client, messageId);
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {
@@ -291,6 +292,28 @@ class ChesService {
         throw e;
       }
     }
+  }
+
+  /**
+   * @function recoverMessage
+   * @description Attempts to procedurally recover message `messageId` in the queue
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if message is not found or conflicts with internal state
+   */
+  async recoverMessage(client, messageId) {
+    const msg = await this.dataService.readMessage(client, messageId);
+
+    // Check if message contents are still there
+    if (msg.email) {
+      // Try forcing an enqueue ignoring specified delay
+      msg.email.messageId = messageId;
+      await this.dataService.updateStatus(client, messageId, queueState.PROMOTED, 'Promotion requested');
+      log.info('QueueService.promoteJob', `Message ${messageId} promoted in queue`);
+      await this.queueService.enqueue(client, msg.email);
+    }
+    else throw new UnpromotableError(`Message ${messageId} is not promotable.`);
   }
 
   /**
