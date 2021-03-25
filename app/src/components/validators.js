@@ -407,6 +407,18 @@ const validators = {
     return errors;
   },
 
+  promoteMsg: param => {
+    const errors = [];
+
+    if(!param.msgId) {
+      errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
+    } else if (!models.queryParams.msgId(param.msgId)) {
+      errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
+    }
+
+    return errors;
+  },
+
   statusFetch: param => {
     const errors = [];
 

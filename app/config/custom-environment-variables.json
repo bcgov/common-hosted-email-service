@@ -22,6 +22,7 @@
     "bodyLimit": "SERVER_BODYLIMIT",
     "logFile": "SERVER_LOGFILE",
     "logLevel": "SERVER_LOGLEVEL",
+    "maxAttempts": "SERVER_MAXATTEMPTS",
     "morganFormat": "SERVER_MORGANFORMAT",
     "port": "SERVER_PORT",
     "smtpHost": "SERVER_SMTPHOST"

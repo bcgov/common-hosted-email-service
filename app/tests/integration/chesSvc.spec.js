@@ -23,7 +23,6 @@ const uuid = require('uuid');
 const Problem = require('api-problem');
 
 const { statusState, queueState } = require('../../src/components/state');
-const stackpole = require('../../src/components/stackpole');
 const utils = require('../../src/components/utils');
 
 const DataConnection = require('../../src/services/dataConn');
@@ -162,9 +161,6 @@ describe('chesService', () => {
     chesService.dataService = dataService;
     chesService.emailService = emailService;
     chesService.queueService = queueService;
-
-    stackpole.register('createTransaction', async () => { });
-    stackpole.register('updateStatus', async () => { });
   });
 
   afterAll(async () => {

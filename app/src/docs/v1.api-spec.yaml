@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.2
+openapi: 3.0.3
 info:
   version: 1.0.0
   title: Common Hosted Email Service API
@@ -241,6 +241,50 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/promote/{msgId}':
+    post:
+      summary: Promotes a single message
+      description: >-
+        This endpoint will attempt to immediately promote and dispatch the
+        specified msgId if the message is still in the accepted, enqueued or
+        delayed states. Messages cannot be promoted once they have begun
+        processing.
+      operationId: PostPromoteMessage
+      tags:
+        - Message
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - $ref: '#/components/parameters/PathMessageId'
+      responses:
+        '202':
+          description: Request is acknowledged but not necessarily completed
+          headers:
+            Content-Location:
+              description: >-
+                URL location to affected resource. Use the same query and path
+                parameters as this request to find the affected resource.
+              example: /api/v1/status/00000000-0000-0000-0000-000000000000
+              schema:
+                type: string
+                format: uri
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         default:
@@ -524,8 +568,10 @@ components:
           description: Is the dependency reachable/alive
         info:
           type: string
-          description: Any extra information, generally useful when dependency is unreachable
-          example: 'SMTP Service connected successfully.'
+          description: >-
+            Any extra information, generally useful when dependency is
+            unreachable
+          example: SMTP Service connected successfully.
     MergeRequest:
       type: object
       required:
@@ -749,11 +795,14 @@ components:
         smtpMsgId:
           type: string
           description: The downstream smtp ID from the server
-          example: '<11111111-1111-1111-1111-111111111111@gov.bc.ca>'
+          example: <11111111-1111-1111-1111-111111111111@gov.bc.ca>
         response:
           type: string
           description: The downstream response message from the server
-          example: '250 2.6.0 <11111111-1111-1111-1111-111111111111@gov.bc.ca> [InternalId=82420422419525, Hostname=E6PEDG05.idir.BCGOV] 1464 bytes in 0.225, 6.333 KB/sec Queued mail for delivery'
+          example: >-
+            250 2.6.0 <11111111-1111-1111-1111-111111111111@gov.bc.ca>
+            [InternalId=82420422419525, Hostname=E6PEDG05.idir.BCGOV] 1464 bytes
+            in 0.225, 6.333 KB/sec Queued mail for delivery
     StatusHistoryObject:
       type: array
       description: A list of status changes to this message

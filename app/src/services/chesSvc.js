@@ -18,6 +18,7 @@ const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
 
 const mergeComponent = require('../components/merge');
+const { queueState } = require('../components/state');
 const transformer = require('../components/transformer');
 const utils = require('../components/utils');
 
@@ -27,6 +28,7 @@ const {
   ClientMismatchError,
   DataIntegrityError,
   UncancellableError,
+  UnpromotableError,
   QueueService
 } = require('./queueSvc');
 
@@ -160,7 +162,7 @@ class ChesService {
           this.queueService.removeJob(client, msg.messageId);
         } catch (e) {
           if (e instanceof ClientMismatchError || e instanceof NotFoundError ||
-              e instanceof UncancellableError) {
+            e instanceof UncancellableError) {
             log.info('ChesService.findCancelMessages', e.message);
           } else if (e instanceof DataIntegrityError) {
             log.error('ChesService.findCancelMessages', e.message);
@@ -249,6 +251,69 @@ class ChesService {
         throw new Problem(500, { detail: `Unable retrieve status of message ${messageId}. ${e.message}` });
       }
     }
+  }
+
+  /**
+   * @function promoteMessage
+   * @description Promotes message `messageId` if it is still waiting to send
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if message is not found or conflicts with internal state
+   */
+  async promoteMessage(client, messageId) {
+    if (!client || !messageId) {
+      throw new Problem(400, { detail: 'Error promoting message. Client and messageId cannot be null' });
+    }
+
+    try {
+      // Try promoting directly from queue first
+      const success = await this.queueService.promoteJob(client, messageId);
+      if (!success) {
+        // Check why a job was not found
+        const exists = await this.dataService.messageExists(client, messageId);
+        if (!exists) throw new NotFoundError();
+        await this.recoverMessage(client, messageId);
+      }
+    } catch (e) {
+      if (e instanceof ClientMismatchError) {
+        log.info('ChesService.promoteMessage', e.message);
+        throw new Problem(403, { detail: e.message });
+      } else if (e instanceof DataIntegrityError) {
+        log.error('ChesService.promoteMessage', e.message);
+        throw new Problem(500, { detail: e.message });
+      } else if (e instanceof NotFoundError) {
+        log.info('ChesService.promoteMessage', `Message ${messageId} from client ${client} not found.`);
+        throw new Problem(404, { detail: `Message ${messageId} not found.` });
+      } else if (e instanceof UnpromotableError) {
+        log.info('ChesService.promoteMessage', e.message);
+        throw new Problem(409, { detail: e.message });
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * @function recoverMessage
+   * @description Attempts to procedurally recover message `messageId` in the queue
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @throws Problem if message is not found or conflicts with internal state
+   */
+  async recoverMessage(client, messageId) {
+    const msg = await this.dataService.readMessage(client, messageId);
+
+    // Check if message contents are still there
+    if (msg.email) {
+      // Try forcing an enqueue ignoring specified delay
+      msg.email.messageId = messageId;
+      await this.dataService.updateStatus(client, messageId, queueState.PROMOTED, 'Promotion requested');
+      log.info('QueueService.promoteJob', `Message ${messageId} promoted in queue`);
+      await this.queueService.enqueue(client, msg.email);
+    }
+    else throw new UnpromotableError(`Message ${messageId} is not promotable.`);
   }
 
   /**

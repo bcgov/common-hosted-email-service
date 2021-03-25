@@ -14,15 +14,10 @@ const { transaction } = require('objection');
 const uuid = require('uuid');
 
 const { queueToStatus } = require('../components/state');
-// const stackpole = require('../components/stackpole');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
-
-const Message = require('./models/message');
-const Queue = require('./models/queue');
-const Status = require('./models/status');
-const Trxn = require('./models/trxn');
+const { Message, Queue, Status, Trxn } = require('./models/');
 
 /**
  * @function createMessage
@@ -125,10 +120,7 @@ class DataService {
       }
 
       await trx.commit();
-
-      const result = await this.readTransaction(client, transactionId);
-      // stackpole.createTransaction(client, result);
-      return result;
+      return this.readTransaction(client, transactionId);
     } catch (err) {
       log.error('DataService.createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -160,8 +152,7 @@ class DataService {
       log.info('DataService.deleteMessageEmail', `Updated ${cItems} message email records...`);
 
       await trx.commit();
-
-      return await this.readMessage(client, messageId);
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -274,8 +265,7 @@ class DataService {
       log.info('DataService.updateMessageSendResult', `Updated ${cItems} message (result) records...`);
 
       await trx.commit();
-
-      return await this.readMessage(client, messageId);
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error('DataService.updateMessageSendResult', `Error updating message send result record: ${err.message}. Rolling back...`);
       log.error(err);
@@ -306,8 +296,8 @@ class DataService {
       trx = await transaction.start(Message.knex());
 
       const businessStatus = queueToStatus(status);
-      // Update business status if it is different than current state
-      if (msg.status !== businessStatus) {
+      // Update business status if it has a description or is different than current state
+      if (description || msg.status !== businessStatus) {
         // Update message status and add a new status record
         await msg.$query(trx).patch({ status: businessStatus });
         await Status.query(trx).insert({
@@ -325,10 +315,7 @@ class DataService {
       });
 
       await trx.commit();
-
-      const result = await this.readMessage(client, messageId);
-      // stackpole.updateStatus(client, result);
-      return result;
+      return this.readMessage(client, messageId);
     } catch (err) {
       log.error('DataService.updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);
       log.error(err);

@@ -5,7 +5,7 @@ helper.logHelper();
 
 describe('queueState', () => {
   it('should have the correct number of defined states', () => {
-    expect(Object.keys(queueState)).toHaveLength(8);
+    expect(Object.keys(queueState)).toHaveLength(9);
   });
 
   it('should be read only', () => {
@@ -72,6 +72,13 @@ describe('queueToStatus', () => {
 
   it('should map queue processing to status pending', () => {
     const result = queueToStatus(queueState.PROCESSING);
+
+    expect(result).toBeTruthy();
+    expect(result).toMatch(statusState.PENDING);
+  });
+
+  it('should map queue promoted to status pending', () => {
+    const result = queueToStatus(queueState.PROMOTED);
 
     expect(result).toBeTruthy();
     expect(result).toMatch(statusState.PENDING);

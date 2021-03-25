@@ -16,6 +16,7 @@
  *
  * @exports QueueService
  */
+const config = require('config');
 const log = require('npmlog');
 
 const { queueState } = require('../components/state');
@@ -23,6 +24,8 @@ const { queueState } = require('../components/state');
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
 const QueueConnection = require('./queueConn');
+
+const maxAttempts = Number(config.get('server.maxAttempts'));
 
 class ClientMismatchError extends Error {
   constructor(...args) {
@@ -42,6 +45,13 @@ class UncancellableError extends Error {
   constructor(...args) {
     super(...args);
     Error.captureStackTrace(this, UncancellableError);
+  }
+}
+
+class UnpromotableError extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, UnpromotableError);
   }
 }
 
@@ -152,7 +162,10 @@ class QueueService {
   async updateContent(job) {
     try {
       if (job && job.data && job.data.messageId && job.data.client) {
-        await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+        // Only drop email content when completed or failed max number of retries
+        if (!job.failedReason || job.failedReason && job.attemptsMade >= maxAttempts) {
+          await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+        }
       }
     } catch (e) {
       log.error('QueueService.updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
@@ -225,6 +238,40 @@ class QueueService {
       return false;
     }
   }
+
+  /**
+   * @function promoteJob
+   * Attempts to promote the job to run as soon as possible in the queue.
+   *
+   * @param {string} client - the authorized party / client
+   * @param {object} jobId - the job id of the desired message
+   * @throws ClientMismatchError if job client does not match `client`
+   * @throws DataIntegrityError if job data is in an inconsistent state
+   * @throws UncancellableError if job state must is not 'delayed'
+   * @returns {boolean} True if successful, false if job was not found
+   */
+  async promoteJob(client, jobId) {
+    const job = await this.queue.getJob(jobId);
+
+    if (job && job.data && job.data.client && job.data.messageId) {
+      // Job found with proper structure
+      if (job.data.messageId !== jobId) {
+        throw new DataIntegrityError(`Message ${jobId} data is inconsistent or corrupted.`);
+      } else if (job.data.client !== client) {
+        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${job.data.client}.`);
+      } else if (await job.getState() !== 'delayed') {
+        throw new UnpromotableError(`Message ${jobId} is not promotable.`);
+      } else {
+        // Immediately promote in queue
+        await job.promote();
+        await this.updateStatus(job, queueState.PROMOTED, 'Promotion requested');
+        log.info('QueueService.promoteJob', `Message ${job.data.messageId} promoted in queue`);
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
 }
 
-module.exports = { ClientMismatchError, DataIntegrityError, UncancellableError, QueueService };
+module.exports = { ClientMismatchError, DataIntegrityError, UncancellableError, UnpromotableError, QueueService };

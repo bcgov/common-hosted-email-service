@@ -9,19 +9,15 @@ const Problem = require('api-problem');
 const Writable = require('stream').Writable;
 
 const keycloak = require('./src/components/keycloak');
-// const stackpole = require('./src/components/stackpole');
-// const transformer = require('./src/components/transformer');
 const utils = require('./src/components/utils');
 const v1Router = require('./src/routes/v1');
 
 const { authorizedParty } = require('./src/middleware/authorizedParty');
-// const initializeMailApiTracker = require('./src/middleware/mailApiTracker');
 
 const DataConnection = require('./src/services/dataConn');
 const EmailConnection = require('./src/services/emailConn');
 const QueueConnection = require('./src/services/queueConn');
 const QueueListener = require('./src/services/queueListener');
-// const StatisticsService = require('./src/services/statisticSvc');
 
 const apiRouter = express.Router();
 const state = {
@@ -68,8 +64,8 @@ if (config.has('server.logFile')) {
 // Print out configuration settings in verbose startup
 log.verbose('Config', utils.prettyStringify(config));
 
-// this will suppress a console warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
-// we will just force it to use the new Date constructor.
+// Suppresses warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
+// We will just force it to use the new Date constructor - https://stackoverflow.com/a/34521624
 moment.createFromInputFallback = config => {
   config._d = new Date(config._i);
 };
@@ -84,7 +80,6 @@ mountServices();
 if (process.env.NODE_ENV !== 'test') {
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
-  // initializeMailApiTracker(app);
   const morganOpts = {};
   if (config.has('server.logFile')) {
     morganOpts.stream = teeStream;
@@ -250,7 +245,7 @@ function checkConnections() {
 
 /**
  * @function mountServices
- * Registers the queue listener workers and stackpole services
+ * Registers the queue listener workers
  */
 function mountServices() {
   // Register the listener worker when everything is connected
@@ -261,16 +256,6 @@ function mountServices() {
   queueConnection.queue.on('drained', QueueListener.onDrained);
   queueConnection.queue.on('removed', QueueListener.onRemoved);
   log.debug('QueueConnection', 'Listener workers attached');
-
-  // if (state.ready && !state.mounted) {
-  //   // StackpoleService requires the data connection created and initialized...
-  //   // since it is, let's hook in the write statistic
-  //   const writeFn = new StatisticsService().write;
-  //   stackpole.register('mailStats', writeFn, transformer.mailApiToStatistics);
-  //   stackpole.register('createTransaction', writeFn, transformer.transactionToStatistics);
-  //   stackpole.register('updateStatus', writeFn, transformer.messageToStatistics);
-  //   log.debug('StatisticsService', 'Stackpole registered');
-  // }
 }
 
 module.exports = app;

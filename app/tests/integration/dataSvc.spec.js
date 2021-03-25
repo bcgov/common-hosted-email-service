@@ -13,7 +13,6 @@ const { NotFoundError } = require('objection');
 const uuid = require('uuid');
 
 const { statusState, queueState } = require('../../src/components/state');
-const stackpole = require('../../src/components/stackpole');
 
 const DataConnection = require('../../src/services/dataConn');
 const DataService = require('../../src/services/dataSvc');
@@ -86,9 +85,6 @@ describe('dataService', () => {
     if (!connectOK) {
       throw Error('Error initializing dataService');
     }
-
-    stackpole.register('createTransaction', async () => { });
-    stackpole.register('updateStatus', async () => { });
 
     dataService = new DataService();
   });
