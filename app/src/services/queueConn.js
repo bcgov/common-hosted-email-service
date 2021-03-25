@@ -86,6 +86,10 @@ class QueueConnection {
       // https://github.com/OptimalBits/bull/issues/1401#issuecomment-519443898
       createClient: _createClient,
       defaultJobOptions: {
+        // Number of retry attempts before the job fails
+        attempts: Number(config.get('server.maxAttempts')),
+        // Delay by a second before reattempting
+        backoff: 1000,
         // Remove Job objects completely from Redis to limit memory proliferation
         removeOnComplete: true,
         removeOnFail: true

@@ -74,20 +74,13 @@ class QueueListener {
   static async onProcess(job) {
     log.info('QueueListener.onProcess', `Job ${job.id} is processing...`);
 
-    try {
-      if (job.data.messageId && job.data.client) {
-        await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
-        await QueueListener.queueService.sendMessage(job);
-        log.info('QueueListener.onProcess', `Job ${job.id} delivered`);
-        await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
-      } else {
-        throw new Error('Message information missing or formatted incorrectly');
-      }
-    } catch (error) {
-      await job.moveToFailed({
-        message: error.message
-      }, true);
-      throw error;
+    if (job.data.messageId && job.data.client) {
+      await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
+      await QueueListener.queueService.sendMessage(job);
+      log.info('QueueListener.onProcess', `Job ${job.id} delivered`);
+      await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
+    } else {
+      throw new Error('Message information missing or formatted incorrectly');
     }
   }
 

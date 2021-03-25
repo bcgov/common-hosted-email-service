@@ -16,6 +16,7 @@
  *
  * @exports QueueService
  */
+const config = require('config');
 const log = require('npmlog');
 
 const { queueState } = require('../components/state');
@@ -23,6 +24,8 @@ const { queueState } = require('../components/state');
 const DataService = require('./dataSvc');
 const EmailService = require('./emailSvc');
 const QueueConnection = require('./queueConn');
+
+const maxAttempts = Number(config.get('server.maxAttempts'));
 
 class ClientMismatchError extends Error {
   constructor(...args) {
@@ -159,7 +162,10 @@ class QueueService {
   async updateContent(job) {
     try {
       if (job && job.data && job.data.messageId && job.data.client) {
-        await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+        // Only drop email content when completed or failed max number of retries
+        if (!job.failedReason || job.failedReason && job.attemptsMade >= maxAttempts) {
+          await this.dataService.deleteMessageEmail(job.data.client, job.data.messageId);
+        }
       }
     } catch (e) {
       log.error('QueueService.updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
