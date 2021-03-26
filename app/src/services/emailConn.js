@@ -26,20 +26,24 @@ class EmailConnection {
       port: 25,
       tls: {
         rejectUnauthorized: false // do not fail on invalid certs
-      }
+      },
+      connectionTimeout: 10000, // Timeout SMTP connection attempt after 10 seconds
+      pool: true // Use pooled email connections to reduce TCP network churn
     };
   }
 
-  /** @function configuration
-   *  Gets the current configuration
+  /**
+   * @function configuration
+   * Gets the current configuration
    */
   get configuration() {
     return this._configuration;
   }
 
-  /** @function configuration
-   *  Sets the current configuration
-   *  @param {object} v - a node mailer transport configuration.
+  /**
+   * @function configuration
+   * Sets the current configuration
+   * @param {object} v - a node mailer transport configuration.
    */
   set configuration(v) {
     this._configuration = v;
@@ -47,22 +51,25 @@ class EmailConnection {
     this._connected = false;
   }
 
-  /** @function connected
-   *  True or false if connected.
+  /**
+   * @function connected
+   * True or false if connected.
    */
   get connected() {
     return this._connected;
   }
 
-  /** @function mailer
-   *  Get the current nodemailer transport
+  /**
+   * @function mailer
+   * Get the current nodemailer transport
    */
   get mailer() {
     return this._mailer;
   }
 
-  /** @function host
-   *  Get the current host name for the connection
+  /**
+   * @function host
+   * Get the current host name for the connection
    */
   get host() {
     try {
@@ -72,9 +79,10 @@ class EmailConnection {
     }
   }
 
-  /** @function getEtherealConnection
-   *  Gets a connection to Ethereal
-   *  Should only be used for local development/testing
+  /**
+   * @function getEtherealConnection
+   * Gets a connection to Ethereal
+   * Should only be used for local development/testing
    */
   static async getEtherealConnection() {
     if (!etherealConnection) {
@@ -95,9 +103,10 @@ class EmailConnection {
     return etherealConnection;
   }
 
-  /** @function getTestMessageUrl
-   *  Gets a test url for Ethereal
-   *  Should only be used for local development/testing
+  /**
+   * @function getTestMessageUrl
+   * Gets a test url for Ethereal
+   * Should only be used for local development/testing
    */
   getTestMessageUrl(info) {
     // this will only work if the transporter is ethereal...
@@ -109,14 +118,14 @@ class EmailConnection {
     }
   }
 
-  /** @function checkConnection
-   *  Checks the current node mailer connection.
+  /**
+   * @function checkConnection
+   * Checks the current node mailer connection.
    */
   async checkConnection() {
     this._connected = await this._mailer.verify();
     return this._connected;
   }
-
 }
 
 module.exports = EmailConnection;
