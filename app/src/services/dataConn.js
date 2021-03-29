@@ -131,6 +131,22 @@ class DataConnection {
   }
 
   /**
+   * @function close
+   * Will close the DataConnection
+   */
+  close() {
+    if (this.knex) {
+      try {
+        this.knex.destroy();
+        this._connected = false;
+        log.info('DataConnection.close', 'Disconnected');
+      } catch (e) {
+        log.error(e);
+      }
+    }
+  }
+
+  /**
    * @function resetConnection
    * Invalidates and reconnects existing knex connection
    */

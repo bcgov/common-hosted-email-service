@@ -164,7 +164,9 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.shutdown = true;
-  QueueConnection.close();
+  dataConnection.close();
+  queueConnection.close();
+
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
 }
