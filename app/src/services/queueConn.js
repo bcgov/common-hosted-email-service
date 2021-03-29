@@ -39,13 +39,13 @@ const _createClient = () => {
   }
 
   redis.on('ready', () => {
-    log.debug('QueueConnection', 'Redis Ready');
+    log.verbose('QueueConnection', 'Redis Ready');
   });
   redis.on('reconnecting', () => {
-    log.debug('QueueConnection', 'Redis Reconnecting...');
+    log.verbose('QueueConnection', 'Redis Reconnecting...');
   });
   redis.on('connect', () => {
-    log.debug('QueueConnection', 'Redis Connected');
+    log.verbose('QueueConnection', 'Redis Connected');
   });
 
   return redis;
@@ -134,7 +134,7 @@ class QueueConnection {
    * @function close
    * Will close the QueueConnection
    */
-  static close() {
+  close() {
     if (this.queue) {
       try {
         this.queue.close();
