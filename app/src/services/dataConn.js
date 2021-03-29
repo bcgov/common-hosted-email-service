@@ -31,23 +31,26 @@ class DataConnection {
     return DataConnection.instance;
   }
 
-  /** @function connected
-   *  True or false if connected.
+  /**
+   * @function connected
+   * True or false if connected.
    */
   get connected() {
     return this._connected;
   }
 
-  /** @function knex
-   *  Gets the current knex binding
+  /**
+   * @function knex
+   * Gets the current knex binding
    */
   get knex() {
     return this._knex;
   }
 
-  /** @function knex
-   *  Sets the current knex binding
-   *  @param {object} v - a Knex object.
+  /**
+   * @function knex
+   * Sets the current knex binding
+   * @param {object} v - a Knex object.
    */
   set knex(v) {
     this._knex = v;
@@ -55,9 +58,9 @@ class DataConnection {
   }
 
   /**
-   *  @function checkAll
-   *  Checks the Knex connection, the database schema, and Objection models
-   *  @returns {boolean} True if successful, otherwise false
+   * @function checkAll
+   * Checks the Knex connection, the database schema, and Objection models
+   * @returns {boolean} True if successful, otherwise false
    */
   async checkAll() {
     const connectOk = await this.checkConnection();
@@ -70,10 +73,10 @@ class DataConnection {
   }
 
   /**
-   *  @function checkConnection
-   *  Checks the current knex connection to Postgres
-   *  If the connected DB is in read-only mode, transaction_read_only will not be off
-   *  @returns {boolean} True if successful, otherwise false
+   * @function checkConnection
+   * Checks the current knex connection to Postgres
+   * If the connected DB is in read-only mode, transaction_read_only will not be off
+   * @returns {boolean} True if successful, otherwise false
    */
   async checkConnection() {
     try {
@@ -89,9 +92,9 @@ class DataConnection {
   }
 
   /**
-   *  @function checkSchema
-   *  Queries the knex connection to check for the existence of the expected schema tables
-   *  @returns {boolean} True if schema is ok, otherwise false
+   * @function checkSchema
+   * Queries the knex connection to check for the existence of the expected schema tables
+   * @returns {boolean} True if schema is ok, otherwise false
    */
   checkSchema() {
     const tables = ['trxn', 'message', 'status', 'queue'];
@@ -111,9 +114,9 @@ class DataConnection {
   }
 
   /**
-   *  @function checkModel
-   *  Attaches the Objection model to the existing knex connection
-   *  @returns {boolean} True if successful, otherwise false
+   * @function checkModel
+   * Attaches the Objection model to the existing knex connection
+   * @returns {boolean} True if successful, otherwise false
    */
   checkModel() {
     try {
@@ -125,6 +128,17 @@ class DataConnection {
       log.error('DataConnection.checkModel', err);
       return false;
     }
+  }
+
+  /**
+   * @function resetConnection
+   * Invalidates and reconnects existing knex connection
+   */
+  resetConnection() {
+    log.warn('DataConnection.resetConnection', 'Attempting to reset database connection pool...');
+    this.knex.destroy(() => {
+      this.knex.initialize();
+    });
   }
 }
 
