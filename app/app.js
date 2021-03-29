@@ -125,6 +125,9 @@ app.use(/(\/api)?/, apiRouter);
 // Handle 500
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
+  // Attempt to reset DB connection
+  dataConnection.resetConnection();
+
   if (err.stack) {
     log.error(err.stack);
   }
@@ -143,7 +146,7 @@ app.use((_req, res) => {
   new Problem(404).send(res);
 });
 
-// Prevent unhandled errors from crashing application
+// Prevent unhandled promise errors from crashing application
 process.on('unhandledRejection', err => {
   if (err && err.stack) {
     log.error(err.stack);
@@ -161,7 +164,9 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.shutdown = true;
-  QueueConnection.close();
+  dataConnection.close();
+  queueConnection.close();
+
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
 }
