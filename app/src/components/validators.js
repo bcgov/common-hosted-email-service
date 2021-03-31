@@ -419,6 +419,21 @@ const validators = {
     return errors;
   },
 
+  promoteQuery: query => {
+    const errors = [];
+
+    if (!query || !Object.keys(query).some(param => validator.isIn(param, ['msgId', 'status', 'tag', 'txId']))) {
+      errors.push({
+        value: 'params',
+        message: 'At least one of `msgId`, `status`, `tag` or `txId` must be defined.'
+      });
+    }
+
+    validators.searchQueryFields(query).forEach(error => errors.push(error));
+
+    return errors;
+  },
+
   statusFetch: param => {
     const errors = [];
 

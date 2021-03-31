@@ -1460,6 +1460,58 @@ describe('validators.promoteMsg', () => {
   });
 });
 
+describe('validators.promoteQuery', () => {
+  let query;
+
+  beforeEach(() => {
+    query = {
+      msgId: '00000000-0000-0000-0000-000000000000',
+      status: 'completed',
+      tag: 'tag',
+      txId: '00000000-0000-0000-0000-000000000000'
+    };
+  });
+
+  it('should return an empty error array when all valid', () => {
+    const result = validators.promoteQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an empty error array with some missing parameters', () => {
+    delete query.status;
+    delete query.txId;
+
+    const result = validators.promoteQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(0);
+  });
+
+  it('should return an error with some validation errors', () => {
+    query.txId = 'garbage';
+
+    const result = validators.promoteQuery(query);
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+  });
+
+  it('should return an error when all parameters are missing', () => {
+    const result = validators.promoteQuery({});
+
+    expect(result).toBeTruthy();
+    expect(Array.isArray(result)).toBeTruthy();
+    expect(result.length).toEqual(1);
+    expect(result[0].message).toMatch(/At least one of/);
+    expect(result[0].value).toMatch('params');
+  });
+});
+
 describe('validators.email', () => {
 
   const goodEmail = {

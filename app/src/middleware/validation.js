@@ -39,6 +39,11 @@ const validation = {
     handleValidationErrors(res, next, errors);
   },
 
+  validatePromoteQuery: (req, res, next) => {
+    const errors = validators.promoteQuery(req.query);
+    handleValidationErrors(res, next, errors);
+  },
+
   validateStatusFetch: (req, res, next) => {
     const errors = validators.statusFetch(req.params);
     handleValidationErrors(res, next, errors);
