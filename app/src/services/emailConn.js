@@ -21,7 +21,10 @@ class EmailConnection {
    * @class
    */
   constructor() {
-    this.configuration = {
+    /**
+     * Configuration object for Nodemailer
+     */
+    const nodeMailerConfig = {
       host: config.get('server.smtpHost'),
       port: 25,
       tls: {
@@ -33,25 +36,13 @@ class EmailConnection {
       // Ref `Connection inactivity time`: https://docs.microsoft.com/en-us/exchange/mail-flow/message-rate-limits?view=exchserver-2019#message-throttling-on-receive-connectors
       socketTimeout: 30 * 1000 // Close SMTP connection after 30 seconds of inactivity
     };
-  }
 
-  /**
-   * @function configuration
-   * Gets the current configuration
-   */
-  get configuration() {
-    return this._configuration;
-  }
+    if (!EmailConnection.instance) {
+      this.mailer = nodemailer.createTransport(nodeMailerConfig);
+      EmailConnection.instance = this;
+    }
 
-  /**
-   * @function configuration
-   * Sets the current configuration
-   * @param {object} v - a node mailer transport configuration.
-   */
-  set configuration(v) {
-    this._configuration = v;
-    this._mailer = nodemailer.createTransport(this._configuration);
-    this._connected = false;
+    return EmailConnection.instance;
   }
 
   /**
@@ -71,15 +62,13 @@ class EmailConnection {
   }
 
   /**
-   * @function host
-   * Get the current host name for the connection
+   * @function mailer
+   * Sets the underlying nodemailer transport
+   * @param {object} v - a new nodemailer instance
    */
-  get host() {
-    try {
-      return this._configuration.host;
-    } catch (err) {
-      return 'unknown';
-    }
+  set mailer(v) {
+    this._connected = false;
+    this._mailer = v;
   }
 
   /**
@@ -126,8 +115,8 @@ class EmailConnection {
    * Checks the current node mailer connection.
    */
   async checkConnection() {
-    this._connected = await this._mailer.verify();
-    return this._connected;
+    this._connected = await this.mailer.verify();
+    return this.connected;
   }
 }
 
