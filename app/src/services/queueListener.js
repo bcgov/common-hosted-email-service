@@ -63,7 +63,7 @@ class QueueListener {
   static async onFailed(job) {
     log.error('QueueListener.onFailed', `Job ${job.id} failed`);
     await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
-    await QueueListener.queueService.updateContent(job);
+    // await QueueListener.queueService.updateContent(job);
   }
 
   /**
