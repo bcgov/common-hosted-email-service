@@ -29,7 +29,7 @@ class EmailConnection {
       },
       connectionTimeout: 10 * 1000, // Timeout SMTP connection attempt after 10 seconds
       // Ref `Connection inactivity time`: https://docs.microsoft.com/en-us/exchange/mail-flow/message-rate-limits?view=exchserver-2019#message-throttling-on-receive-connectors
-      socketTimeout: 5 * 60 * 1000, // Close SMTP connection after 5 minutes of inactivity
+      socketTimeout: 30 * 1000, // Close SMTP connection after 30 seconds of inactivity
       pool: true // Use pooled email connections to reduce TCP network churn
     };
   }
