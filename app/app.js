@@ -96,7 +96,7 @@ app.use(keycloak.middleware());
 // Block requests until service is ready and mounted
 app.use((_req, res, next) => {
   if (state.shutdown) {
-    throw new Error('Server shutting down');
+    new Problem(503, { details: 'Server is shutting down' }).send(res);
   } else if (!state.ready || !state.mounted) {
     new Problem(503, { details: 'Server is not ready' }).send(res);
   } else {
@@ -126,7 +126,9 @@ app.use(/(\/api)?/, apiRouter);
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   // Attempt to reset DB connection
-  dataConnection.resetConnection();
+  if (!state.shutdown) {
+    dataConnection.resetConnection();
+  }
 
   if (err.stack) {
     log.error(err.stack);
