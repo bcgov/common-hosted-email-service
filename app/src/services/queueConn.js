@@ -88,8 +88,8 @@ class QueueConnection {
       defaultJobOptions: {
         // Number of retry attempts before the job fails
         attempts: Number(config.get('server.maxAttempts')),
-        // Delay by a second before reattempting
-        backoff: 1000,
+        // Wait 10 seconds before reattempting
+        backoff: 10 * 1000,
         // Remove Job objects completely from Redis to limit memory proliferation
         removeOnComplete: true,
         removeOnFail: true
