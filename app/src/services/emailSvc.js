@@ -66,6 +66,7 @@ class EmailService {
    */
   async sendMail(mailer, message) {
     try {
+      if (!message) throw new Error('Message is missing email contents');
       const envelope = this.createEnvelope(message);
 
       // Send mail with defined transport object
