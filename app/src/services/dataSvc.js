@@ -13,7 +13,7 @@ const log = require('npmlog');
 const { transaction } = require('objection');
 const uuid = require('uuid');
 
-const { queueToStatus } = require('../components/state');
+const { queueToStatus, statusState } = require('../components/state');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -301,8 +301,11 @@ class DataService {
       const businessStatus = queueToStatus(status);
       // Update business status if it has a description or is different than current state
       if (description || msg.status !== businessStatus) {
-        // Update message status and add a new status record
-        await msg.$query(trx).patch({ status: businessStatus });
+        // Only update message status if in appropriate states
+        if (!msg.sendResult || msg.sendResult && businessStatus === statusState.COMPLETED) {
+          await msg.$query(trx).patch({ status: businessStatus });
+        }
+        // Add a new status record
         await Status.query(trx).insert({
           messageId: messageId,
           status: businessStatus,
