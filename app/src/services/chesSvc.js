@@ -222,7 +222,7 @@ class ChesService {
             if (msg.email) {
               // Try forcing an enqueue ignoring specified delay
               msg.email.messageId = msg.messageId;
-              await this.dataService.updateStatus(client, messageId, queueState.PROMOTED, 'Promotion requested');
+              await this.dataService.updateStatus(client, msg.messageId, queueState.PROMOTED, 'Promotion requested');
               log.info('QueueService.promoteJob', `Message ${msg.messageId} promoted in queue`);
               await this.queueService.enqueue(client, msg.email);
             }
