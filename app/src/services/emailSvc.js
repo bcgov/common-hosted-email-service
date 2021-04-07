@@ -97,7 +97,7 @@ class EmailService {
       return url;
     }
 
-    const mailer = (pooledMode) ? this.connection.mailer : EmailConnection.getSingleMailerConnection();
+    const mailer = (pooledMode) ? this.connection.pooledMailer : this.connection.singleMailer;
     return this.sendMail(mailer, message);
   }
 }

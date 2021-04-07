@@ -45,7 +45,8 @@ class EmailConnection {
     }, baseNodemailerConfig);
 
     if (!EmailConnection.instance) {
-      this.mailer = nodemailer.createTransport(pooledNodemailerConfig);
+      this.pooledMailer = nodemailer.createTransport(pooledNodemailerConfig);
+      this.singleMailer = nodemailer.createTransport(baseNodemailerConfig);
       EmailConnection.instance = this;
     }
 
@@ -61,21 +62,38 @@ class EmailConnection {
   }
 
   /**
-   * @function mailer
-   * Get the current nodemailer transport
+   * @function singleMailer
+   * Get the current single nodemailer transport
    */
-  get mailer() {
-    return this._mailer;
+  get singleMailer() {
+    return this._singleMailer;
   }
 
   /**
-   * @function mailer
-   * Sets the underlying nodemailer transport
+   * @function singleMailer
+   * Sets the underlying single nodemailer transport
    * @param {object} v - a new nodemailer instance
    */
-  set mailer(v) {
+  set singleMailer(v) {
+    this._singleMailer = v;
+  }
+
+  /**
+   * @function pooledMailer
+   * Get the current pooled nodemailer transport
+   */
+  get pooledMailer() {
+    return this._pooledMailer;
+  }
+
+  /**
+   * @function pooledMailer
+   * Sets the underlying pooled nodemailer transport
+   * @param {object} v - a new nodemailer instance
+   */
+  set pooledMailer(v) {
     this._connected = false;
-    this._mailer = v;
+    this._pooledMailer = v;
   }
 
   /**
@@ -103,14 +121,6 @@ class EmailConnection {
   }
 
   /**
-   * @function getSingleMailerConnection
-   * Gets a non-pooled NodeMailer transporter instance
-   */
-  static getSingleMailerConnection() {
-    return nodemailer.createTransport(baseNodemailerConfig);
-  }
-
-  /**
    * @function getTestMessageUrl
    * Gets a test url for Ethereal
    * Should only be used for local development/testing
@@ -130,7 +140,7 @@ class EmailConnection {
    * Checks the current node mailer connection.
    */
   async checkConnection() {
-    this._connected = await this.mailer.verify();
+    this._connected = await this.pooledMailer.verify();
     return this.connected;
   }
 
@@ -139,14 +149,13 @@ class EmailConnection {
    * Will close the EmailConnection
    */
   close() {
-    if (this.mailer) {
-      try {
-        this.mailer.close();
-        this._connected = false;
-        log.info('EmailConnection.close', 'Disconnected');
-      } catch (e) {
-        log.error(e);
-      }
+    try {
+      if (this.pooledMailer) this.pooledMailer.close();
+      if (this.singleMailer) this.singleMailer.close();
+      this._connected = false;
+      log.info('EmailConnection.close', 'Disconnected');
+    } catch (e) {
+      log.error(e);
     }
   }
 }
