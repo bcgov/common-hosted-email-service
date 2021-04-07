@@ -12,6 +12,7 @@
  */
 const config = require('config');
 const nodemailer = require('nodemailer');
+const log = require('npmlog');
 
 let etherealConnection;
 
@@ -117,6 +118,22 @@ class EmailConnection {
   async checkConnection() {
     this._connected = await this.mailer.verify();
     return this.connected;
+  }
+
+  /**
+   * @function close
+   * Will close the EmailConnection
+   */
+  close() {
+    if (this.mailer) {
+      try {
+        this.mailer.close();
+        this._connected = false;
+        log.info('EmailConnection.close', 'Disconnected');
+      } catch (e) {
+        log.error(e);
+      }
+    }
   }
 }
 

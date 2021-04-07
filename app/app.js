@@ -74,7 +74,6 @@ moment.createFromInputFallback = config => {
 const dataConnection = new DataConnection();
 const queueConnection = new QueueConnection();
 const emailConnection = new EmailConnection();
-mountServices();
 
 // Skip if running tests
 if (process.env.NODE_ENV !== 'test') {
@@ -166,8 +165,9 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.shutdown = true;
-  dataConnection.close();
+  emailConnection.close();
   queueConnection.close();
+  dataConnection.close();
 
   // Wait 3 seconds before hard exiting
   setTimeout(() => process.exit(), 3000);
@@ -208,8 +208,8 @@ function initializeConnections() {
       })
       .finally(() => {
         state.ready = Object.values(state.connections).every(x => x);
+        mountServices();
       });
-
   } catch (error) {
     log.error('initializeConnections', 'Connection initialization failure', error.message);
     if (!state.ready) {
