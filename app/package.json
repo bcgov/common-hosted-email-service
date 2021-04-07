@@ -11,8 +11,8 @@
     "lint": "eslint . --no-fix --ignore-pattern 'node_modules' --ext .js",
     "lint:fix": "eslint . --fix --ignore-pattern 'node_modules' --ext .js",
     "test": "npm run test:unit",
-    "test:all": "jest --verbose",
-    "test:integration": "jest --verbose --testPathIgnorePatterns unit --collectCoverage false",
+    "test:all": "jest --verbose --forceExit --detectOpenHandles",
+    "test:integration": "jest --verbose --testPathIgnorePatterns unit --collectCoverage false --forceExit --detectOpenHandles",
     "test:unit": "jest --verbose --testPathIgnorePatterns integration --forceExit --detectOpenHandles",
     "clean": "rm -rf coverage dist",
     "pretest": "npm run lint",
@@ -35,7 +35,7 @@
     "compression": "^1.7.4",
     "config": "^3.3.6",
     "express": "^4.17.1",
-    "ioredis": "^4.24.2",
+    "ioredis": "^4.25.0",
     "js-yaml": "^4.0.0",
     "keycloak-connect": "^11.0.0",
     "knex": "^0.21.15",
@@ -51,7 +51,7 @@
     "validator": "^13.5.2"
   },
   "devDependencies": {
-    "eslint": "^7.22.0",
+    "eslint": "^7.23.0",
     "jest": "^26.6.3",
     "nodemon": "^2.0.7",
     "supertest": "^6.1.3"

@@ -13,7 +13,7 @@ const log = require('npmlog');
 const { transaction } = require('objection');
 const uuid = require('uuid');
 
-const { queueToStatus } = require('../components/state');
+const { queueToStatus, statusState } = require('../components/state');
 const utils = require('../components/utils');
 
 const DataConnection = require('./dataConn');
@@ -142,10 +142,11 @@ class DataService {
   async deleteMessageEmail(client, messageId) {
     let trx;
     try {
-      // first query for message, throw not found if client/message not exist...
-      await this.readMessage(client, messageId);
-
       trx = await transaction.start(Message.knex());
+
+      // first query for message, throw not found if client/message not exist...
+      await this.readMessage(client, messageId, trx);
+
       const cItems = await Message.query(trx)
         .patch({ email: null })
         .where('messageId', messageId);
@@ -209,11 +210,12 @@ class DataService {
    *
    * @param {string} client - the authorized party / client
    * @param {string} messageId - the id of the message we want
+   * @param {object} [trx] - optional transaction wrapper
    * @throws NotFoundError if message for client not found
    * @returns {object} Message object, fully populated.
    */
-  async readMessage(client, messageId) {
-    return Message.query()
+  async readMessage(client, messageId, trx = undefined) {
+    return Message.query(trx)
       .findById(messageId)
       .whereIn('transactionId', getClientTrxnQuery(client))
       .withGraphJoined('statusHistory')
@@ -255,10 +257,11 @@ class DataService {
   async updateMessageSendResult(client, messageId, sendResult) {
     let trx;
     try {
-      // first query for message, throw not found if client/message not exist...
-      await this.readMessage(client, messageId);
-
       trx = await transaction.start(Message.knex());
+
+      // first query for message, throw not found if client/message not exist...
+      await this.readMessage(client, messageId, trx);
+
       const cItems = await Message.query(trx)
         .patch({ sendResult: sendResult })
         .where('messageId', messageId);
@@ -290,16 +293,19 @@ class DataService {
   async updateStatus(client, messageId, status, description) {
     let trx;
     try {
-      // first query for message, throw not found if client/message not exist...
-      const msg = await this.readMessage(client, messageId);
-
       trx = await transaction.start(Message.knex());
+
+      // first query for message, throw not found if client/message not exist...
+      const msg = await this.readMessage(client, messageId, trx);
 
       const businessStatus = queueToStatus(status);
       // Update business status if it has a description or is different than current state
       if (description || msg.status !== businessStatus) {
-        // Update message status and add a new status record
-        await msg.$query(trx).patch({ status: businessStatus });
+        // Only update message status if in appropriate states
+        if (!msg.sendResult || msg.sendResult && businessStatus === statusState.COMPLETED) {
+          await msg.$query(trx).patch({ status: businessStatus });
+        }
+        // Add a new status record
         await Status.query(trx).insert({
           messageId: messageId,
           status: businessStatus,

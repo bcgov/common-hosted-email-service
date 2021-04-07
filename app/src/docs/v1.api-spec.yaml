@@ -14,7 +14,8 @@ servers:
   - url: /api/v1
     description: This Server
 security:
-  - OpenID: []
+  - BearerAuth: []
+    OpenID: []
 paths:
   /health:
     get:
@@ -241,6 +242,50 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /promote:
+    post:
+      summary: Promotes multiple messages
+      description: >-
+        This endpoint searches for and attempts to immediately promote and
+        dispatch a set of messages that are still in the accepted, enqueued or
+        delayed states. Messages cannot be promoted once they have begun
+        processing.
+      operationId: PostPromoteQuery
+      tags:
+        - Message
+      security:
+        - OpenID:
+            - EMAILER
+      parameters:
+        - $ref: '#/components/parameters/QueryMessageId'
+        - $ref: '#/components/parameters/QueryStatus'
+        - $ref: '#/components/parameters/QueryTag'
+        - $ref: '#/components/parameters/QueryTransactionId'
+      responses:
+        '202':
+          description: Request is acknowledged but not necessarily completed
+          headers:
+            Content-Location:
+              description: >-
+                URL location to affected resource. Use the same query and path
+                parameters as this request to find the affected resource.
+              example: >-
+                /api/v1/status?msgId=00000000-0000-0000-0000-000000000000&status=pending&tag=example&txId=00000000-0000-0000-0000-000000000000
+              schema:
+                type: string
+                format: uri
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         default:

@@ -29,6 +29,18 @@ export let options = {
   // K6 vars, overload in the command
   iterations: 1,
   vus: 1
+  // For now comment out the 2 lines above and uncomment below for rate testing
+  // TODO: parameterize this into 2 scenarios that can be invoked
+  // scenarios: {
+  //   contacts: {
+  //     executor: 'constant-arrival-rate',
+  //     rate: 2250, // this is per-minute, see "timeUnit" below
+  //     duration: '4m',
+  //     preAllocatedVUs: 50,
+  //     timeUnit: '1m',
+  //     maxVUs: 300,
+  //   },
+  // },
 };
 
 // URL strings

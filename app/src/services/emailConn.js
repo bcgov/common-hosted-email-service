@@ -12,6 +12,18 @@
  */
 const config = require('config');
 const nodemailer = require('nodemailer');
+const log = require('npmlog');
+
+/**
+ * Base configuration object for Nodemailer
+ */
+const baseNodemailerConfig = {
+  host: config.get('server.smtpHost'),
+  port: 25,
+  tls: {
+    rejectUnauthorized: false // do not fail on invalid certs
+  }
+};
 
 let etherealConnection;
 
@@ -22,23 +34,19 @@ class EmailConnection {
    */
   constructor() {
     /**
-     * Configuration object for Nodemailer
+     * Configuration object for pooled Nodemailer
      */
-    const nodeMailerConfig = {
-      host: config.get('server.smtpHost'),
-      port: 25,
-      tls: {
-        rejectUnauthorized: false // do not fail on invalid certs
-      },
+    const pooledNodemailerConfig = Object.assign({
       pool: true, // Use pooled email connections to reduce TCP network churn
       maxConnections: 1, // Cap max SMTP connections in pool to one (we dispatch sequentially via Redis queue),
       connectionTimeout: 10 * 1000, // Timeout SMTP connection attempt after 10 seconds
       // Ref `Connection inactivity time`: https://docs.microsoft.com/en-us/exchange/mail-flow/message-rate-limits?view=exchserver-2019#message-throttling-on-receive-connectors
       socketTimeout: 30 * 1000 // Close SMTP connection after 30 seconds of inactivity
-    };
+    }, baseNodemailerConfig);
 
     if (!EmailConnection.instance) {
-      this.mailer = nodemailer.createTransport(nodeMailerConfig);
+      this.pooledMailer = nodemailer.createTransport(pooledNodemailerConfig);
+      this.singleMailer = nodemailer.createTransport(baseNodemailerConfig);
       EmailConnection.instance = this;
     }
 
@@ -54,21 +62,38 @@ class EmailConnection {
   }
 
   /**
-   * @function mailer
-   * Get the current nodemailer transport
+   * @function singleMailer
+   * Get the current single nodemailer transport
    */
-  get mailer() {
-    return this._mailer;
+  get singleMailer() {
+    return this._singleMailer;
   }
 
   /**
-   * @function mailer
-   * Sets the underlying nodemailer transport
+   * @function singleMailer
+   * Sets the underlying single nodemailer transport
    * @param {object} v - a new nodemailer instance
    */
-  set mailer(v) {
+  set singleMailer(v) {
+    this._singleMailer = v;
+  }
+
+  /**
+   * @function pooledMailer
+   * Get the current pooled nodemailer transport
+   */
+  get pooledMailer() {
+    return this._pooledMailer;
+  }
+
+  /**
+   * @function pooledMailer
+   * Sets the underlying pooled nodemailer transport
+   * @param {object} v - a new nodemailer instance
+   */
+  set pooledMailer(v) {
     this._connected = false;
-    this._mailer = v;
+    this._pooledMailer = v;
   }
 
   /**
@@ -115,8 +140,23 @@ class EmailConnection {
    * Checks the current node mailer connection.
    */
   async checkConnection() {
-    this._connected = await this.mailer.verify();
+    this._connected = await this.pooledMailer.verify();
     return this.connected;
+  }
+
+  /**
+   * @function close
+   * Will close the EmailConnection
+   */
+  close() {
+    try {
+      if (this.pooledMailer) this.pooledMailer.close();
+      if (this.singleMailer) this.singleMailer.close();
+      this._connected = false;
+      log.info('EmailConnection.close', 'Disconnected');
+    } catch (e) {
+      log.error(e);
+    }
   }
 }
 

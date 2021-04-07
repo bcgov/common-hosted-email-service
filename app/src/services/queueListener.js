@@ -72,7 +72,8 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onProcess(job) {
-    log.info('QueueListener.onProcess', `Job ${job.id} is processing...`);
+    let attemptMsg = (job.attemptsMade) ? ` (Attempt ${job.attemptsMade + 1})...` : '...';
+    log.info('QueueListener.onProcess', `Job ${job.id} is processing${attemptMsg}`);
 
     if (job.data.messageId && job.data.client) {
       await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);

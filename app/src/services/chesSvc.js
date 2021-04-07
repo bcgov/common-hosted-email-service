@@ -194,6 +194,74 @@ class ChesService {
   }
 
   /**
+   * @function findPromoteMessages
+   * @description Finds and attempts to promote the set of messages matching the search criteria
+   *
+   * @param {string} client - the authorized party / client
+   * @param {string} messageId - the id of the desired message
+   * @param {string} status - the desired status of the messages
+   * @param {string} tag - the desired tag of the messages
+   * @param {string} transactionId - the id of the desired transaction
+   * @throws Problem if an unexpected error occurs
+   */
+  async findPromoteMessages(client, messageId, status, tag, transactionId) {
+    if (!client) {
+      throw new Problem(400, { detail: 'Error finding and promoting messages. Client cannot be null' });
+    }
+
+    try {
+      const messages = await this.dataService.findMessagesByQuery(client, messageId, status, tag, transactionId);
+
+      const integrityList = [];
+      await Promise.all(messages.map(async msg => {
+        try {
+          // Try promoting directly from queue first
+          const success = await this.queueService.promoteJob(client, msg.messageId);
+          if (!success) {
+            // Check if message contents are still there
+            if (msg.email) {
+              // Try forcing an enqueue ignoring specified delay
+              msg.email.messageId = msg.messageId;
+              await this.dataService.updateStatus(client, msg.messageId, queueState.PROMOTED, 'Promotion requested');
+              log.info('QueueService.promoteJob', `Message ${msg.messageId} promoted in queue`);
+              await this.queueService.enqueue(client, msg.email);
+            }
+            else throw new UnpromotableError(`Message ${msg.messageId} is not promotable.`);
+          }
+        } catch (e) {
+          if (e instanceof ClientMismatchError || e instanceof NotFoundError
+            || e instanceof UnpromotableError) {
+            log.info('ChesService.findPromoteMessages', e.message);
+          } else if (e instanceof DataIntegrityError) {
+            log.error('ChesService.findPromoteMessages', e.message);
+            integrityList.push(msg.messageId);
+          } else {
+            throw e; // We want to throw and not return an error object in this case
+          }
+          return e;
+        }
+      }).filter(e => !!e)); // Drop undefined elements from array
+
+      if (integrityList && integrityList.length) {
+        log.error('ChesService.findPromoteMessages', `Message(s) ${integrityList} inconsistent or corrupted.`);
+        throw new Problem(500, {
+          detail: 'Some message(s) are inconsistent or corrupted.',
+          messages: integrityList
+        });
+      }
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        log.info('ChesService.findPromoteMessages', 'No messages found');
+      } else if (e instanceof Problem) {
+        throw e;
+      } else {
+        log.error('ChesService.findPromoteMessages', e.message);
+        throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
+      }
+    }
+  }
+
+  /**
    * @function findStatuses
    * @description Finds the set of message statuses that matches the search criteria
    *
@@ -335,7 +403,7 @@ class ChesService {
 
     try {
       if (ethereal) {
-        const result = await this.emailService.send(message, true);
+        const result = await this.emailService.send(message, true, true);
         return result;
       } else {
         // create the transaction...
@@ -381,7 +449,7 @@ class ChesService {
         const results = await Promise.all(contexts.map(context => {
           // Remove delay as we do not use the queue for Ethereal messages
           delete context.delayTS;
-          return this.emailService.send(context, true);
+          return this.emailService.send(context, true, true);
         }));
 
         return results;
