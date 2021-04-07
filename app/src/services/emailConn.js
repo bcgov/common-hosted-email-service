@@ -14,6 +14,17 @@ const config = require('config');
 const nodemailer = require('nodemailer');
 const log = require('npmlog');
 
+/**
+ * Base configuration object for Nodemailer
+ */
+const baseNodemailerConfig = {
+  host: config.get('server.smtpHost'),
+  port: 25,
+  tls: {
+    rejectUnauthorized: false // do not fail on invalid certs
+  }
+};
+
 let etherealConnection;
 
 class EmailConnection {
@@ -23,23 +34,18 @@ class EmailConnection {
    */
   constructor() {
     /**
-     * Configuration object for Nodemailer
+     * Configuration object for pooled Nodemailer
      */
-    const nodeMailerConfig = {
-      host: config.get('server.smtpHost'),
-      port: 25,
-      tls: {
-        rejectUnauthorized: false // do not fail on invalid certs
-      },
+    const pooledNodemailerConfig = Object.assign({
       pool: true, // Use pooled email connections to reduce TCP network churn
       maxConnections: 1, // Cap max SMTP connections in pool to one (we dispatch sequentially via Redis queue),
       connectionTimeout: 10 * 1000, // Timeout SMTP connection attempt after 10 seconds
       // Ref `Connection inactivity time`: https://docs.microsoft.com/en-us/exchange/mail-flow/message-rate-limits?view=exchserver-2019#message-throttling-on-receive-connectors
       socketTimeout: 30 * 1000 // Close SMTP connection after 30 seconds of inactivity
-    };
+    }, baseNodemailerConfig);
 
     if (!EmailConnection.instance) {
-      this.mailer = nodemailer.createTransport(nodeMailerConfig);
+      this.mailer = nodemailer.createTransport(pooledNodemailerConfig);
       EmailConnection.instance = this;
     }
 
@@ -94,6 +100,14 @@ class EmailConnection {
       etherealConnection.configuration = etherealConfiguration;
     }
     return etherealConnection;
+  }
+
+  /**
+   * @function getSingleMailerConnection
+   * Gets a non-pooled NodeMailer transporter instance
+   */
+  static getSingleMailerConnection() {
+    return nodemailer.createTransport(baseNodemailerConfig);
   }
 
   /**

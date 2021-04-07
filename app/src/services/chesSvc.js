@@ -403,7 +403,7 @@ class ChesService {
 
     try {
       if (ethereal) {
-        const result = await this.emailService.send(message, true);
+        const result = await this.emailService.send(message, true, true);
         return result;
       } else {
         // create the transaction...
@@ -449,7 +449,7 @@ class ChesService {
         const results = await Promise.all(contexts.map(context => {
           // Remove delay as we do not use the queue for Ethereal messages
           delete context.delayTS;
-          return this.emailService.send(context, true);
+          return this.emailService.send(context, true, true);
         }));
 
         return results;

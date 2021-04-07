@@ -195,8 +195,10 @@ class QueueService {
   async sendMessage(job) {
     if (job && job.data && job.data.messageId && job.data.client) {
       try {
+        // Use pooled connection only on first attempt
+        const isFirstAttempt = job.attemptsMade < 1;
         const msg = await this.dataService.readMessage(job.data.client, job.data.messageId);
-        const smtpResult = await this.emailService.send(msg.email);
+        const smtpResult = await this.emailService.send(msg.email, isFirstAttempt);
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {

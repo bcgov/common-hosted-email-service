@@ -84,10 +84,11 @@ class EmailService {
    * Creates an email and sends it...
    * Uses SMTP by default
    * @param {object} message An email message object
-   * @param {boolean} ethereal - when true, send to Ethereal service (good for local testing)
+   * @param {boolean} pooledMode Uses pooled mailer when true
+   * @param {boolean} [ethereal=false] Send to Ethereal service when true (good for local testing)
    * @returns {object} A nodemailer result object
    */
-  async send(message, ethereal = false) {
+  async send(message, pooledMode, ethereal = false) {
     if (ethereal) {
       const etherealConnection = await EmailConnection.getEtherealConnection();
       const info = await this.sendMail(etherealConnection.mailer, message);
@@ -95,7 +96,9 @@ class EmailService {
       log.info('EmailService.send', `Ethereal test url = ${url}`);
       return url;
     }
-    return this.sendMail(this.connection.mailer, message);
+
+    const mailer = (pooledMode) ? this.connection.mailer : EmailConnection.getSingleMailerConnection();
+    return this.sendMail(mailer, message);
   }
 }
 
