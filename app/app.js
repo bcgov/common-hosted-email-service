@@ -165,7 +165,6 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.shutdown = true;
-  emailConnection.close();
   queueConnection.close();
   dataConnection.close();
 
