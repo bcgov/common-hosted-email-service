@@ -22,7 +22,8 @@ const baseNodemailerConfig = {
   port: 25,
   tls: {
     rejectUnauthorized: false // do not fail on invalid certs
-  }
+  },
+  connectionTimeout: 10 * 1000 // Timeout SMTP connection attempt after 10 seconds
 };
 
 let etherealConnection;
@@ -39,7 +40,6 @@ class EmailConnection {
     const pooledNodemailerConfig = Object.assign({
       pool: true, // Use pooled email connections to reduce TCP network churn
       maxConnections: 1, // Cap max SMTP connections in pool to one (we dispatch sequentially via Redis queue),
-      connectionTimeout: 10 * 1000, // Timeout SMTP connection attempt after 10 seconds
       // Ref `Connection inactivity time`: https://docs.microsoft.com/en-us/exchange/mail-flow/message-rate-limits?view=exchserver-2019#message-throttling-on-receive-connectors
       socketTimeout: 30 * 1000 // Close SMTP connection after 30 seconds of inactivity
     }, baseNodemailerConfig);
