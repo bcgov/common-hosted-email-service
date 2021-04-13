@@ -157,6 +157,11 @@ process.on('unhandledRejection', err => {
 // Graceful shutdown support
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
+process.on('SIGUSR1', shutdown);
+process.on('SIGUSR2', shutdown);
+process.on('exit', () => {
+  log.info('Exiting...');
+});
 
 /**
  * @function shutdown
@@ -165,11 +170,18 @@ process.on('SIGINT', shutdown);
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   state.shutdown = true;
-  queueConnection.close();
-  dataConnection.close();
+  queueConnection.pause();
 
   // Wait 3 seconds before hard exiting
-  setTimeout(() => process.exit(), 3000);
+  setTimeout(() => {
+    queueConnection.close(() => {
+      emailConnection.close(() => {
+        dataConnection.close(() => {
+          process.exit();
+        });
+      });
+    });
+  }, 3000);
 }
 
 /**
