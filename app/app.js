@@ -30,6 +30,7 @@ const state = {
   ready: false,
   shutdown: false
 };
+let probeId;
 
 const app = express();
 app.use(compression());
@@ -165,23 +166,34 @@ process.on('exit', () => {
 
 /**
  * @function shutdown
- * Begins shutting down this application. It will hard exit after 3 seconds.
+ * Shuts down this application after at least 3 seconds.
  */
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
-  state.shutdown = true;
   queueConnection.pause();
 
   // Wait 3 seconds before hard exiting
-  setTimeout(() => {
-    queueConnection.close(() => {
-      emailConnection.close(() => {
-        dataConnection.close(() => {
-          process.exit();
-        });
+  if (!state.shutdown) setTimeout(cleanup, 3000);
+}
+
+/**
+ * @function cleanup
+ * Cleans up connections in this application.
+ */
+function cleanup() {
+  log.info('Service no longer accepting traffic');
+  state.shutdown = true;
+
+  log.info('Cleaning up...');
+  clearInterval(probeId);
+
+  queueConnection.close(() => {
+    emailConnection.close(() => {
+      dataConnection.close(() => {
+        process.exit();
       });
     });
-  }, 3000);
+  });
 }
 
 /**
@@ -230,7 +242,7 @@ function initializeConnections() {
   }
 
   // Start periodic 10 second connection probe check
-  setInterval(checkConnections, 10000);
+  probeId = setInterval(checkConnections, 10000);
 }
 
 /**
