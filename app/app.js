@@ -175,7 +175,7 @@ function shutdown() {
   log.info('Received kill signal. Shutting down...');
   queueConnection.pause();
 
-  // Wait 3 seconds before hard exiting
+  // Wait 3 seconds before starting cleanup
   if (!state.shutdown) setTimeout(cleanup, 3000);
 }
 
@@ -197,6 +197,9 @@ function cleanup() {
       });
     });
   });
+
+  // Wait 10 seconds max before hard exiting
+  setTimeout(() => process.exit(), 10000);
 }
 
 /**
