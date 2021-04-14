@@ -80,7 +80,10 @@ const emailConnection = new EmailConnection();
 if (process.env.NODE_ENV !== 'test') {
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
-  const morganOpts = {};
+  const morganOpts = {
+    // Skip logging kube-probe requests
+    skip: (req) => req.headers['user-agent'] && req.headers['user-agent'].includes('kube-probe')
+  };
   if (config.has('server.logFile')) {
     morganOpts.stream = teeStream;
   }
