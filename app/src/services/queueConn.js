@@ -133,13 +133,18 @@ class QueueConnection {
   /**
    * @function close
    * Will close the QueueConnection
+   * @param {function} [cb] Optional callback
    */
-  close() {
+  close(cb = undefined) {
     if (this.queue) {
       try {
-        this.queue.close();
-        this._connected = false;
-        log.info('QueueConnection.close', 'Disconnected');
+        this.queue.whenCurrentJobsFinished().then(() => {
+          this.queue.close().then(() => {
+            this._connected = false;
+            log.info('QueueConnection.close', 'Disconnected');
+            if (cb) cb();
+          });
+        });
       } catch (e) {
         log.error(e);
       }
@@ -176,6 +181,30 @@ class QueueConnection {
 
     this._connected = isReady;
     return this.connected;
+  }
+
+  /**
+   * @function pause
+   * Pause this QueueConnection from accepting new jobs
+   */
+  pause() {
+    if (this.queue) {
+      this.queue.pause(true).then(() => {
+        log.info('QueueConnection.pause', 'Stop accepting new jobs');
+      });
+    }
+  }
+
+  /**
+   * @function resume
+   * Resume this QueueConnection to accept new jobs
+   */
+  resume() {
+    if (this.queue) {
+      this.queue.resume(true).then(() => {
+        log.info('QueueConnection.resume', 'Start accepting new jobs');
+      });
+    }
   }
 }
 

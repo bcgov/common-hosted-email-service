@@ -147,13 +147,15 @@ class EmailConnection {
   /**
    * @function close
    * Will close the EmailConnection
+   * @param {function} [cb] Optional callback
    */
-  close() {
+  close(cb = undefined) {
     try {
       if (this.pooledMailer) this.pooledMailer.close();
       if (this.singleMailer) this.singleMailer.close();
       this._connected = false;
       log.info('EmailConnection.close', 'Disconnected');
+      if (cb) cb();
     } catch (e) {
       log.error(e);
     }

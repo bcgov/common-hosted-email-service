@@ -30,6 +30,7 @@ const state = {
   ready: false,
   shutdown: false
 };
+let probeId;
 
 const app = express();
 app.use(compression());
@@ -79,7 +80,10 @@ const emailConnection = new EmailConnection();
 if (process.env.NODE_ENV !== 'test') {
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
-  const morganOpts = {};
+  const morganOpts = {
+    // Skip logging kube-probe requests
+    skip: (req) => req.headers['user-agent'] && req.headers['user-agent'].includes('kube-probe')
+  };
   if (config.has('server.logFile')) {
     morganOpts.stream = teeStream;
   }
@@ -157,19 +161,45 @@ process.on('unhandledRejection', err => {
 // Graceful shutdown support
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
+process.on('SIGUSR1', shutdown);
+process.on('SIGUSR2', shutdown);
+process.on('exit', () => {
+  log.info('Exiting...');
+});
 
 /**
  * @function shutdown
- * Begins shutting down this application. It will hard exit after 3 seconds.
+ * Shuts down this application after at least 3 seconds.
  */
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
-  state.shutdown = true;
-  queueConnection.close();
-  dataConnection.close();
+  queueConnection.pause();
 
-  // Wait 3 seconds before hard exiting
-  setTimeout(() => process.exit(), 3000);
+  // Wait 3 seconds before starting cleanup
+  if (!state.shutdown) setTimeout(cleanup, 3000);
+}
+
+/**
+ * @function cleanup
+ * Cleans up connections in this application.
+ */
+function cleanup() {
+  log.info('Service no longer accepting traffic');
+  state.shutdown = true;
+
+  log.info('Cleaning up...');
+  clearInterval(probeId);
+
+  queueConnection.close(() => {
+    emailConnection.close(() => {
+      dataConnection.close(() => {
+        process.exit();
+      });
+    });
+  });
+
+  // Wait 10 seconds max before hard exiting
+  setTimeout(() => process.exit(), 10000);
 }
 
 /**
@@ -218,7 +248,7 @@ function initializeConnections() {
   }
 
   // Start periodic 10 second connection probe check
-  setInterval(checkConnections, 10000);
+  probeId = setInterval(checkConnections, 10000);
 }
 
 /**

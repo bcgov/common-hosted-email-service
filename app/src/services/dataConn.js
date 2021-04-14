@@ -133,13 +133,16 @@ class DataConnection {
   /**
    * @function close
    * Will close the DataConnection
+   * @param {function} [cb] Optional callback
    */
-  close() {
+  close(cb = undefined) {
     if (this.knex) {
       try {
-        this.knex.destroy();
-        this._connected = false;
-        log.info('DataConnection.close', 'Disconnected');
+        this.knex.destroy(() => {
+          this._connected = false;
+          log.info('DataConnection.close', 'Disconnected');
+          if (cb) cb();
+        });
       } catch (e) {
         log.error(e);
       }
