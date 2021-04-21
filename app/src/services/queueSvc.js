@@ -227,7 +227,7 @@ class QueueService {
       if (job.data.messageId !== jobId) {
         throw new DataIntegrityError(`Message ${jobId} data is inconsistent or corrupted.`);
       } else if (job.data.client !== client) {
-        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${job.data.client}.`);
+        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${client}.`);
       } else if (await job.getState() !== 'delayed') {
         throw new UncancellableError(`Message ${jobId} is not cancellable.`);
       } else {
@@ -260,7 +260,7 @@ class QueueService {
       if (job.data.messageId !== jobId) {
         throw new DataIntegrityError(`Message ${jobId} data is inconsistent or corrupted.`);
       } else if (job.data.client !== client) {
-        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${job.data.client}.`);
+        throw new ClientMismatchError(`Message ${jobId} is not owned by client ${client}.`);
       } else if (await job.getState() !== 'delayed') {
         throw new UnpromotableError(`Message ${jobId} is not promotable.`);
       } else {
