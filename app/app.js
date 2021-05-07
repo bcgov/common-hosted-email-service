@@ -128,18 +128,17 @@ app.use(/(\/api)?/, apiRouter);
 // Handle 500
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
-  // Attempt to reset DB connection
-  if (!state.shutdown) {
-    dataConnection.resetConnection();
-  }
-
   if (err.stack) {
     log.error(err.stack);
   }
 
   if (err instanceof Problem) {
+    // Attempt to reset DB connection if 5xx error
+    if (err.status >= 500 && !state.shutdown) dataConnection.resetConnection();
     err.send(res);
   } else {
+    // Attempt to reset DB connection
+    if (!state.shutdown) dataConnection.resetConnection();
     new Problem(500, {
       details: (err.message) ? err.message : err
     }).send(res);
