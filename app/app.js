@@ -168,14 +168,14 @@ process.on('exit', () => {
 
 /**
  * @function shutdown
- * Shuts down this application after at least 3 seconds.
+ * Shuts down this application after at least 5 seconds.
  */
 function shutdown() {
   log.info('Received kill signal. Shutting down...');
   queueConnection.pause();
 
-  // Wait 3 seconds before starting cleanup
-  if (!state.shutdown) setTimeout(cleanup, 3000);
+  // Wait 5 seconds before starting cleanup
+  if (!state.shutdown) setTimeout(cleanup, 5000);
 }
 
 /**
