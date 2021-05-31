@@ -73,7 +73,6 @@ describe(`GET ${basePath}`, () => {
     healthCheck.getAll = jest.fn().mockImplementation(() => { throw new Error('bad'); });
 
     const response = await request(app).get(`${basePath}`);
-    console.log(response.body);
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toBeTruthy();
