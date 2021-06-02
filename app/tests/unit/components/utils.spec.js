@@ -131,9 +131,9 @@ describe('toPascalCase', () => {
 });
 
 describe('wait', () => {
-  it('should return after a period of time', () => {
-    const result = utils.wait(200);
+  it('should return after a period of time', async () => {
+    const result = await utils.wait(200);
 
-    expect(result).resolves.toBeTruthy();
+    expect(result).toBeUndefined();
   });
 });
