@@ -1,9 +1,6 @@
-apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta2
 metadata:
-  annotations:
-    autoscaling.alpha.kubernetes.io/behavior: >-
-      {"ScaleUp":{"StabilizationWindowSeconds":0,"SelectPolicy":"Max","Policies":[{"Type":"Pods","Value":2,"PeriodSeconds":30}]},"ScaleDown":{"StabilizationWindowSeconds":120,"SelectPolicy":"Max","Policies":[{"Type":"Pods","Value":1,"PeriodSeconds":120}]}}
   name: ches-app-master
   labels:
     app: ches-master
@@ -18,10 +15,27 @@ spec:
     kind: DeploymentConfig
     name: ches-app-master
     apiVersion: apps.openshift.io/v1
-  minReplicas: 4
+  minReplicas: 2
   maxReplicas: 16
   metrics:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: 80
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      selectPolicy: Max
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 120
+      selectPolicy: Max
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
