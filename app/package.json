@@ -48,7 +48,7 @@
     "pg": "^8.6.0",
     "tmp": "^0.2.1",
     "uuid": "^8.3.2",
-    "validator": "^13.6.0"
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "eslint": "^7.27.0",
