@@ -1,9 +1,9 @@
 const bytes = require('bytes');
 const fs = require('fs');
-const log = require('npmlog');
 const tmp = require('tmp');
 const validator = require('validator');
 
+const log = require('./log')(module.filename);
 const { statusState } = require('./state');
 
 const DEFAULT_ATTACHMENT_SIZE = bytes.parse('5mb');
@@ -65,7 +65,7 @@ const models = {
         return stats.size <= attachmentLimit;
       } catch (e) {
         // something wrong (disk i/o?), cannot verify file size
-        log.error(`Error validating file size. ${e.message}`);
+        log.error(`Error validating file size. ${e.message}`, { function: 'size' });
         return false;
       } finally {
         // delete tmp file

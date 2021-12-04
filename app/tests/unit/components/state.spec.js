@@ -1,7 +1,4 @@
-const helper = require('../../common/helper');
 const { queueState, statusState, queueToStatus } = require('../../../src/components/state');
-
-helper.logHelper();
 
 describe('queueState', () => {
   it('should have the correct number of defined states', () => {

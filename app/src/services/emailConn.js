@@ -12,7 +12,7 @@
  */
 const config = require('config');
 const nodemailer = require('nodemailer');
-const log = require('npmlog');
+const log = require('../components/log')(module.filename);
 
 /**
  * Base configuration object for Nodemailer
@@ -154,10 +154,10 @@ class EmailConnection {
       if (this.pooledMailer) this.pooledMailer.close();
       if (this.singleMailer) this.singleMailer.close();
       this._connected = false;
-      log.info('EmailConnection.close', 'Disconnected');
+      log.info('Disconnected', { function: 'close' });
       if (cb) cb();
     } catch (e) {
-      log.error(e);
+      log.error('Failed to close', { error: e, function: 'close' });
     }
   }
 }

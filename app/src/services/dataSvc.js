@@ -9,10 +9,10 @@
  *
  * @exports DataService
  */
-const log = require('npmlog');
 const { transaction } = require('objection');
 const uuid = require('uuid');
 
+const log = require('../components/log')(module.filename);
 const { queueToStatus, statusState } = require('../components/state');
 const utils = require('../components/utils');
 
@@ -122,8 +122,7 @@ class DataService {
       await trx.commit();
       return this.readTransaction(client, transactionId);
     } catch (err) {
-      log.error('DataService.createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error(`Error creating transaction record: ${err.message}. Rolling back...`, { error: err, function: 'createTransaction' });
       if (trx) await trx.rollback();
       throw err;
     }
@@ -150,13 +149,12 @@ class DataService {
       const cItems = await Message.query(trx)
         .patch({ email: null })
         .where('messageId', messageId);
-      log.info('DataService.deleteMessageEmail', `Updated ${cItems} message email records...`);
+      log.info(`Updated ${cItems} message email records...`, { function: 'deleteMessageEmail' });
 
       await trx.commit();
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`, { error: err, function: 'deleteMessageEmail' });
       if (trx) await trx.rollback();
       throw err;
     }
@@ -265,13 +263,12 @@ class DataService {
       const cItems = await Message.query(trx)
         .patch({ sendResult: sendResult })
         .where('messageId', messageId);
-      log.info('DataService.updateMessageSendResult', `Updated ${cItems} message (result) records...`);
+      log.info(`Updated ${cItems} message (result) records...`, { function: 'updateMessageSendResult' });
 
       await trx.commit();
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error('DataService.updateMessageSendResult', `Error updating message send result record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error(`Error updating message send result record: ${err.message}. Rolling back...`, { error: err, function: 'updateMessageSendResult' });
       if (trx) await trx.rollback();
       throw err;
     }
@@ -323,8 +320,7 @@ class DataService {
       await trx.commit();
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error('DataService.updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error(`Error updating message statuses record: ${err.message}. Rolling back...`, { error: err, function: 'updateStatus' });
       if (trx) await trx.rollback();
       throw err;
     }

@@ -11,8 +11,9 @@
  */
 const Bull = require('bull');
 const config = require('config');
-const log = require('npmlog');
 const Redis = require('ioredis');
+
+const log = require('../components/log')(module.filename);
 const utils = require('../components/utils');
 
 /**
@@ -39,13 +40,13 @@ const _createClient = () => {
   }
 
   redis.on('ready', () => {
-    log.verbose('QueueConnection', 'Redis Ready');
+    log.verbose('Redis Ready', { function: '_createClient' });
   });
   redis.on('reconnecting', () => {
-    log.verbose('QueueConnection', 'Redis Reconnecting...');
+    log.verbose('Redis Reconnecting...', { function: '_createClient' });
   });
   redis.on('connect', () => {
-    log.verbose('QueueConnection', 'Redis Connected');
+    log.verbose('Redis Connected', { function: '_createClient' });
   });
 
   return redis;
@@ -141,12 +142,12 @@ class QueueConnection {
         this.queue.whenCurrentJobsFinished().then(() => {
           this.queue.close().then(() => {
             this._connected = false;
-            log.info('QueueConnection.close', 'Disconnected');
+            log.info('Disconnected', { function: 'close' });
             if (cb) cb();
           });
         });
       } catch (e) {
-        log.error(e);
+        log.error('Failed to close', { error: e, function: 'close' });
       }
     }
   }
@@ -176,7 +177,7 @@ class QueueConnection {
     const isReady = readiness.every(x => x);
 
     if (!isReady) {
-      log.error('QueueConnection.checkConnection', 'Redis connections not ready');
+      log.error('Redis connections not ready', { function: 'checkConnection' });
     }
 
     this._connected = isReady;
@@ -190,7 +191,7 @@ class QueueConnection {
   pause() {
     if (this.queue) {
       this.queue.pause(true).then(() => {
-        log.info('QueueConnection.pause', 'Stop accepting new jobs');
+        log.info('Stop accepting new jobs', { function: 'pause' });
       });
     }
   }
@@ -202,7 +203,7 @@ class QueueConnection {
   resume() {
     if (this.queue) {
       this.queue.resume(true).then(() => {
-        log.info('QueueConnection.resume', 'Start accepting new jobs');
+        log.info('Start accepting new jobs', { function: 'resume' });
       });
     }
   }

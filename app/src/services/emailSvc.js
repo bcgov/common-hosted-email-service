@@ -10,7 +10,7 @@
  *
  * @exports EmailService
  */
-const log = require('npmlog');
+const log = require('../components/log')(module.filename);
 
 const utils = require('../components/utils');
 
@@ -72,10 +72,10 @@ class EmailService {
       // Send mail with defined transport object
       const info = await mailer.sendMail(envelope);
 
-      log.debug('EmailService.sendMail', info);
+      log.debug(info, { function: 'sendMail' });
       return info;
     } catch (error) {
-      log.error('EmailService.sendMail', error.message);
+      log.error(error.message, { function: 'sendMail' });
       throw error;
     }
   }
@@ -93,7 +93,7 @@ class EmailService {
       const etherealConnection = await EmailConnection.getEtherealConnection();
       const info = await this.sendMail(etherealConnection.mailer, message);
       const url = etherealConnection.getTestMessageUrl(info);
-      log.info('EmailService.send', `Ethereal test url = ${url}`);
+      log.info(`Ethereal test url = ${url}`, { function: 'send' });
       return url;
     }
 

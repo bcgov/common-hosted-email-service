@@ -1,7 +1,4 @@
-const helper = require('../../common/helper');
 const healthCheck = require('../../../src/components/health');
-
-helper.logHelper();
 
 const mockConnFn = jest.fn();
 jest.mock('../../../src/services/dataConn', () => {

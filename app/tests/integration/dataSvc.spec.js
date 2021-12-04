@@ -7,7 +7,6 @@
  *
  * @see DataService
  */
-const helper = require('../common/helper');
 const Knex = require('knex');
 const { NotFoundError } = require('objection');
 const uuid = require('uuid');
@@ -18,8 +17,6 @@ const DataConnection = require('../../src/services/dataConn');
 const DataService = require('../../src/services/dataSvc');
 
 const { deleteTransactionsByClient } = require('./dataUtils');
-
-helper.logHelper();
 
 const config = require('../../knexfile');
 

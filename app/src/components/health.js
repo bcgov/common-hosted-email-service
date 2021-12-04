@@ -1,4 +1,4 @@
-const log = require('npmlog');
+const log = require('./log')(module.filename);
 
 const DataConnection = require('../services/dataConn');
 const EmailConnection = require('../services/emailConn');
@@ -52,7 +52,7 @@ const healthCheck = {
       result.healthy = await new EmailConnection().checkConnection();
       result.info = 'SMTP Service connected successfully.';
     } catch (error) {
-      log.error('getSmtpHealth', error.message);
+      log.error(error.message, { function: 'getSmtpHealth' });
       result.info = error.message;
     }
     return result;

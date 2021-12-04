@@ -15,9 +15,8 @@
   "server": {
     "attachmentLimit": "25mb",
     "bodyLimit": "100mb",
-    "logLevel": "debug",
+    "logLevel": "http",
     "maxAttempts": "3",
-    "morganFormat": "dev",
     "port": "3000",
     "smtpHost": "apps.smtp.gov.bc.ca"
   }

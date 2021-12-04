@@ -40,8 +40,7 @@ oc create -n b160aa-<env> configmap ches-keycloak-config \
 oc create -n b160aa-<env> configmap ches-server-config \
   --from-literal=SERVER_ATTACHMENTLIMIT=20mb \
   --from-literal=SERVER_BODYLIMIT=100mb \
-  --from-literal=SERVER_LOGLEVEL=info \
-  --from-literal=SERVER_MORGANFORMAT=combined \
+  --from-literal=SERVER_LOGLEVEL=http \
   --from-literal=SERVER_PORT=3000 \
   --from-literal=SERVER_SMTPHOST=apps.smtp.gov.bc.ca
 ```

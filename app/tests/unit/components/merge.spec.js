@@ -1,7 +1,4 @@
-const helper = require('../../common/helper');
 const merge = require('../../../src/components/merge');
-
-helper.logHelper();
 
 // Constant Fixtures
 const body = 'body {{ foo }}';

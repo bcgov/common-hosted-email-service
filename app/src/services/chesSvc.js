@@ -13,10 +13,10 @@
  *
  * @exports ChesService
  */
-const log = require('npmlog');
 const { NotFoundError } = require('objection');
 const Problem = require('api-problem');
 
+const log = require('../components/log')(module.filename);
 const mergeComponent = require('../components/merge');
 const { queueState } = require('../components/state');
 const transformer = require('../components/transformer');
@@ -119,16 +119,16 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {
-        log.info('ChesService.cancelMessage', e.message);
+        log.info(e.message, { function: 'cancelMessage' });
         throw new Problem(403, { detail: e.message });
       } else if (e instanceof DataIntegrityError) {
-        log.error('ChesService.cancelMessage', e.message);
+        log.error(e.message, { function: 'cancelMessage' });
         throw new Problem(500, { detail: e.message });
       } else if (e instanceof NotFoundError) {
-        log.info('ChesService.cancelMessage', `Message ${messageId} from client ${client} not found.`);
+        log.info(`Message ${messageId} from client ${client} not found.`, { function: 'cancelMessage' });
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UncancellableError) {
-        log.info('ChesService.cancelMessage', e.message);
+        log.info(e.message, { function: 'cancelMessage' });
         throw new Problem(409, { detail: e.message });
       } else {
         throw e;
@@ -163,9 +163,9 @@ class ChesService {
         } catch (e) {
           if (e instanceof ClientMismatchError || e instanceof NotFoundError ||
             e instanceof UncancellableError) {
-            log.info('ChesService.findCancelMessages', e.message);
+            log.info(e.message, { function: 'findCancelMessages' });
           } else if (e instanceof DataIntegrityError) {
-            log.error('ChesService.findCancelMessages', e.message);
+            log.error(e.message, { function: 'findCancelMessages' });
             integrityList.push(msg.messageId);
           } else {
             throw e; // We want to throw and not return an error object in this case
@@ -175,7 +175,7 @@ class ChesService {
       }).filter(e => !!e)); // Drop undefined elements from array
 
       if (integrityList && integrityList.length) {
-        log.error('ChesService.findCancelMessages', `Message(s) ${integrityList} inconsistent or corrupted.`);
+        log.error(`Message(s) ${integrityList} inconsistent or corrupted.`, { function: 'findCancelMessages' });
         throw new Problem(500, {
           detail: 'Some message(s) are inconsistent or corrupted.',
           messages: integrityList
@@ -183,11 +183,11 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.info('ChesService.findCancelMessages', 'No messages found');
+        log.info('No messages found', { function: 'findCancelMessages' });
       } else if (e instanceof Problem) {
         throw e;
       } else {
-        log.error('ChesService.findCancelMessages', e.message);
+        log.error(e.message, { function: 'findCancelMessages' });
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
       }
     }
@@ -223,7 +223,7 @@ class ChesService {
               // Try forcing an enqueue ignoring specified delay
               msg.email.messageId = msg.messageId;
               await this.dataService.updateStatus(client, msg.messageId, queueState.PROMOTED, 'Promotion requested');
-              log.info('QueueService.promoteJob', `Message ${msg.messageId} promoted in queue`);
+              log.info(`Message ${msg.messageId} promoted in queue`, { function: 'findPromoteMessages' });
               await this.queueService.enqueue(client, msg.email);
             }
             else throw new UnpromotableError(`Message ${msg.messageId} is not promotable.`);
@@ -231,9 +231,9 @@ class ChesService {
         } catch (e) {
           if (e instanceof ClientMismatchError || e instanceof NotFoundError
             || e instanceof UnpromotableError) {
-            log.info('ChesService.findPromoteMessages', e.message);
+            log.info(e.message, { function: 'findPromoteMessages' });
           } else if (e instanceof DataIntegrityError) {
-            log.error('ChesService.findPromoteMessages', e.message);
+            log.error(e.message, { function: 'findPromoteMessages' });
             integrityList.push(msg.messageId);
           } else {
             throw e; // We want to throw and not return an error object in this case
@@ -243,7 +243,7 @@ class ChesService {
       }).filter(e => !!e)); // Drop undefined elements from array
 
       if (integrityList && integrityList.length) {
-        log.error('ChesService.findPromoteMessages', `Message(s) ${integrityList} inconsistent or corrupted.`);
+        log.error(`Message(s) ${integrityList} inconsistent or corrupted.`, { function: 'findPromoteMessages' });
         throw new Problem(500, {
           detail: 'Some message(s) are inconsistent or corrupted.',
           messages: integrityList
@@ -251,11 +251,11 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.info('ChesService.findPromoteMessages', 'No messages found');
+        log.info('No messages found', { function: 'findPromoteMessages' });
       } else if (e instanceof Problem) {
         throw e;
       } else {
-        log.error('ChesService.findPromoteMessages', e.message);
+        log.error(e.message, { function: 'findPromoteMessages' });
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
       }
     }
@@ -279,10 +279,10 @@ class ChesService {
       return result.map(msg => transformer.toStatusResponse(msg));
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.verbose('ChesService.findStatuses', 'No messages found');
+        log.verbose('No messages found', { function: 'findStatuses' });
         return [];
       } else {
-        log.error('ChesService.findStatuses', e.message);
+        log.error(e.message, { function: 'findStatuses' });
         throw new Problem(500, { detail: `Unexpected Error: ${e.message}` });
       }
     }
@@ -311,11 +311,10 @@ class ChesService {
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.error('ChesService.getStatus', `Message ${messageId} from client ${client} not found.`);
+        log.error(`Message ${messageId} from client ${client} not found.`, { function: 'getStatus' });
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else {
-        log.error('ChesService.getStatus', `Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`);
-        log.error(utils.prettyStringify(e));
+        log.error(`Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`, { error: e, function: 'getStatus' });
         throw new Problem(500, { detail: `Unable retrieve status of message ${messageId}. ${e.message}` });
       }
     }
@@ -345,16 +344,16 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {
-        log.info('ChesService.promoteMessage', e.message);
+        log.info(e.message, { function: 'promoteMessage' });
         throw new Problem(403, { detail: e.message });
       } else if (e instanceof DataIntegrityError) {
-        log.error('ChesService.promoteMessage', e.message);
+        log.error(e.message, { function: 'promoteMessage' });
         throw new Problem(500, { detail: e.message });
       } else if (e instanceof NotFoundError) {
-        log.info('ChesService.promoteMessage', `Message ${messageId} from client ${client} not found.`);
+        log.info(`Message ${messageId} from client ${client} not found.`, { function: 'promoteMessage' });
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UnpromotableError) {
-        log.info('ChesService.promoteMessage', e.message);
+        log.info(e.message, { function: 'promoteMessage' });
         throw new Problem(409, { detail: e.message });
       } else {
         throw e;
@@ -378,7 +377,7 @@ class ChesService {
       // Try forcing an enqueue ignoring specified delay
       msg.email.messageId = messageId;
       await this.dataService.updateStatus(client, messageId, queueState.PROMOTED, 'Promotion requested');
-      log.info('QueueService.promoteJob', `Message ${messageId} promoted in queue`);
+      log.info(`Message ${messageId} promoted in queue`, { function: 'recoverMessage' });
       await this.queueService.enqueue(client, msg.email);
     }
     else throw new UnpromotableError(`Message ${messageId} is not promotable.`);
@@ -418,8 +417,7 @@ class ChesService {
         return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
-      log.error('ChesService.sendEmail', e.message);
-      log.error(utils.prettyStringify(e));
+      log.error(e.message, { error: e, function: 'sendEmail' });
       throw new Problem(500, { detail: `Error sending email. ${e.message}` });
     }
   }
@@ -471,8 +469,7 @@ class ChesService {
         return transformer.toTransactionResponse(trxn);
       }
     } catch (e) {
-      log.error('ChesService.sendEmailMerge', `Send Email Merge error. ${e.message}`);
-      log.error(utils.prettyStringify(e));
+      log.error(`Send Email Merge error. ${e.message}`, { error: e, function: 'sendEmailMerge' });
       throw new Problem(500, { detail: `Error sending email merge. ${e.message}` });
     }
   }
