@@ -9,10 +9,9 @@
  *
  * @exports DataService
  */
-const log = require('npmlog');
-const { transaction } = require('objection');
 const uuid = require('uuid');
 
+const log = require('../components/log')(module.filename);
 const { queueToStatus, statusState } = require('../components/state');
 const utils = require('../components/utils');
 
@@ -26,11 +25,11 @@ const { Message, Queue, Status, Trxn } = require('./models/');
  *
  * @param {string} transactionId - transaction parent record
  * @param {object} msg - API email message object
- * @param {object} db - an Objection/Knex transaction for commit/rollback
+ * @param {object} trx - an Objection/Knex transaction for commit/rollback
  * @returns Message
  */
-const createMessage = async (transactionId, msg, db) => {
-  const messageObj = await Message.query(db).insert({
+const createMessage = async (transactionId, msg, trx) => {
+  const messageObj = await Message.query(trx).insert({
     messageId: uuid.v4(),
     transactionId: transactionId,
     tag: msg.tag,
@@ -39,10 +38,10 @@ const createMessage = async (transactionId, msg, db) => {
   });
 
   // Insert initial status and queue accepted records
-  await Status.query(db).insert({
+  await Status.query(trx).insert({
     messageId: messageObj.messageId
   });
-  await Queue.query(db).insert({
+  await Queue.query(trx).insert({
     messageId: messageObj.messageId
   });
 
@@ -103,7 +102,7 @@ class DataService {
     }
     let trx;
     try {
-      trx = await transaction.start(Trxn.knex());
+      trx = await Trxn.startTransaction();
       const transactionId = uuid.v4();
 
       await Trxn.query(trx).insert({
@@ -122,8 +121,7 @@ class DataService {
       await trx.commit();
       return this.readTransaction(client, transactionId);
     } catch (err) {
-      log.error('DataService.createTransaction', `Error creating transaction record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error(`Error creating transaction record: ${err.message}. Rolling back...`, { error: err, function: 'createTransaction' });
       if (trx) await trx.rollback();
       throw err;
     }
@@ -142,7 +140,7 @@ class DataService {
   async deleteMessageEmail(client, messageId) {
     let trx;
     try {
-      trx = await transaction.start(Message.knex());
+      trx = await Message.startTransaction();
 
       // first query for message, throw not found if client/message not exist...
       await this.readMessage(client, messageId, trx);
@@ -150,13 +148,12 @@ class DataService {
       const cItems = await Message.query(trx)
         .patch({ email: null })
         .where('messageId', messageId);
-      log.info('DataService.deleteMessageEmail', `Updated ${cItems} message email records...`);
+      log.info(`Updated ${cItems} message email records...`, { function: 'deleteMessageEmail' });
 
       await trx.commit();
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error('DataService.deleteMessageEmail', `Error updating message (email) record: ${err.message}. Rolling back...`, { error: err, function: 'deleteMessageEmail' });
       if (trx) await trx.rollback();
       throw err;
     }
@@ -257,7 +254,7 @@ class DataService {
   async updateMessageSendResult(client, messageId, sendResult) {
     let trx;
     try {
-      trx = await transaction.start(Message.knex());
+      trx = await Message.startTransaction();
 
       // first query for message, throw not found if client/message not exist...
       await this.readMessage(client, messageId, trx);
@@ -265,13 +262,12 @@ class DataService {
       const cItems = await Message.query(trx)
         .patch({ sendResult: sendResult })
         .where('messageId', messageId);
-      log.info('DataService.updateMessageSendResult', `Updated ${cItems} message (result) records...`);
+      log.info(`Updated ${cItems} message (result) records...`, { function: 'updateMessageSendResult' });
 
       await trx.commit();
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error('DataService.updateMessageSendResult', `Error updating message send result record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error(`Error updating message send result record: ${err.message}. Rolling back...`, { error: err, function: 'updateMessageSendResult' });
       if (trx) await trx.rollback();
       throw err;
     }
@@ -293,7 +289,7 @@ class DataService {
   async updateStatus(client, messageId, status, description) {
     let trx;
     try {
-      trx = await transaction.start(Message.knex());
+      trx = await Message.startTransaction();
 
       // first query for message, throw not found if client/message not exist...
       const msg = await this.readMessage(client, messageId, trx);
@@ -323,8 +319,7 @@ class DataService {
       await trx.commit();
       return this.readMessage(client, messageId);
     } catch (err) {
-      log.error('DataService.updateStatus', `Error updating message statuses record: ${err.message}. Rolling back...`);
-      log.error(err);
+      log.error(`Error updating message statuses record: ${err.message}. Rolling back...`, { error: err, function: 'updateStatus' });
       if (trx) await trx.rollback();
       throw err;
     }

@@ -1,7 +1,4 @@
-const helper = require('../../common/helper');
 const transformer = require('../../../src/components/transformer');
-
-helper.logHelper();
 
 describe('toStatusResponse', () => {
   const nullPopulatedExpectations = result => {

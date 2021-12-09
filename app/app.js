@@ -1,18 +1,15 @@
 const compression = require('compression');
 const config = require('config');
 const express = require('express');
-const fs = require('fs');
-const log = require('npmlog');
 const moment = require('moment');
-const morgan = require('morgan');
 const Problem = require('api-problem');
-const Writable = require('stream').Writable;
 
 const keycloak = require('./src/components/keycloak');
-const utils = require('./src/components/utils');
-const v1Router = require('./src/routes/v1');
+const log = require('./src/components/log')(module.filename);
+const httpLogger = require('./src/components/log').httpLogger;
 
 const { authorizedParty } = require('./src/middleware/authorizedParty');
+const v1Router = require('./src/routes/v1');
 
 const DataConnection = require('./src/services/dataConn');
 const EmailConnection = require('./src/services/emailConn');
@@ -41,29 +38,8 @@ app.use(express.urlencoded({
   extended: false
 }));
 
-// Logging Setup
-log.level = config.get('server.logLevel');
-log.addLevel('debug', 1500, { fg: 'cyan' });
-
-let logFileStream;
-let teeStream;
-if (config.has('server.logFile')) {
-  // Write to logFile in append mode
-  logFileStream = fs.createWriteStream(config.get('server.logFile'), { flags: 'a' });
-  teeStream = new Writable({
-    objectMode: true,
-    write: (data, _, done) => {
-      process.stdout.write(data);
-      logFileStream.write(data);
-      done();
-    }
-  });
-  log.disableColor();
-  log.stream = teeStream;
-}
-
 // Print out configuration settings in verbose startup
-log.verbose('Config', utils.prettyStringify(config));
+log.verbose('Config', { config: config });
 
 // Suppresses warning about moment deprecating a default fallback on non ISO/RFC2822 date formats
 // We will just force it to use the new Date constructor - https://stackoverflow.com/a/34521624
@@ -80,17 +56,9 @@ const emailConnection = new EmailConnection();
 if (process.env.NODE_ENV !== 'test') {
   // make sure authorized party middleware loaded before the mail api tracking...
   app.use(authorizedParty);
-  const morganOpts = {
-    // Skip logging kube-probe requests
-    skip: (req) => req.headers['user-agent'] && req.headers['user-agent'].includes('kube-probe')
-  };
-  if (config.has('server.logFile')) {
-    morganOpts.stream = teeStream;
-  }
-  // load up morgan to log the requests
-  app.use(morgan(config.get('server.morganFormat'), morganOpts));
   // Initialize connections and exit if unsuccessful
   initializeConnections();
+  app.use(httpLogger);
 }
 
 // Use Keycloak OIDC Middleware
@@ -129,7 +97,7 @@ app.use(/(\/api)?/, apiRouter);
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   if (err.stack) {
-    log.error(err.stack);
+    log.error(err);
   }
 
   if (err instanceof Problem) {
@@ -153,7 +121,7 @@ app.use((_req, res) => {
 // Prevent unhandled promise errors from crashing application
 process.on('unhandledRejection', err => {
   if (err && err.stack) {
-    log.error(err.stack);
+    log.error(err);
   }
 });
 
@@ -171,7 +139,7 @@ process.on('exit', () => {
  * Shuts down this application after at least 5 seconds.
  */
 function shutdown() {
-  log.info('Received kill signal. Shutting down...');
+  log.info('Received kill signal. Shutting down...', { function: 'shutdown' });
   queueConnection.pause();
 
   // Wait 5 seconds before starting cleanup
@@ -183,10 +151,10 @@ function shutdown() {
  * Cleans up connections in this application.
  */
 function cleanup() {
-  log.info('Service no longer accepting traffic');
+  log.info('Service no longer accepting traffic', { function: 'cleanup' });
   state.shutdown = true;
 
-  log.info('Cleaning up...');
+  log.info('Cleaning up...', { function: 'cleanup' });
   clearInterval(probeId);
 
   queueConnection.close(() => {
@@ -225,21 +193,17 @@ function initializeConnections() {
         if (results[2] !== undefined) {
           state.connections.email = results[2];
         }
-
-        if (state.connections.data) log.info('DataConnection', 'Reachable');
-        if (state.connections.queue) log.info('QueueConnection', 'Reachable');
-        if (state.connections.email) log.info('EmailConnection', 'Reachable');
       })
       .catch(error => {
-        log.error(error.message);
-        log.error('initializeConnections', `Initialization failed: Database OK = ${state.connections.data}, Queue OK = ${state.connections.queue}, Email OK = ${state.connections.email}`);
+        log.error(error.message, { function: 'initializeConnections' });
       })
       .finally(() => {
+        log.info(`Connection Statuses: Database = ${state.connections.data}, Queue = ${state.connections.queue}, Email = ${state.connections.email}`, { connections: state.connections, function: 'initializeConnections' });
         state.ready = Object.values(state.connections).every(x => x);
         mountServices();
       });
   } catch (error) {
-    log.error('initializeConnections', 'Connection initialization failure', error.message);
+    log.error('Connection initialization failure', error.message, { function: 'initializeConnections' });
     if (!state.ready) {
       process.exitCode = 1;
       shutdown();
@@ -268,8 +232,8 @@ function checkConnections() {
       state.connections.queue = results[1];
       state.ready = Object.values(state.connections).every(x => x);
       state.mounted = results[1];
-      if (!wasMounted && state.mounted && state.ready) log.info('Service ready to accept traffic');
-      log.verbose(JSON.stringify(state));
+      if (!wasMounted && state.mounted && state.ready) log.info('Service ready to accept traffic', { function: 'checkConnections' });
+      log.verbose('State', { function: 'initializeConnections', state: state });
       if (!state.ready) {
         process.exitCode = 1;
         shutdown();
@@ -290,7 +254,7 @@ function mountServices() {
   queueConnection.queue.on('failed', QueueListener.onFailed);
   queueConnection.queue.on('drained', QueueListener.onDrained);
   queueConnection.queue.on('removed', QueueListener.onRemoved);
-  log.debug('QueueConnection', 'Listener workers attached');
+  log.verbose('Listener workers attached', { function: 'mountServices' });
 }
 
 module.exports = app;

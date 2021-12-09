@@ -1,9 +1,5 @@
-const helper = require('../../common/helper');
-
 const { models, validators, validatorUtils } = require('../../../src/components/validators');
 const { realSmallFile, smallFile } = require('../../fixtures/base64Files');
-
-helper.logHelper();
 
 describe('models.attachment.content', () => {
 

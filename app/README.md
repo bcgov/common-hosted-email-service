@@ -26,8 +26,8 @@ Networking
 
 Logging
 
-* `morgan` - HTTP request logger ([npm](https://www.npmjs.com/package/morgan))
-* `npmlog` - General log framework ([npm](https://www.npmjs.com/package/npmlog))
+* `express-winston` - HTTP request logger ([npm](https://www.npmjs.com/package/express-winston))
+* `winston` - General log framework ([npm](https://www.npmjs.com/package/winston))
 
 Templating
 
@@ -114,7 +114,6 @@ For more details, please consult the config library [documentation](https://gith
 | `SERVER_BODYLIMIT` | Maximum body length the API will accept |
 | `SERVER_LOGFILE` | Writes logs to specific file location if defined |
 | `SERVER_LOGLEVEL` | Server log verbosity. Options: `silly`, `verbose`, `debug`, `info`, `warn`, `error` |
-| `SERVER_MORGANFORMAT` | Morgan format style. Options: `dev`, `combined` |
 | `SERVER_PORT` | Port server is listening to |
 | `SERVER_SMTPHOST` | The SMTP server this app will leverage |
 

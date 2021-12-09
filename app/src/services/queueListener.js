@@ -8,10 +8,8 @@
  *
  * @exports QueueListener
  */
-const log = require('npmlog');
-
+const log = require('../components/log')(module.filename);
 const { queueState } = require('../components/state');
-
 const { QueueService } = require('./queueSvc');
 
 let queueService;
@@ -36,7 +34,7 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onCompleted(job) {
-    log.info('QueueListener.onCompleted', `Job ${job.id} completed`);
+    log.info(`Job ${job.id} completed`, { function: 'onCompleted' });
     await QueueListener.queueService.updateStatus(job, queueState.COMPLETED);
     await QueueListener.queueService.updateContent(job);
   }
@@ -48,10 +46,10 @@ class QueueListener {
    */
   static async onError(error) {
     if (typeof error.id !== 'undefined') {
-      log.error('QueueListener.onError', `Job ${error.id} errored`);
+      log.error(`Job ${error.id} errored`, { function: 'onError' });
       await QueueListener.queueService.updateStatus(error, queueState.ERRORED);
     } else {
-      log.error('QueueListener.onError', error.message);
+      log.error(error.message, { function: 'onError' });
     }
   }
 
@@ -61,7 +59,7 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onFailed(job) {
-    log.error('QueueListener.onFailed', `Job ${job.id} failed`);
+    log.error(`Job ${job.id} failed`, { function: 'onFailed' });
     await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
     // await QueueListener.queueService.updateContent(job);
   }
@@ -73,12 +71,12 @@ class QueueListener {
    */
   static async onProcess(job) {
     let attemptMsg = (job.attemptsMade) ? ` (Attempt ${job.attemptsMade + 1})...` : '...';
-    log.info('QueueListener.onProcess', `Job ${job.id} is processing${attemptMsg}`);
+    log.info(`Job ${job.id} is processing${attemptMsg}`, { function: 'onProcess' });
 
     if (job.data.messageId && job.data.client) {
       await QueueListener.queueService.updateStatus(job, queueState.PROCESSING);
       await QueueListener.queueService.sendMessage(job);
-      log.info('QueueListener.onProcess', `Job ${job.id} delivered`);
+      log.info(`Job ${job.id} delivered`, { function: 'onProcess' });
       await QueueListener.queueService.updateStatus(job, queueState.DELIVERED);
     } else {
       throw new Error('Message information missing or formatted incorrectly');
@@ -90,7 +88,7 @@ class QueueListener {
    * Notify when queue has caught up with backlog
    */
   static onDrained() {
-    log.info('QueueListener.onDrained', 'Job backlog is clear');
+    log.info('Job backlog is clear', { function: 'onDrained' });
   }
 
   /**
@@ -99,7 +97,7 @@ class QueueListener {
    * @param {object} job A Bull Queue Job object
    */
   static async onRemoved(job) {
-    log.info('QueueListener.onRemoved', `Job ${job.id} removed`);
+    log.info(`Job ${job.id} removed`, { function: 'onRemoved' });
     await QueueListener.queueService.updateStatus(job, queueState.REMOVED);
     await QueueListener.queueService.updateContent(job);
   }

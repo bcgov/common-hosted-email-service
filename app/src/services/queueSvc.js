@@ -17,8 +17,8 @@
  * @exports QueueService
  */
 const config = require('config');
-const log = require('npmlog');
 
+const log = require('../components/log')(module.filename);
 const { queueState } = require('../components/state');
 
 const DataService = require('./dataSvc');
@@ -144,7 +144,7 @@ class QueueService {
       }, Object.assign(opts, {
         jobId: message.messageId
       }));
-      log.info('QueueService.enqueue', `Job ${job.id} enqueued`);
+      log.info(`Job ${job.id} enqueued`, { function: 'enqueue' });
     } catch (e) {
       e.message = 'Queue Error: ' + e.message;
       throw e;
@@ -168,7 +168,7 @@ class QueueService {
         }
       }
     } catch (e) {
-      log.error('QueueService.updateContent', `Failed to update content for message ${job.id}. ${e.message}`);
+      log.error(`Failed to update content for message ${job.id}. ${e.message}`, { function: 'updateContent' });
     }
   }
 
@@ -202,7 +202,7 @@ class QueueService {
         const sendResult = { smtpMsgId: smtpResult.messageId, response: smtpResult.response };
         await this.dataService.updateMessageSendResult(job.data.client, job.data.messageId, sendResult);
       } catch (e) {
-        log.error('QueueService.sendMessage', `Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}.`);
+        log.error(`Error sending message from queue: client = ${job.data.client}, messageId = ${job.data.messageId}.`, { function: 'sendMessage' });
         throw (e);
       }
     }
@@ -233,7 +233,7 @@ class QueueService {
       } else {
         // Immediately remove from queue
         await job.remove();
-        log.info('QueueService.removeJob', `Message ${job.data.messageId} removed from queue`);
+        log.info(`Message ${job.data.messageId} removed from queue`, { function: 'removeJob' });
         return true;
       }
     } else {
@@ -267,7 +267,7 @@ class QueueService {
         // Immediately promote in queue
         await job.promote();
         await this.updateStatus(job, queueState.PROMOTED, 'Promotion requested');
-        log.info('QueueService.promoteJob', `Message ${job.data.messageId} promoted in queue`);
+        log.info(`Message ${job.data.messageId} promoted in queue`, { function: 'promoteJob' });
         return true;
       }
     } else {

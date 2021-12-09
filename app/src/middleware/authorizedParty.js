@@ -1,50 +1,53 @@
-const atob = require('atob');
+const jwt = require('jsonwebtoken');
 const Problem = require('api-problem');
 
-/** Authorized Party Middleware
- *  CHES requires that we separate all requests by the caller/client.
- *  We will use the azp (Authorized Party) from the JWT and stored that as
- *  the transaction client.
- *
- *  This middleware will add a property to the request: authorizedParty.
- *
- * @see module:knex
- * @see module:keycloak
- */
+const log = require('../components/log')(module.filename);
 
-const authorizedParty = async (req, res, next) => {
+/**
+ * @function authorizedParty
+ * @description Authorized Party Middleware
+ * CHES requires that we separate all requests by the caller/client.
+ * We will use the azp (Authorized Party) from the JWT and store that as
+ * the transaction client.
+ *
+ * This middleware will add a property to the request: authorizedParty.
+ * @param {object} req Express Request Object
+ * @param {object} _res Express Response Object (unused)
+ * @param {function} next Express Callback Function
+ */
+async function authorizedParty(req, _res, next) {
   try {
-    const token = req.headers.authorization.split(' ')[1];
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace('-', '+').replace('_', '/');
-    const jwt = atob.atob(base64);
-    const jsonWebToken = JSON.parse(jwt);
-    req.authorizedParty = jsonWebToken.azp;
+    const token = jwt.decode((req.get('authorization') || '').slice(7));
+    req.authorizedParty = token.azp;
   } catch (err) {
+    log.error(err.message, { function: 'authorizedParty' });
     req.authorizedParty = undefined;
   }
   next();
-};
+}
 
-/** Authorized Party Validator Middleware
+/**
+ * @function authorizedPartyValidator
+ * @description Authorized Party Validator Middleware
+ * This middleware must be called after our keycloak protect and after
+ * authorizedParty middleware.
  *
- *  This middleware must be called after our keycloak protect and after authorizedParty middleware.
- *
- *  This middleware will check if the authorized party token is on the request.
- *
- * @see module:knex
- * @see module:keycloak
+ * This middleware will check if the authorized party token is on the request.
+ * @param {object} req Express Request Object
+ * @param {object} res Express Response Object
+ * @param {function} next Express Callback Function
  */
-
-const authorizedPartyValidator = async (req, res, next) => {
+async function authorizedPartyValidator(req, res, next) {
   try {
-    if (!req.authorizedParty) throw Error('No AZP');
+    if (!req.authorizedParty)
+      throw new Error('Missing authorizedParty');
   } catch (err) {
+    log.error(err.message, { function: 'authorizedPartyValidator' });
     return new Problem(400, {
       detail: 'Could not determine Authorized Party'
     }).send(res);
   }
   next();
-};
+}
 
 module.exports = { authorizedParty, authorizedPartyValidator };

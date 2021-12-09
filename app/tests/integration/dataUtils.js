@@ -1,6 +1,6 @@
-const log = require('npmlog');
 const { transaction } = require('objection');
 
+const log = require('../../src/components/log')(module.filename);
 const { Message, Queue, Status, Trxn } = require('../../src/services/models');
 
 /**
@@ -25,18 +25,17 @@ async function deleteTransactionsByClient(client) {
       .whereIn('transactionId', trxnQuery);
 
     const qItems = await Queue.query(trx).delete().whereIn('messageId', msgsQuery);
-    log.info(`Deleted ${qItems} queue records...`);
+    log.info(`Deleted ${qItems} queue records...`, { function: 'deleteTransactionsByClient' });
     const sItems = await Status.query(trx).delete().whereIn('messageId', msgsQuery);
-    log.info(`Deleted ${sItems} status records...`);
+    log.info(`Deleted ${sItems} status records...`, { function: 'deleteTransactionsByClient' });
     const mItems = await Message.query(trx).delete().whereIn('transactionId', trxnQuery);
-    log.info(`Deleted ${mItems} message records...`);
+    log.info(`Deleted ${mItems} message records...`, { function: 'deleteTransactionsByClient' });
     const tItems = await Trxn.query(trx).delete().where('client', 'like', `%${client}%`);
-    log.info(`Deleted ${tItems} transaction records...`);
+    log.info(`Deleted ${tItems} transaction records...`, { function: 'deleteTransactionsByClient' });
 
     await trx.commit();
   } catch (err) {
-    log.error(`Error deleting transaction records: ${err.message}. Rolling back...`);
-    log.error(err);
+    log.error(`Error deleting transaction records: ${err.message}. Rolling back...`, { error: err, function: 'deleteTransactionsByClient' });
     if (trx) await trx.rollback();
     throw err;
   }

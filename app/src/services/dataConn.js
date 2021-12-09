@@ -14,7 +14,7 @@
  */
 const Knex = require('knex');
 const knexfile = require('../../knexfile');
-const log = require('npmlog');
+const log = require('../components/log')(module.filename);
 const { Model } = require('objection');
 
 class DataConnection {
@@ -67,7 +67,7 @@ class DataConnection {
     const schemaOk = await this.checkSchema();
     const modelsOk = this.checkModel();
 
-    log.debug('DataConnection.checkAll', `Connect OK: ${connectOk}, Schema OK: ${schemaOk}, Models OK: ${modelsOk}`);
+    log.verbose(`Connect OK: ${connectOk}, Schema OK: ${schemaOk}, Models OK: ${modelsOk}`, { function: 'checkAll' });
     this._connected = connectOk && schemaOk && modelsOk;
     return this._connected;
   }
@@ -82,11 +82,11 @@ class DataConnection {
     try {
       const data = await this.knex.raw('show transaction_read_only');
       const result = data && data.rows && data.rows[0].transaction_read_only === 'off';
-      if (result) log.verbose('DataConnection.checkConnection', 'Database connection ok');
-      else log.warn('DataConnection.checkConnection', 'Database connection is read-only');
+      if (result) log.verbose('Database connection ok', { function: 'checkConnection' });
+      else log.warn('Database connection is read-only', { function: 'checkConnection' });
       return result;
     } catch (err) {
-      log.error('DataConnection.checkConnection', `Error with database connection: ${err.message}`);
+      log.error(`Error with database connection: ${err.message}`, { function: 'checkConnection' });
       return false;
     }
   }
@@ -103,12 +103,11 @@ class DataConnection {
         .all(tables.map(table => this._knex.schema.hasTable(table)))
         .then(exists => exists.every(x => x))
         .then(result => {
-          if (result) log.verbose('DataConnection.checkSchema', 'Database schema ok');
+          if (result) log.verbose('Database schema ok', { function: 'checkSchema' });
           return result;
         });
     } catch (err) {
-      log.error('DataConnection.checkSchema', `Error with database schema: ${err.message}`);
-      log.error('DataConnection.checkSchema', err);
+      log.error(`Error with database schema: ${err.message}`, { error: err, function: 'checkSchema' });
       return false;
     }
   }
@@ -121,11 +120,10 @@ class DataConnection {
   checkModel() {
     try {
       Model.knex(this.knex);
-      log.verbose('DataConnection.checkModel', 'Database models ok');
+      log.verbose('Database models ok', { function: 'checkModel' });
       return true;
     } catch (err) {
-      log.error('DataConnection.checkModel', `Error attaching Model to connection: ${err.message}`);
-      log.error('DataConnection.checkModel', err);
+      log.error(`Error attaching Model to connection: ${err.message}`, { error: err, function: 'checkModel' });
       return false;
     }
   }
@@ -140,11 +138,11 @@ class DataConnection {
       try {
         this.knex.destroy(() => {
           this._connected = false;
-          log.info('DataConnection.close', 'Disconnected');
+          log.info('Disconnected', { function: 'close' });
           if (cb) cb();
         });
       } catch (e) {
-        log.error(e);
+        log.error('Failed to close', { error: e, function: 'recoverMessage' });
       }
     }
   }
@@ -154,7 +152,7 @@ class DataConnection {
    * Invalidates and reconnects existing knex connection
    */
   resetConnection() {
-    log.warn('DataConnection.resetConnection', 'Attempting to reset database connection pool...');
+    log.warn('Attempting to reset database connection pool...', { function: 'resetConnection' });
     this.knex.destroy(() => {
       this.knex.initialize();
     });

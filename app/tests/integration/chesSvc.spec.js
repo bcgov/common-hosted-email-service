@@ -16,7 +16,6 @@
  */
 const Bull = require('bull');
 const config = require('config');
-const helper = require('../common/helper');
 const Knex = require('knex');
 const { NotFoundError } = require('objection');
 const uuid = require('uuid');
@@ -40,8 +39,6 @@ const {
 } = require('../../src/services/queueSvc');
 
 const { deleteTransactionsByClient } = require('./dataUtils');
-
-helper.logHelper();
 
 jest.mock('../../src/services/queueSvc');
 

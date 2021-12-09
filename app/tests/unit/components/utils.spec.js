@@ -1,7 +1,4 @@
-const helper = require('../../common/helper');
 const utils = require('../../../src/components/utils');
-
-helper.logHelper();
 
 describe('calculateDelayMS', () => {
   it('should return an appropriate delay difference', () => {
