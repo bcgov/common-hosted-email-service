@@ -17,8 +17,13 @@ const log = require('../components/log')(module.filename);
  */
 async function authorizedParty(req, _res, next) {
   try {
-    const token = jwt.decode((req.get('authorization') || '').slice(7));
-    req.authorizedParty = token.azp;
+    const authorization = req.get('authorization');
+    if (authorization) {
+      const token = jwt.decode((req.get('authorization')).slice(7));
+      req.authorizedParty = token.azp;
+    } else {
+      req.authorizedParty = undefined;
+    }
   } catch (err) {
     log.error(err.message, { function: 'authorizedParty' });
     req.authorizedParty = undefined;
