@@ -3,6 +3,7 @@ const fs = require('fs');
 const tmp = require('tmp');
 const validator = require('validator');
 
+const config = require('config');
 const log = require('./log')(module.filename);
 const { statusState } = require('./state');
 
@@ -162,7 +163,7 @@ const models = {
 
     /** @function from */
     from: value => {
-      return validatorUtils.isEmail(value);
+      return validatorUtils.isEmail(value) && !(config.get('server.blockDoNotReplySender') && (value.match(/^no[-]?reply/gi) || value.match(/^donotreply/gi)));
     },
 
     /** @function priority */
@@ -274,7 +275,7 @@ const validators = {
   cancelMsg: param => {
     const errors = [];
 
-    if(!param.msgId) {
+    if (!param.msgId) {
       errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
     } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
@@ -410,7 +411,7 @@ const validators = {
   promoteMsg: param => {
     const errors = [];
 
-    if(!param.msgId) {
+    if (!param.msgId) {
       errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
     } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });

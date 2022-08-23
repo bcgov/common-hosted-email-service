@@ -1,5 +1,13 @@
 const { models, validators, validatorUtils } = require('../../../src/components/validators');
 const { realSmallFile, smallFile } = require('../../fixtures/base64Files');
+const config = require('config');
+
+// Mock config library - @see {@link https://stackoverflow.com/a/64819698}
+jest.mock('config');
+
+beforeEach(() => {
+  jest.resetAllMocks();
+});
 
 describe('models.attachment.content', () => {
 
@@ -853,6 +861,24 @@ describe('models.message.from', () => {
     expect(result).toBeFalsy();
   });
 
+  it.each([
+    [false, 'noreply@address.com', true],
+    [false, 'noReply@address.com', true],
+    [false, 'no-reply@address.com', true],
+    [false, 'no-Reply@address.com', true],
+    [false, 'donotreply@address.com', true],
+    [false, 'doNotReply@address.com', true],
+    [true, 'noreply@address.com', false],
+    [true, 'noReply@address.com', false],
+    [true, 'no-reply@address.com', false],
+    [true, 'no-Reply@address.com', false],
+    [true, 'donotreply@address.com', false],
+    [true, 'doNotReply@address.com', false]
+  ])('should return %s with %s and blockDoNotReplySender set to %s ', (expected, email, blockDoNotReplySender) => {
+    config.get.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
+    const result = models.message.from(email);
+    expect(result).toBe(expected);
+  });
 });
 
 describe('models.message.priority', () => {
