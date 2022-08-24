@@ -163,7 +163,7 @@ const models = {
 
     /** @function from */
     from: value => {
-      return validatorUtils.isEmail(value) && !(config.get('server.blockDoNotReplySender') && (value.match(/^no[-]?reply/gi) || value.match(/^donotreply/gi)));
+      return validatorUtils.isEmail(value) && !validatorUtils.blockDoNotReplySender(value);
     },
 
     /** @function priority */
@@ -506,6 +506,15 @@ const validatorUtils = {
   /** @function isString */
   isString: x => {
     return Object.prototype.toString.call(x) === '[object String]';
+  },
+
+  /** @function blockDoNotReplySender */
+  blockDoNotReplySender: x => {
+    if (config.has('server.blockDoNotReplySender')) {
+      return x.match(/^(do)?no(t|-)?reply/gi);
+    }
+
+    return false;
   }
 };
 

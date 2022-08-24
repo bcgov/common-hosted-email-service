@@ -875,7 +875,7 @@ describe('models.message.from', () => {
     [true, 'donotreply@address.com', false],
     [true, 'doNotReply@address.com', false]
   ])('should return %s with %s and blockDoNotReplySender set to %s ', (expected, email, blockDoNotReplySender) => {
-    config.get.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
+    config.has.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
     const result = models.message.from(email);
     expect(result).toBe(expected);
   });
