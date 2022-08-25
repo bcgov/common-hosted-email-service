@@ -862,18 +862,11 @@ describe('models.message.from', () => {
   });
 
   it.each([
-    [false, 'noreply@address.com', true],
-    [false, 'noReply@address.com', true],
-    [false, 'no-reply@address.com', true],
-    [false, 'no-Reply@address.com', true],
-    [false, 'donotreply@address.com', true],
-    [false, 'doNotReply@address.com', true],
-    [true, 'noreply@address.com', false],
-    [true, 'noReply@address.com', false],
-    [true, 'no-reply@address.com', false],
-    [true, 'no-Reply@address.com', false],
-    [true, 'donotreply@address.com', false],
-    [true, 'doNotReply@address.com', false]
+    [false, 'donotreply@gov.bc.ca', true],
+    [false, 'doNotReply@gov.bc.ca', true],
+    [true, 'ministrydonotreply@gov.bc.ca', true],
+    [true, 'donotreply@gov.bc.ca', false],
+    [true, 'doNotReply@gov.bc.ca', false],
   ])('should return %s with %s and blockDoNotReplySender set to %s ', (expected, email, blockDoNotReplySender) => {
     config.has.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
     const result = models.message.from(email);

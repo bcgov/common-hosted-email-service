@@ -163,7 +163,7 @@ const models = {
 
     /** @function from */
     from: value => {
-      return validatorUtils.isEmail(value) && !validatorUtils.blockDoNotReplySender(value);
+      return validatorUtils.isEmail(value);
     },
 
     /** @function priority */
@@ -190,7 +190,13 @@ const models = {
     /** @function to */
     to: value => {
       return validatorUtils.isEmailList(value) && value.length > 0;
-    }
+    },
+
+    /** @function validSender */
+    validSender: value => {
+      return !validatorUtils.blockDoNotReplySender(value);
+    },
+
   },
 
   queryParams: {
@@ -374,6 +380,9 @@ const validators = {
     if (!models.message.from(obj['from'])) {
       errors.push({ value: obj['from'], message: 'Invalid value `from`.' });
     }
+    if (!models.message.validSender(obj['from'])) {
+      errors.push({ value: obj['from'], message: `Invalid value 'from'. '${obj['from']}' is not permitted.` });
+    }
     if (!models.message.subject(obj['subject'])) {
       errors.push({ value: obj['subject'], message: 'Invalid value `subject`.' });
     }
@@ -511,7 +520,7 @@ const validatorUtils = {
   /** @function blockDoNotReplySender */
   blockDoNotReplySender: x => {
     if (config.has('server.blockDoNotReplySender')) {
-      return x.match(/^(do)?no(t|-)?reply/gi);
+      return x.match(/^donotreply@gov[.]bc[.]ca/gi);
     }
 
     return false;
