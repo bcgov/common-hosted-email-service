@@ -869,7 +869,7 @@ describe('models.message.from', () => {
     [true, 'doNotReply@gov.bc.ca', false],
   ])('should return %s with %s and blockDoNotReplySender set to %s ', (expected, email, blockDoNotReplySender) => {
     config.has.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
-    const result = models.message.from(email);
+    const result = models.message.validSender(email);
     expect(result).toBe(expected);
   });
 });
