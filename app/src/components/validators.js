@@ -3,6 +3,7 @@ const fs = require('fs');
 const tmp = require('tmp');
 const validator = require('validator');
 
+const config = require('config');
 const log = require('./log')(module.filename);
 const { statusState } = require('./state');
 
@@ -189,7 +190,13 @@ const models = {
     /** @function to */
     to: value => {
       return validatorUtils.isEmailList(value) && value.length > 0;
-    }
+    },
+
+    /** @function validSender */
+    validSender: value => {
+      return !validatorUtils.blockDoNotReplySender(value);
+    },
+
   },
 
   queryParams: {
@@ -274,7 +281,7 @@ const validators = {
   cancelMsg: param => {
     const errors = [];
 
-    if(!param.msgId) {
+    if (!param.msgId) {
       errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
     } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
@@ -373,6 +380,9 @@ const validators = {
     if (!models.message.from(obj['from'])) {
       errors.push({ value: obj['from'], message: 'Invalid value `from`.' });
     }
+    if (!models.message.validSender(obj['from'])) {
+      errors.push({ value: obj['from'], message: `Invalid value 'from'. '${obj['from']}' is not permitted.` });
+    }
     if (!models.message.subject(obj['subject'])) {
       errors.push({ value: obj['subject'], message: 'Invalid value `subject`.' });
     }
@@ -410,7 +420,7 @@ const validators = {
   promoteMsg: param => {
     const errors = [];
 
-    if(!param.msgId) {
+    if (!param.msgId) {
       errors.push({ value: param.msgId, message: 'Missing value `msgId`.' });
     } else if (!models.queryParams.msgId(param.msgId)) {
       errors.push({ value: param.msgId, message: 'Invalid value `msgId`.' });
@@ -505,6 +515,15 @@ const validatorUtils = {
   /** @function isString */
   isString: x => {
     return Object.prototype.toString.call(x) === '[object String]';
+  },
+
+  /** @function blockDoNotReplySender */
+  blockDoNotReplySender: x => {
+    if (config.has('server.blockDoNotReplySender')) {
+      return x.match(/^donotreply@gov[.]bc[.]ca/gi);
+    }
+
+    return false;
   }
 };
 

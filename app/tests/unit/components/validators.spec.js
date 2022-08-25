@@ -1,5 +1,13 @@
 const { models, validators, validatorUtils } = require('../../../src/components/validators');
 const { realSmallFile, smallFile } = require('../../fixtures/base64Files');
+const config = require('config');
+
+// Mock config library - @see {@link https://stackoverflow.com/a/64819698}
+jest.mock('config');
+
+beforeEach(() => {
+  jest.resetAllMocks();
+});
 
 describe('models.attachment.content', () => {
 
@@ -853,6 +861,17 @@ describe('models.message.from', () => {
     expect(result).toBeFalsy();
   });
 
+  it.each([
+    [false, 'donotreply@gov.bc.ca', true],
+    [false, 'doNotReply@gov.bc.ca', true],
+    [true, 'ministrydonotreply@gov.bc.ca', true],
+    [true, 'donotreply@gov.bc.ca', false],
+    [true, 'doNotReply@gov.bc.ca', false],
+  ])('should return %s with %s and blockDoNotReplySender set to %s ', (expected, email, blockDoNotReplySender) => {
+    config.has.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
+    const result = models.message.validSender(email);
+    expect(result).toBe(expected);
+  });
 });
 
 describe('models.message.priority', () => {

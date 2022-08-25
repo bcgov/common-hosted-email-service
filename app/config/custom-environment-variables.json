@@ -24,6 +24,7 @@
     "logLevel": "SERVER_LOGLEVEL",
     "maxAttempts": "SERVER_MAXATTEMPTS",
     "port": "SERVER_PORT",
-    "smtpHost": "SERVER_SMTPHOST"
+    "smtpHost": "SERVER_SMTPHOST",
+    "blockDoNotReplySender": "SERVER_BLOCKDONOTREPLYSENDER"
   }
 }
