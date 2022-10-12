@@ -517,10 +517,11 @@ const validatorUtils = {
     return Object.prototype.toString.call(x) === '[object String]';
   },
 
+  /** @function bcGovSenderRules */
   bcGovSenderRules: x => {
     if (config.has('server.bcGovSenderRules')) {
-      const isDoNotReply = x.match(/^donotreply@gov\.bc\.ca$/gi);
       const isBCGovSender = x.match(/^.*@(.*\.)*gov\.bc\.ca$/gi);
+      const isDoNotReply = x.match(/^donotreply@gov\.bc\.ca$/gi);
       return !!(isBCGovSender && !isDoNotReply);
     }
 
