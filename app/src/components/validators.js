@@ -194,7 +194,7 @@ const models = {
 
     /** @function validSender */
     validSender: value => {
-      return !validatorUtils.blockDoNotReplySender(value);
+      return validatorUtils.bcGovSenderRules(value);
     },
 
   },
@@ -517,13 +517,15 @@ const validatorUtils = {
     return Object.prototype.toString.call(x) === '[object String]';
   },
 
-  /** @function blockDoNotReplySender */
-  blockDoNotReplySender: x => {
-    if (config.has('server.blockDoNotReplySender')) {
-      return x.match(/^donotreply@gov[.]bc[.]ca/gi);
+  /** @function bcGovSenderRules */
+  bcGovSenderRules: x => {
+    if (config.has('server.bcGovSenderRules')) {
+      const isBCGovSender = x.match(/^.*@(.*\.)*gov\.bc\.ca$/gi);
+      const isDoNotReply = x.match(/^donotreply@gov\.bc\.ca$/gi);
+      return !!(isBCGovSender && !isDoNotReply);
     }
 
-    return false;
+    return true;
   }
 };
 

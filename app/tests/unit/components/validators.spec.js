@@ -864,11 +864,14 @@ describe('models.message.from', () => {
   it.each([
     [false, 'donotreply@gov.bc.ca', true],
     [false, 'doNotReply@gov.bc.ca', true],
-    [true, 'ministrydonotreply@gov.bc.ca', true],
+    [false, 'bad@gmail.com', true],
+    [true, 'ministry@gov.bc.ca', true],
     [true, 'donotreply@gov.bc.ca', false],
     [true, 'doNotReply@gov.bc.ca', false],
-  ])('should return %s with %s and blockDoNotReplySender set to %s ', (expected, email, blockDoNotReplySender) => {
-    config.has.mockReturnValueOnce(blockDoNotReplySender); // server.blockDoNotReplySender
+    [true, 'bad@gmail.com', false],
+    [true, 'ministry@gov.bc.ca', false],
+  ])('should return %s with %s and bcGovSenderRules set to %s ', (expected, email, bcGovSenderRules) => {
+    config.has.mockReturnValueOnce(bcGovSenderRules); // server.bcGovSenderRules
     const result = models.message.validSender(email);
     expect(result).toBe(expected);
   });

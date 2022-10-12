@@ -25,6 +25,6 @@
     "maxAttempts": "SERVER_MAXATTEMPTS",
     "port": "SERVER_PORT",
     "smtpHost": "SERVER_SMTPHOST",
-    "blockDoNotReplySender": "SERVER_BLOCKDONOTREPLYSENDER"
+    "bcGovSenderRules": "SERVER_BCGOVSENDERRULES"
   }
 }
