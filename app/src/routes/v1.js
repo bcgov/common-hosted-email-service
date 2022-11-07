@@ -16,8 +16,6 @@ const {
   statusRouter
 } = require('./v1/');
 
-const clientId = config.get('keycloak.clientId');
-
 const getSpec = () => {
   const rawSpec = fs.readFileSync(path.join(__dirname, '../docs/v1.api-spec.yaml'), 'utf8');
   const spec = yaml.load(rawSpec);
@@ -62,18 +60,18 @@ router.get('/api-spec.json', (_req, res) => {
 router.use('/health', keycloak.protect(), authorizedPartyValidator, healthRouter);
 
 /** Email Router */
-router.use('/email', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, emailRouter);
+router.use('/email', keycloak.protect(), authorizedPartyValidator, emailRouter);
 
 /** Merge Router */
-router.use('/emailMerge', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, mergeRouter);
+router.use('/emailMerge', keycloak.protect(), authorizedPartyValidator, mergeRouter);
 
 /** Status Router */
-router.use('/status', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, statusRouter);
+router.use('/status', keycloak.protect(), authorizedPartyValidator, statusRouter);
 
 /** Cancel Router */
-router.use('/cancel', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, cancelRouter);
+router.use('/cancel', keycloak.protect(), authorizedPartyValidator, cancelRouter);
 
 /** Promote Router */
-router.use('/promote', keycloak.protect(`${clientId}:EMAILER`), authorizedPartyValidator, promoteRouter);
+router.use('/promote', keycloak.protect(), authorizedPartyValidator, promoteRouter);
 
 module.exports = router;
