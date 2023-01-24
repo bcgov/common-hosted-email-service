@@ -348,7 +348,7 @@ parameters:
     description: Starting amount of CPU the container can use.
     displayName: CPU Request
     required: true
-    value: "50m"
+    value: "20m"
   - name: CPU_LIMIT
     description: Maximum amount of CPU the container can use.
     displayName: CPU Limit
