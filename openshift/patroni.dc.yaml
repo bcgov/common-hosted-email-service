@@ -221,6 +221,8 @@ objects:
                 limits:
                   cpu: ${CPU_LIMIT}
                   memory: ${MEMORY_LIMIT}
+              securityContext:
+                allowPrivilegeEscalation: true
               terminationMessagePath: "/dev/termination-log"
               terminationMessagePolicy: File
               volumeMounts:
