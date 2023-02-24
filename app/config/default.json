@@ -3,10 +3,6 @@
     "database": "ches",
     "host": "localhost"
   },
-  "keycloak": {
-    "realm": "jbd6rnxw",
-    "serverUrl": "https://dev.oidc.gov.bc.ca/auth"
-  },
   "redis": {
     "clusterMode": "no",
     "host": "127.0.0.1",
