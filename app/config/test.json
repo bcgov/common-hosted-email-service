@@ -5,7 +5,9 @@
   },
   "keycloak": {
     "clientId": "clientId",
-    "clientSecret": "clientSecret"
+    "clientSecret": "clientSecret",
+    "realm": "my-realm",
+    "serverUrl": "https://test.my-keycloak-server.com/auth"
   },
   "redis": {
     "host": "host",
