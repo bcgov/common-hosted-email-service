@@ -221,6 +221,8 @@ objects:
                 limits:
                   cpu: ${CPU_LIMIT}
                   memory: ${MEMORY_LIMIT}
+              securityContext:
+                allowPrivilegeEscalation: true
               terminationMessagePath: "/dev/termination-log"
               terminationMessagePolicy: File
               volumeMounts:
@@ -346,7 +348,7 @@ parameters:
     description: Starting amount of CPU the container can use.
     displayName: CPU Request
     required: true
-    value: "50m"
+    value: "20m"
   - name: CPU_LIMIT
     description: Maximum amount of CPU the container can use.
     displayName: CPU Limit
