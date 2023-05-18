@@ -1,0 +1,45 @@
+---
+data_management_roles:
+  data_custodian: Fraser Marshall
+  product_owner: Sharolyn Hurley
+product_external_dependencies:
+  identity_authorization:
+    - Custom-Keycloak
+  notification_standard:
+    - Custom-SMTP
+product_information:
+  api_specifications:
+    - https://ches.api.gov.bc.ca/api/v1/docs
+  business_capabilities_custom: >-
+    Cancel emails, Schedule emails, Send emails, Mail Merge, Track email status
+  business_capabilities_standard:
+    - Other
+  ministry:
+    - Water, Land and Resource Stewardship
+  product_acronym: CHES
+  product_description: >-
+    Automate the submission of single or bulk email notifications through a
+    SMTP Email Service
+  product_name: Common Hosted Email Service
+  product_status: stable
+  product_urls:
+    - https://api.gov.bc.ca/devportal/api-directory/3182?preview=false
+  program_area: NRIDS
+product_technology_information:
+  backend_frameworks:
+    - name: Node.js
+      version: 16
+    - name: Express
+      version: 4.17.2
+  backend_languages_version:
+    - name: JavaScript
+      version: ecmaVersion 9 / es2018
+  ci_cd_tools:
+    - Jenkins
+    - OpenShift-Templates
+  data_storage_platforms:
+    - Postgresql
+    - Redis
+  hosting_platforms:
+    - Private-Cloud-Openshift
+version: 1
