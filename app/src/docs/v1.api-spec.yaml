@@ -801,7 +801,7 @@ components:
           type: string
           description: 'Title of problem, generally the Http Status Code description'
         status:
-          type: string
+          type: number
           description: The Http Status code
         detail:
           type: string
