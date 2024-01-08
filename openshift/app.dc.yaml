@@ -1,10 +1,10 @@
 ---
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 labels:
   app.kubernetes.io/component: app
   app.kubernetes.io/instance: "${APP_NAME}-${JOB_NAME}"
-  app.kubernetes.io/managed-by: jenkins
+  app.kubernetes.io/managed-by: githubactions
   app.kubernetes.io/name: nodejs
   app.kubernetes.io/part-of: "${APP_NAME}-${JOB_NAME}"
   app: "${APP_NAME}-${JOB_NAME}"
@@ -72,7 +72,7 @@ objects:
         matchLabels:
           app: "redis-${JOB_NAME}"
           role: redis
-  - apiVersion: v1
+  - apiVersion: apps.openshift.io/v1
     kind: DeploymentConfig
     metadata:
       annotations:
@@ -90,7 +90,7 @@ objects:
         rollingParams:
           timeoutSeconds: 600
           pre:
-            failurePolicy: Abort
+            failurePolicy: Retry
             execNewPod:
               command:
                 - npm
@@ -127,7 +127,7 @@ objects:
         spec:
           containers:
             - name: app
-              image: "${IMAGE_REGISTRY}/${NAMESPACE}/${REPO_NAME}-app:${JOB_NAME}"
+              image: "${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/${REPO_NAME}:${IMAGE_TAG}"
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
@@ -209,7 +209,7 @@ objects:
                   mountPath: /var/log
             # Fluent-bit sidecar
             - name: fluent-bit
-              image: docker.io/fluent/fluent-bit:1.5
+              image: docker.io/fluent/fluent-bit:2.1.10
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
@@ -258,15 +258,15 @@ objects:
       test: false
       triggers:
         - type: ConfigChange
-        - type: ImageChange
-          imageChangeParams:
-            automatic: true
-            containerNames:
-              - app
-            from:
-              kind: ImageStreamTag
-              name: "${REPO_NAME}-app:${JOB_NAME}"
-              namespace: "${NAMESPACE}"
+        # - type: ImageChange
+        #   imageChangeParams:
+        #     automatic: true
+        #     containerNames:
+        #       - app
+        #     from:
+        #       kind: ImageStreamTag
+        #       name: "${REPO_NAME}-app:${JOB_NAME}"
+        #       namespace: "${NAMESPACE}"
   - apiVersion: v1
     kind: Service
     metadata:
@@ -281,7 +281,7 @@ objects:
         app: "${APP_NAME}-${JOB_NAME}"
         deploymentconfig: "${APP_NAME}-app-${JOB_NAME}"
         role: app
-  - apiVersion: v1
+  - apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
       name: "${APP_NAME}-app-${JOB_NAME}"
@@ -317,10 +317,20 @@ parameters:
     required: true
     value: "2"
   - name: IMAGE_REGISTRY
-    description: The base OpenShift docker registry
+    description: The base container image registry
     displayName: Docker Image Registry
     required: true
-    value: image-registry.openshift-image-registry.svc:5000
+    value: ghcr.io
+  - name: IMAGE_NAMESPACE
+    description: The image namespace
+    displayName: Docker Image Namespace
+    required: true
+    value: bcgov
+  - name: IMAGE_TAG
+    description: The specific image tag to deploy
+    displayName: Docker Image Tag
+    required: true
+    value: latest
   - name: NAMESPACE
     description: Target namespace reference (i.e. 'b160aa-dev')
     displayName: Target Namespace

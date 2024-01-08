@@ -13,12 +13,13 @@ To learn more about the **Common Services** available visit the [Common Services
     .github/                   - PR and Issue templates
     app/                       - Node.js web application
     openshift/                 - OpenShift-deployment specific files
+    bcgovpubcode.yml           - BCGov public code asset tracking
     CODE-OF-CONDUCT.md         - Code of Conduct
     COMPLIANCE.yaml            - BCGov PIA/STRA compliance status
     CONTRIBUTING.md            - Contributing Guidelines
-    Jenkinsfile                - Top-level Pipeline
-    Jenkinsfile.cicd           - Pull-Request Pipeline
+    Dockerfile                 - Dockerfile Image definition
     LICENSE                    - License
+    SECURITY.md                - Security Policy and Reporting
 
 ## Documentation
 
