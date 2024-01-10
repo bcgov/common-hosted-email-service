@@ -4,9 +4,11 @@ const express = require('express');
 const moment = require('moment');
 const Problem = require('api-problem');
 
+const { name: appName, version: appVersion } = require('./package.json');
 const keycloak = require('./src/components/keycloak');
 const log = require('./src/components/log')(module.filename);
 const httpLogger = require('./src/components/log').httpLogger;
+const { getGitRevision } = require('./src/components/utils');
 
 const { authorizedParty } = require('./src/middleware/authorizedParty');
 const v1Router = require('./src/routes/v1');
@@ -23,6 +25,7 @@ const state = {
     email: true, // Assume SMTP is accessible by default
     queue: false
   },
+  gitRev: getGitRevision(),
   mounted: false,
   ready: false,
   shutdown: false
@@ -78,6 +81,13 @@ app.use((_req, res, next) => {
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
   res.status(200).json({
+    app: {
+      authMode: state.authMode,
+      gitRev: state.gitRev,
+      name: appName,
+      nodeVersion: process.version,
+      version: appVersion
+    },
     endpoints: [
       '/api/v1'
     ],
@@ -126,12 +136,10 @@ process.on('unhandledRejection', err => {
 });
 
 // Graceful shutdown support
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
-process.on('SIGUSR1', shutdown);
-process.on('SIGUSR2', shutdown);
-process.on('exit', () => {
-  log.info('Exiting...');
+['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGQUIT', 'SIGUSR1', 'SIGUSR2']
+  .forEach(signal => process.on(signal, shutdown));
+process.on('exit', code => {
+  log.info(`Exiting with code ${code}`, { function: 'onExit' });
 });
 
 /**
