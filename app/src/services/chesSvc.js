@@ -119,16 +119,16 @@ class ChesService {
       }
     } catch (e) {
       if (e instanceof ClientMismatchError) {
-        log.info(e.message, { function: 'cancelMessage' });
+        log.warn(e.message, { function: 'cancelMessage' });
         throw new Problem(403, { detail: e.message });
       } else if (e instanceof DataIntegrityError) {
         log.error(e.message, { function: 'cancelMessage' });
         throw new Problem(500, { detail: e.message });
       } else if (e instanceof NotFoundError) {
-        log.info(`Message ${messageId} from client ${client} not found.`, { function: 'cancelMessage' });
+        log.warn(`Message ${messageId} from client ${client} not found.`, { function: 'cancelMessage' });
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UncancellableError) {
-        log.info(e.message, { function: 'cancelMessage' });
+        log.warn(e.message, { function: 'cancelMessage' });
         throw new Problem(409, { detail: e.message });
       } else {
         throw e;
@@ -311,7 +311,7 @@ class ChesService {
       return status;
     } catch (e) {
       if (e instanceof NotFoundError) {
-        log.error(`Message ${messageId} from client ${client} not found.`, { function: 'getStatus' });
+        log.warn(`Message ${messageId} from client ${client} not found.`, { function: 'getStatus' });
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else {
         log.error(`Unable to retrieve status of message ${messageId} from client ${client}. ${e.message}`, { error: e, function: 'getStatus' });
@@ -350,10 +350,10 @@ class ChesService {
         log.error(e.message, { function: 'promoteMessage' });
         throw new Problem(500, { detail: e.message });
       } else if (e instanceof NotFoundError) {
-        log.info(`Message ${messageId} from client ${client} not found.`, { function: 'promoteMessage' });
+        log.warn(`Message ${messageId} from client ${client} not found.`, { function: 'promoteMessage' });
         throw new Problem(404, { detail: `Message ${messageId} not found.` });
       } else if (e instanceof UnpromotableError) {
-        log.info(e.message, { function: 'promoteMessage' });
+        log.warn(e.message, { function: 'promoteMessage' });
         throw new Problem(409, { detail: e.message });
       } else {
         throw e;
