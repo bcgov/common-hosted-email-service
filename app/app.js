@@ -1,12 +1,16 @@
+const Problem = require('api-problem');
 const compression = require('compression');
 const config = require('config');
+const cors = require('cors');
 const express = require('express');
+const helmet = require('helmet');
 const moment = require('moment');
-const Problem = require('api-problem');
 
+const { name: appName, version: appVersion } = require('./package.json');
 const keycloak = require('./src/components/keycloak');
 const log = require('./src/components/log')(module.filename);
 const httpLogger = require('./src/components/log').httpLogger;
+const { getGitRevision } = require('./src/components/utils');
 
 const { authorizedParty } = require('./src/middleware/authorizedParty');
 const v1Router = require('./src/routes/v1');
@@ -23,6 +27,7 @@ const state = {
     email: true, // Assume SMTP is accessible by default
     queue: false
   },
+  gitRev: getGitRevision(),
   mounted: false,
   ready: false,
   shutdown: false
@@ -31,12 +36,15 @@ let probeId;
 
 const app = express();
 app.use(compression());
-app.use(express.json({
-  limit: config.get('server.bodyLimit')
+app.use(cors({
+  /** Tells browsers to cache preflight requests for Access-Control-Max-Age seconds */
+  maxAge: 600,
+  /** Set true to dynamically set Access-Control-Allow-Origin based on Origin */
+  origin: true
 }));
-app.use(express.urlencoded({
-  extended: false
-}));
+app.use(express.json({ limit: config.get('server.bodyLimit') }));
+app.use(express.urlencoded({ extended: false }));
+app.use(helmet());
 
 // Print out configuration settings in verbose startup
 log.verbose('Config', { config: config });
@@ -78,6 +86,13 @@ app.use((_req, res, next) => {
 // GetOK Base API Directory
 apiRouter.get('/', (_req, res) => {
   res.status(200).json({
+    app: {
+      authMode: state.authMode,
+      gitRev: state.gitRev,
+      name: appName,
+      nodeVersion: process.version,
+      version: appVersion
+    },
     endpoints: [
       '/api/v1'
     ],
@@ -93,13 +108,13 @@ apiRouter.use('/v1', v1Router);
 // Root level Router
 app.use(/(\/api)?/, apiRouter);
 
-// Handle 500
-// eslint-disable-next-line no-unused-vars
-app.use((err, _req, res, _next) => {
-  if (err.stack) {
-    log.error(err);
-  }
+// Handle 404
+app.use((req, res) => {
+  new Problem(404, { instance: req.originalUrl }).send(res);
+});
 
+// Handle Problem Responses
+app.use((err, req, res, _next) => { // eslint-disable-line no-unused-vars
   if (err instanceof Problem) {
     // Attempt to reset DB connection if 5xx error
     if (err.status >= 500 && !state.shutdown) dataConnection.resetConnection();
@@ -107,31 +122,26 @@ app.use((err, _req, res, _next) => {
   } else {
     // Attempt to reset DB connection
     if (!state.shutdown) dataConnection.resetConnection();
-    new Problem(500, {
-      details: (err.message) ? err.message : err
-    }).send(res);
+    if (err.stack) log.error(err); // Only log unexpected errors
+    new Problem(500, { detail: err.message ?? err, instance: req.originalUrl }).send(res);
   }
 });
 
-// Handle 404
-app.use((_req, res) => {
-  new Problem(404).send(res);
-});
-
-// Prevent unhandled promise errors from crashing application
+// Ensure unhandled errors gracefully shut down the application
 process.on('unhandledRejection', err => {
-  if (err && err.stack) {
-    log.error(err);
-  }
+  log.error(`Unhandled Rejection: ${err.message ?? err}`, { function: 'onUnhandledRejection' });
+  fatalErrorHandler();
+});
+process.on('uncaughtException', err => {
+  log.error(`Unhandled Exception: ${err.message ?? err}`, { function: 'onUncaughtException' });
+  fatalErrorHandler();
 });
 
 // Graceful shutdown support
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
-process.on('SIGUSR1', shutdown);
-process.on('SIGUSR2', shutdown);
-process.on('exit', () => {
-  log.info('Exiting...');
+['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGQUIT', 'SIGUSR1', 'SIGUSR2']
+  .forEach(signal => process.on(signal, shutdown));
+process.on('exit', code => {
+  log.info(`Exiting with code ${code}`, { function: 'onExit' });
 });
 
 /**
@@ -167,6 +177,15 @@ function cleanup() {
 
   // Wait 10 seconds max before hard exiting
   setTimeout(() => process.exit(), 10000);
+}
+
+/**
+ * @function fatalErrorHandler
+ * Forces the application to shutdown
+ */
+function fatalErrorHandler() {
+  process.exitCode = 1;
+  shutdown();
 }
 
 /**

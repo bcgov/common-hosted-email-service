@@ -20,12 +20,12 @@ async function authorizedParty(req, _res, next) {
     const authorization = req.get('authorization');
     if (authorization) {
       const token = jwt.decode((req.get('authorization')).slice(7));
-      req.authorizedParty = token.azp;
+      req.authorizedParty = token?.azp ?? undefined;
     } else {
       req.authorizedParty = undefined;
     }
   } catch (err) {
-    log.error(err.message, { function: 'authorizedParty' });
+    log.warn(err.message, { function: 'authorizedParty' });
     req.authorizedParty = undefined;
   }
   next();

@@ -97,6 +97,10 @@ describe('filterUndefinedAndEmptyArray', () => {
   });
 });
 
+describe('getGitRevision', () => {
+  expect(typeof utils.getGitRevision()).toBe('string');
+});
+
 describe('prettyStringify', () => {
   const obj = {
     foo: 'bar'
