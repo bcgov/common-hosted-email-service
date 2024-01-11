@@ -1,8 +1,10 @@
+const Problem = require('api-problem');
 const compression = require('compression');
 const config = require('config');
+const cors = require('cors');
 const express = require('express');
+const helmet = require('helmet');
 const moment = require('moment');
-const Problem = require('api-problem');
 
 const { name: appName, version: appVersion } = require('./package.json');
 const keycloak = require('./src/components/keycloak');
@@ -34,12 +36,15 @@ let probeId;
 
 const app = express();
 app.use(compression());
-app.use(express.json({
-  limit: config.get('server.bodyLimit')
+app.use(cors({
+  /** Tells browsers to cache preflight requests for Access-Control-Max-Age seconds */
+  maxAge: 600,
+  /** Set true to dynamically set Access-Control-Allow-Origin based on Origin */
+  origin: true
 }));
-app.use(express.urlencoded({
-  extended: false
-}));
+app.use(express.json({ limit: config.get('server.bodyLimit') }));
+app.use(express.urlencoded({ extended: false }));
+app.use(helmet());
 
 // Print out configuration settings in verbose startup
 log.verbose('Config', { config: config });

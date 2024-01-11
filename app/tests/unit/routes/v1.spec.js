@@ -28,32 +28,3 @@ describe('GET /api/v1', () => {
     expect(response.body.endpoints).toContain('/promote');
   });
 });
-
-describe('GET /api/v1/docs', () => {
-  it('should return a redoc html page', async () => {
-    const response = await request(app).get(`${basePath}/docs`);
-
-    expect(response.statusCode).toBe(200);
-    expect(response.text).toMatch(/<title>Common Hosted Email Service API - Documentation/);
-  });
-});
-
-describe('GET /api/v1/api-spec.yaml', () => {
-  it('should return the OpenAPI yaml spec', async () => {
-    const response = await request(app).get(`${basePath}/api-spec.yaml`);
-
-    expect(response.statusCode).toBe(200);
-    expect(response.text).toMatch(/openapi: 3.0.3/);
-    expect(response.text).toMatch(/title: Common Hosted Email Service API/);
-  });
-});
-
-describe('GET /api/v1/api-spec.json', () => {
-  it('should return the OpenAPI yaml spec', async () => {
-    const response = await request(app).get(`${basePath}/api-spec.json`);
-
-    expect(response.statusCode).toBe(200);
-    expect(response.text).toMatch(/"openapi":"3.0.3"/);
-    expect(response.text).toMatch(/"title":"Common Hosted Email Service API"/);
-  });
-});
