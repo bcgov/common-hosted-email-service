@@ -143,7 +143,10 @@ class DataConnection {
         });
       } catch (e) {
         log.error('Failed to close', { error: e, function: 'recoverMessage' });
+        if (cb) cb();
       }
+    } else {
+      if (cb) cb();
     }
   }
 

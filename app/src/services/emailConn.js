@@ -158,6 +158,7 @@ class EmailConnection {
       if (cb) cb();
     } catch (e) {
       log.error('Failed to close', { error: e, function: 'close' });
+      if (cb) cb();
     }
   }
 }
