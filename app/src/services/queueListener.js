@@ -60,7 +60,10 @@ class QueueListener {
    */
   static async onFailed(job) {
     log.error(`Job ${job.id} failed`, { function: 'onFailed' });
-    await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason);
+    await QueueListener.queueService.updateStatus(job, queueState.FAILED, job.failedReason).catch(() => {
+      // This should only ever be reached if there exists database/redis state inconsistencies
+      log.error(`Status update for job ${job.id} failed. Check for data integrity!`, { function: 'onFailed' });
+    });
     // await QueueListener.queueService.updateContent(job);
   }
 
