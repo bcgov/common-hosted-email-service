@@ -150,10 +150,12 @@ process.on('exit', code => {
  */
 function shutdown() {
   log.info('Received kill signal. Shutting down...', { function: 'shutdown' });
+  state.shutdown = true;
+  log.info('Service no longer accepting traffic', { function: 'shutdown' });
   queueConnection.pause();
 
   // Wait 5 seconds before starting cleanup
-  if (!state.shutdown) setTimeout(cleanup, 5000);
+  setTimeout(cleanup, 5000);
 }
 
 /**
@@ -161,9 +163,6 @@ function shutdown() {
  * Cleans up connections in this application.
  */
 function cleanup() {
-  log.info('Service no longer accepting traffic', { function: 'cleanup' });
-  state.shutdown = true;
-
   log.info('Cleaning up...', { function: 'cleanup' });
   clearInterval(probeId);
 
@@ -219,7 +218,13 @@ function initializeConnections() {
       .finally(() => {
         log.info(`Connection Statuses: Database = ${state.connections.data}, Queue = ${state.connections.queue}, Email = ${state.connections.email}`, { connections: state.connections, function: 'initializeConnections' });
         state.ready = Object.values(state.connections).every(x => x);
-        mountServices();
+
+        if (state.connections.queue) mountServices();
+        else {
+          log.error('Queue failed to initialize', { function: 'initializeConnections' });
+          process.exitCode = 1;
+          shutdown();
+        }
       });
   } catch (error) {
     log.error('Connection initialization failure', error.message, { function: 'initializeConnections' });
@@ -274,6 +279,7 @@ function mountServices() {
   queueConnection.queue.on('drained', QueueListener.onDrained);
   queueConnection.queue.on('removed', QueueListener.onRemoved);
   log.verbose('Listener workers attached', { function: 'mountServices' });
+  log.info('Start accepting new jobs', { function: 'mountServices' });
 }
 
 module.exports = app;

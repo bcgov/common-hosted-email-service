@@ -8,8 +8,8 @@ const chesService = new ChesService();
 statusRouter.get('/', validateStatusQuery, async (req, res, next) => {
   try {
     // Find messages, transform message and statuses into API format
-    const status = await chesService.findStatuses(req.authorizedParty, req.query.msgId,
-      req.query.status, req.query.tag, req.query.txId);
+    const status = await chesService.findStatuses(req.authorizedParty, req.query.msgId?.toLowerCase(),
+      req.query.status, req.query.tag, req.query.txId?.toLowerCase());
 
     // Return
     res.status(200).json(status);
@@ -22,7 +22,7 @@ statusRouter.get('/', validateStatusQuery, async (req, res, next) => {
 statusRouter.get('/:msgId', validateStatusFetch, async (req, res, next) => {
   try {
     // transform message and statuses into API format...
-    const status = await chesService.getStatus(req.authorizedParty, req.params.msgId);
+    const status = await chesService.getStatus(req.authorizedParty, req.params.msgId?.toLowerCase());
 
     // return
     res.status(200).json(status);

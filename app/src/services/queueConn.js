@@ -150,7 +150,10 @@ class QueueConnection {
         });
       } catch (e) {
         log.error('Failed to close', { error: e, function: 'close' });
+        if (cb) cb();
       }
+    } else {
+      if (cb) cb();
     }
   }
 
