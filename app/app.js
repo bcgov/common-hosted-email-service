@@ -7,7 +7,6 @@ const helmet = require('helmet');
 const moment = require('moment');
 
 const { name: appName, version: appVersion } = require('./package.json');
-const keycloak = require('./src/components/keycloak');
 const log = require('./src/components/log')(module.filename);
 const httpLogger = require('./src/components/log').httpLogger;
 const { getGitRevision } = require('./src/components/utils');
@@ -68,9 +67,6 @@ if (process.env.NODE_ENV !== 'test') {
   initializeConnections();
   app.use(httpLogger);
 }
-
-// Use Keycloak OIDC Middleware
-app.use(keycloak.middleware());
 
 // Block requests until service is ready and mounted
 app.use((_req, res, next) => {
