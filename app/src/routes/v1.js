@@ -1,6 +1,6 @@
 const router = require('express').Router();
 
-const keycloak = require('../components/keycloak');
+const { tokenValidator } = require('../middleware/authentication');
 const { authorizedPartyValidator } = require('../middleware/authorizedParty');
 
 const {
@@ -34,21 +34,21 @@ router.get('/', (_req, res) => {
 router.use('/docs', docsRouter);
 
 /** Health Router */
-router.use('/health', keycloak.protect(), authorizedPartyValidator, healthRouter);
+router.use('/health', tokenValidator, authorizedPartyValidator, healthRouter);
 
 /** Email Router */
-router.use('/email', keycloak.protect(), authorizedPartyValidator, emailRouter);
+router.use('/email', tokenValidator, authorizedPartyValidator, emailRouter);
 
 /** Merge Router */
-router.use('/emailMerge', keycloak.protect(), authorizedPartyValidator, mergeRouter);
+router.use('/emailMerge', tokenValidator, authorizedPartyValidator, mergeRouter);
 
 /** Status Router */
-router.use('/status', keycloak.protect(), authorizedPartyValidator, statusRouter);
+router.use('/status', tokenValidator, authorizedPartyValidator, statusRouter);
 
 /** Cancel Router */
-router.use('/cancel', keycloak.protect(), authorizedPartyValidator, cancelRouter);
+router.use('/cancel', tokenValidator, authorizedPartyValidator, cancelRouter);
 
 /** Promote Router */
-router.use('/promote', keycloak.protect(), authorizedPartyValidator, promoteRouter);
+router.use('/promote', tokenValidator, authorizedPartyValidator, promoteRouter);
 
 module.exports = router;
