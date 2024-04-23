@@ -41,8 +41,8 @@ paths:
                     description: A list of Health states
                     items:
                       $ref: "#/components/schemas/Health"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
         default:
           description: Unexpected error
           content:
@@ -75,7 +75,7 @@ paths:
                 $ref: "#/components/schemas/TransactionResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "403":
+        "401":
           $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
@@ -112,7 +112,7 @@ paths:
                 $ref: "#/components/schemas/MergeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "403":
+        "401":
           $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
@@ -147,7 +147,7 @@ paths:
                   $ref: "#/components/schemas/MessageObject"
         "400":
           $ref: "#/components/responses/BadRequest"
-        "403":
+        "401":
           $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
@@ -182,7 +182,7 @@ paths:
                 description: A list of message statuses
                 items:
                   $ref: "#/components/schemas/StatusObject"
-        "403":
+        "401":
           $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
@@ -211,7 +211,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusObject"
-        "403":
+        "401":
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
