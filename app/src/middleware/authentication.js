@@ -39,17 +39,18 @@ async function tokenValidator(req, res, next) {
         : _spkiWrapper(publicKey);
 
       jwt.verify(bearerToken, pemKey, {
-        issuer: `${config.get('keycloak.serverUrl')}/realms/${config.get('keycloak.realm')}`
+        issuer: `${config.get('keycloak.serverUrl')}/realms/${config.get('keycloak.realm')}`,
+        audience: config.get('keycloak.clientId')
       });
     }
     else {
-      return new Problem(400, {
+      return new Problem(500, {
         detail: 'OIDC environment variable KC_PUBLICKEY, KC_SERVERURL and KC_REALM must be defined'
       }).send(res);
     }
   } catch (err) {
     log.error(err.message, { function: 'tokenValidator' });
-    return next(new Problem(403, { detail: 'Access token is missing or invalid', instance: req.originalUrl }));
+    return next(new Problem(401, { detail: 'Access token is missing or invalid', instance: req.originalUrl }));
   }
   next();
 }
