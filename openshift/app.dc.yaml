@@ -227,7 +227,7 @@ objects:
                   mountPath: /var/log
             # Fluent-bit sidecar
             - name: fluent-bit
-              image: docker.io/fluent/fluent-bit:2.1.10
+              image: docker.io/fluent/fluent-bit:3.1.0
               imagePullPolicy: IfNotPresent
               livenessProbe:
                 httpGet:
