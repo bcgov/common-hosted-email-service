@@ -1,3 +1,4 @@
+
 FROM docker.io/node:20.15.1-alpine3.20
 
 ARG APP_ROOT=/opt/app-root/src
@@ -8,6 +9,7 @@ WORKDIR ${APP_ROOT}
 # NPM Permission Fix
 RUN mkdir -p /.npm
 RUN chown -R 1001:0 /.npm
+ENV npm_config_cache /.npm
 
 # Install Application
 COPY . ${APP_ROOT}
