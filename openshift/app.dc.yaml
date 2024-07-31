@@ -153,7 +153,7 @@ objects:
                   port: 3000
                   scheme: HTTP
                 initialDelaySeconds: 15
-                timeoutSeconds: 1
+                timeoutSeconds: 2
                 failureThreshold: 3
               ports:
                 - containerPort: 3000
@@ -164,8 +164,8 @@ objects:
                   port: 3000
                   scheme: HTTP
                 initialDelaySeconds: 15
-                timeoutSeconds: 1
-                failureThreshold: 1
+                timeoutSeconds: 2
+                failureThreshold: 3
               resources:
                 requests:
                   cpu: "${CPU_REQUEST}"
