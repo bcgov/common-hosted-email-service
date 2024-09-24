@@ -432,7 +432,7 @@ components:
     OpenID:
       type: openIdConnect
       openIdConnectUrl: >-
-        https://oidc.gov.bc.ca/auth/realms/jbd6rnxw/.well-known/openid-configuration
+        https://loginproxy.gov.bc.ca/auth/realms/comsvcauth/.well-known/openid-configuration
   schemas:
     AttachmentObject:
       type: object
