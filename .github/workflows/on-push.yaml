@@ -3,7 +3,7 @@ name: Push
 env:
   ACRONYM: ches
   APP_NAME: common-hosted-email-service
-  NAMESPACE_PREFIX: b160aa
+  NAMESPACE_PREFIX: 1dca6b
 
 on:
   push:

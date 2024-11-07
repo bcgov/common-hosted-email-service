@@ -1,0 +1,192 @@
+{{- $prRelease := "false" -}}
+{{- $dbSecretName := "postgres-master-pguser-app" -}}
+{{ if ne .Release.Name "master" }}
+{{- $prRelease = "true" -}}
+{{- $dbSecretName = printf "%s-%s" "postgres-master-pguser" .Release.Name -}}
+{{ end }}
+{{- $dbHostName := "postgres-master-pgbouncer" -}}
+{{- define "ches.connectsTo" -}}
+apiVersion: apps/v1
+kind: StatefulSet
+name: {{ printf "%s-%s" "postgres-master" }}
+{{- end }}
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: {{ include "ches.fullname" . }}
+  labels:
+    {{- include "ches.labels" . | nindent 4 }}
+  {{- if .Values.postgres.enabled }}
+  annotations:
+    app.openshift.io/connects-to: '[{{ include "ches.connectsTo" . | fromYaml | toJson }}]'
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 10
+  selector:
+    {{- include "ches.selectorLabels" . | nindent 4 }}
+  strategy:
+    resources:
+      {{- toYaml .Values.resources | nindent 6 }}
+    rollingParams:
+      timeoutSeconds: 600
+      {{- if or .Values.postgres.enabled $prRelease .Values.config.configMap.DB_ENABLED }}
+      pre:
+        failurePolicy: {{ .Values.failurePolicy }}
+        execNewPod:
+          command:
+            - npm
+            - run
+            - migrate
+          containerName: app
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: dbname
+                  name: {{ $dbSecretName }}
+            - name: DB_HOST
+              value: {{ $dbHostName }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: {{ $dbSecretName }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ $dbSecretName }}
+      {{- end }}
+    type: Rolling
+  template:
+    metadata:
+      labels: {{ include "ches.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "ches.serviceAccountName" . }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: app
+          {{- with .Values.securityContext }}
+          securityContext: {{ toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}/{{ .Chart.Name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: {{ .Values.route.path }}
+              port: {{ .Values.service.port }}
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: {{ .Values.route.path }}
+              port: {{ .Values.service.port }}
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  key: dbname
+                  name: {{ $dbSecretName }}
+            - name: DB_HOST
+              value: {{ $dbHostName }}
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: {{ $dbSecretName }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ $dbSecretName }}
+            - name: KC_CLIENTID
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: ches-keycloak-secret
+            - name: KC_CLIENTSECRET
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: ches-keycloak-secret
+            - name: REDIS_HOST
+              value: {{.Release.Name}}-redis
+            - name: SERVER_LOGFILE
+              value: "/var/log/app.log"
+          envFrom:
+            - configMapRef:
+                name: {{ include "ches.configname" . }}-config
+          volumeMounts:
+            - name: log-storage
+              mountPath: /var/log
+        - name: fluent-bit
+          image: docker.io/fluent/fluent-bit:3.1.9
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 2020
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+          ports:
+            - containerPort: 2020
+              name: metrics
+              protocol: TCP
+            - containerPort: 80
+              name: http-plugin
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 2020
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: log-storage
+              mountPath: /var/log
+            - name: fluent-bit-config
+              mountPath: /fluent-bit/etc/
+
+      volumes:
+        - name: log-storage
+          emptyDir: {}
+        - name: fluent-bit-config
+          configMap:
+            name: fluent-bit-config
+  test: false
+  triggers:
+    - type: ConfigChange

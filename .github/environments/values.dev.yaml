@@ -1,0 +1,74 @@
+---
+autoscaling:
+  enabled: true
+  maxReplicas: 4
+
+config:
+  enabled: true
+  configMap:
+    KC_ENABLED: "true"
+    KC_PUBLICKEY: >-
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsmuiI3bzde2avKEZd8P/ivnUFL9JxwfykQ9eC6qULkkALW4Nj+m0rH+yTuWTWPwZsYyICtWXbQui6Yh+EP0+bTeDzeDaD1oSUgqC4c9EySs64sGPQLE3sHllwONo8AegNQSiPw+KHE2Rf3ky61KuQHOhrszHKq1qT71ct5iPK9oeZ4vkr6A0XfNNOzih6Jp+XrmNmU85+ssNJ7Oy9plwxHBC73Ff3Jw8UF2dRPPLOJT3oAtYJYD4uuQebPq3bKv2n8iQftLG80l1frM1iG/jddoKItSYBRYsi4Mc65gGgkfsTQGk+Up0SULpO/nIASHWLSYNZOTiqAqMgkWQ+Ga9vQIDAQAB
+    KC_REALM: comsvcauth
+    KC_SERVERURL: "https://dev.loginproxy.gov.bc.ca/auth"
+    SERVER_LOGLEVEL: verbose
+
+postgres:
+  enabled: true
+  # -------- backups ---------
+  pgBackRestConfig:
+    global:
+      # log-level-console: debug
+      # --- pvc
+      repo1-retention-full: "2"
+      repo1-retention-diff: "3"
+    repos:
+      - name: repo1
+        schedules:
+          full: "0 7 * * *" # full backup every day at 7am
+          differential: "0 */2 * * *" # differential every 2 hours
+        volume:
+          volumeClaimSpec:
+            accessModes:
+              - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: 2Gi
+            storageClassName: "netapp-file-backup"
+    manual:
+      repoName: repo1
+      options:
+        - --type=full
+    repoHost:
+      resources:
+        requests:
+          cpu: 20m
+          memory: 128Mi
+        limits:
+          cpu: 50m
+          memory: 256Mi
+    sidecars:
+      pgbackrest:
+        resources:
+          requests:
+            cpu: 5m
+            memory: 16Mi
+          limits:
+            cpu: 20m
+            memory: 64Mi
+      pgbackrestConfig:
+        resources:
+          requests:
+            cpu: 5m
+            memory: 32Mi
+          limits:
+            cpu: 20m
+            memory: 64Mi
+    jobs:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 50m
+          memory: 128Mi
