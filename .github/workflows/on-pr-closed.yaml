@@ -39,9 +39,6 @@ jobs:
         shell: bash
         run: |
           helm uninstall --namespace ${{ env.NAMESPACE_PREFIX }}-dev pr-${{ github.event.number }} --timeout 10m --wait
-          oc delete --namespace ${{ env.NAMESPACE_PREFIX }}-dev all,secret,pvc,networkpolicy,rolebinding --selector app=${{ env.ACRONYM }}-pr-${{ github.event.number }}
-          oc delete --namespace ${{ env.NAMESPACE_PREFIX }}-dev all,svc,cm,sa,role,secret --selector cluster-name=pr-${{ github.event.number }}
-          oc delete --namespace ${{ env.NAMESPACE_PREFIX }}-dev all --selector app=redis-pr-${{ github.event.number }}
 
       # remove user, database and role (named `pr-123`) from postgres
       - name: Remove PR user and database from postgres.

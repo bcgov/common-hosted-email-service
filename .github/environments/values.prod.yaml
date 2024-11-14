@@ -138,3 +138,53 @@ postgres:
       limits:
         cpu: 35m
         memory: 32Mi
+
+redis:
+  architecture: replication
+  global:
+    storageClass: netapp-block-standard
+  enabled: true
+  auth:
+    enabled: false
+  image:
+    registry: artifacts.developer.gov.bc.ca/docker-remote
+  replica:
+    shareProcessNamespace: true
+    replicaCount: 3
+    persistentVolumeClaimRetentionPolicy:
+      enabled: true
+      whenDeleted: Delete
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 25Mi
+    resources:
+      limits:
+        cpu: 50m
+        memory: 150Mi
+      requests:
+        cpu: 20m
+        memory: 50Mi
+  sentinel:
+    enabled: true
+    quorum: 1
+    podSecurityContext: {}
+    containerSecurityContext: {}
+    image:
+      registry: artifacts.developer.gov.bc.ca/docker-remote
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 25Mi
+      storageClass: netapp-block-standard
+    persistentVolumeClaimRetentionPolicy:
+      enabled: true
+      whenScaled: Delete
+      whenDeleted: Delete
+    resources:
+      limits:
+        cpu: 50m
+        memory: 150Mi
+      requests:
+        cpu: 20m
+        memory: 50Mi

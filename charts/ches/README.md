@@ -1,6 +1,6 @@
 # common-hosted-email-service
 
-![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
 
 A microservice for managing access control to S3 Objects
 
@@ -22,7 +22,8 @@ Kubernetes: `>= 1.13.0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../postgres | postgres(postgrescluster) | 2.0.0 |
+| file://../postgres | postgres(postgrescluster) | 2.0.1 |
+| https://charts.bitnami.com/bitnami | redis(redis) | 20.0.3 |
 
 ## Values
 
@@ -33,33 +34,22 @@ Kubernetes: `>= 1.13.0`
 | autoscaling.maxReplicas | int | `16` |  |
 | autoscaling.minReplicas | int | `2` |  |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
-| basicAuthSecretOverride.password | string | `nil` | Basic authentication password |
-| basicAuthSecretOverride.username | string | `nil` | Basic authentication username |
-| config.configMap | object | `{"DB_PORT":"5432","KC_IDENTITYKEY":null,"KC_PUBLICKEY":null,"KC_REALM":null,"KC_SERVERURL":null,"OBJECTSTORAGE_BUCKET":null,"OBJECTSTORAGE_ENDPOINT":null,"OBJECTSTORAGE_KEY":null,"SERVER_LOGLEVEL":"http","SERVER_PORT":"3000","SERVER_TEMP_EXPIRESIN":"300"}` | These values will be wholesale added to the configmap as is; refer to the coms documentation for what each of these values mean and whether you need them defined. Ensure that all values are represented explicitly as strings, as non-string values will not translate over as expected into container environment variables. For configuration keys named `*_ENABLED`, either leave them commented/undefined, or set them to string value "true". |
+| config.configMap | object | `{"DB_PORT":"5432","SERVER_ATTACHMENTLIMIT":"20mb","SERVER_BODYLIMIT":"100mb","SERVER_LOGLEVEL":"http","SERVER_PORT":"3000","SERVER_SMTPHOST":"apps.smtp.gov.bc.ca"}` | These values will be wholesale added to the configmap as is; refer to the ches documentation for what each of these values mean and whether you need them defined. Ensure that all values are represented explicitly as strings, as non-string values will not translate over as expected into container environment variables. For configuration keys named `*_ENABLED`, either leave them commented/undefined, or set them to string value "true". |
 | config.enabled | bool | `false` | Set to true if you want to let Helm manage and overwrite your configmaps. |
 | config.releaseScoped | bool | `false` | This should be set to true if and only if you require configmaps and secrets to be release scoped. In the event you want all instances in the same namespace to share a similar configuration, this should be set to false |
-| dbSecretOverride.password | string | `nil` | Database password |
-| dbSecretOverride.username | string | `nil` | Database username |
 | failurePolicy | string | `"Retry"` |  |
-| features.basicAuth | bool | `false` | Specifies whether basic auth is enabled |
-| features.defaultBucket | bool | `false` | Specifies whether a default bucket is enabled |
-| features.oidcAuth | bool | `false` | Specifies whether oidc auth is enabled |
 | fullnameOverride | string | `nil` | String to fully override fullname |
 | image.pullPolicy | string | `"IfNotPresent"` | Default image pull policy |
 | image.repository | string | `"docker.io/bcgovimages"` | Default image repository |
 | image.tag | string | `nil` | Overrides the image tag whose default is the chart appVersion. |
 | imagePullSecrets | list | `[]` | Specify docker-registry secret names as an array |
-| keycloakSecretOverride.password | string | `nil` | Keycloak password |
-| keycloakSecretOverride.username | string | `nil` | Keycloak username |
 | nameOverride | string | `nil` | String to partially override fullname |
 | networkPolicy.enabled | bool | `true` | Specifies whether a network policy should be created |
-| objectStorageSecretOverride.password | string | `nil` | Object storage password |
-| objectStorageSecretOverride.username | string | `nil` | Object storage username |
-| podAnnotations | object | `{}` | Annotations for coms pods |
+| podAnnotations | object | `{}` | Annotations for ches pods |
 | podSecurityContext | object | `{}` | Privilege and access control settings |
 | postgres.databaseInitSQL.key | string | `"bootstrap.sql"` |  |
 | postgres.databaseInitSQL.name | string | `"bootstrap-sql"` |  |
-| postgres.databaseInitSQL.sql | string | `"\\c app;\nALTER DATABASE app OWNER TO app;\nALTER SCHEMA public OWNER TO app;\nREVOKE CREATE ON SCHEMA public FROM PUBLIC;\nCREATE SCHEMA invite;\nALTER SCHEMA invite OWNER TO app;\nCREATE SCHEMA audit;\nALTER SCHEMA audit OWNER TO app;\nCREATE SCHEMA queue;\nALTER SCHEMA queue OWNER TO app;\n"` |  |
+| postgres.databaseInitSQL.sql | string | `"\\c ches;\nALTER DATABASE ches OWNER TO app;\nALTER SCHEMA public OWNER TO app;\nREVOKE CREATE ON SCHEMA public FROM PUBLIC;\n"` |  |
 | postgres.enabled | bool | `true` |  |
 | postgres.instances[0].dataVolumeClaimSpec.accessModes[0] | string | `"ReadWriteOnce"` |  |
 | postgres.instances[0].dataVolumeClaimSpec.resources.requests.storage | string | `"1Gi"` |  |
@@ -99,9 +89,41 @@ Kubernetes: `>= 1.13.0`
 | postgres.pgBouncerConfig.resources.limits.memory | string | `"64Mi"` |  |
 | postgres.pgBouncerConfig.resources.requests.cpu | string | `"5m"` |  |
 | postgres.pgBouncerConfig.resources.requests.memory | string | `"32Mi"` |  |
-| postgres.postgresVersion | int | `16` | ------------------------------ note: override methodology: - defaults exist in subchart postgres - overrides that apply to all coms environments are defined in this values.yaml file - overrides specific to a single environment are defined in values.<environment>.yaml name of the cluster. in COMS pipeline we pass this in Helm deploy command in github action eg: --set postgres.name=postgres-master name: postgres-master |
-| postgres.users[0].databases[0] | string | `"app"` |  |
+| postgres.postgresVersion | int | `16` | ------------------------------ note: override methodology: - defaults exist in subchart postgres - overrides that apply to all ches environments are defined in this values.yaml file - overrides specific to a single environment are defined in values.<environment>.yaml name of the cluster. in ches pipeline we pass this in Helm deploy command in github action eg: --set postgres.name=postgres-master name: postgres-master |
+| postgres.users[0].databases[0] | string | `"ches"` |  |
 | postgres.users[0].name | string | `"app"` |  |
+| redis.architecture | string | `"replication"` |  |
+| redis.auth.enabled | bool | `false` |  |
+| redis.enabled | bool | `true` |  |
+| redis.global.storageClass | string | `"netapp-block-standard"` |  |
+| redis.image.registry | string | `"artifacts.developer.gov.bc.ca/docker-remote"` |  |
+| redis.replica.persistence.accessMode | string | `"ReadWriteOnce"` |  |
+| redis.replica.persistence.enabled | bool | `true` |  |
+| redis.replica.persistence.size | string | `"25Mi"` |  |
+| redis.replica.persistentVolumeClaimRetentionPolicy.enabled | bool | `true` |  |
+| redis.replica.persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Delete"` |  |
+| redis.replica.replicaCount | int | `2` |  |
+| redis.replica.resources.limits.cpu | string | `"50m"` |  |
+| redis.replica.resources.limits.memory | string | `"150Mi"` |  |
+| redis.replica.resources.requests.cpu | string | `"20m"` |  |
+| redis.replica.resources.requests.memory | string | `"50Mi"` |  |
+| redis.replica.shareProcessNamespace | bool | `true` |  |
+| redis.sentinel.containerSecurityContext | object | `{}` |  |
+| redis.sentinel.enabled | bool | `true` |  |
+| redis.sentinel.image.registry | string | `"artifacts.developer.gov.bc.ca/docker-remote"` |  |
+| redis.sentinel.persistence.accessMode | string | `"ReadWriteOnce"` |  |
+| redis.sentinel.persistence.enabled | bool | `true` |  |
+| redis.sentinel.persistence.size | string | `"25Mi"` |  |
+| redis.sentinel.persistence.storageClass | string | `"netapp-block-standard"` |  |
+| redis.sentinel.persistentVolumeClaimRetentionPolicy.enabled | bool | `true` |  |
+| redis.sentinel.persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Delete"` |  |
+| redis.sentinel.persistentVolumeClaimRetentionPolicy.whenScaled | string | `"Delete"` |  |
+| redis.sentinel.podSecurityContext | object | `{}` |  |
+| redis.sentinel.quorum | int | `1` |  |
+| redis.sentinel.resources.limits.cpu | string | `"50m"` |  |
+| redis.sentinel.resources.limits.memory | string | `"150Mi"` |  |
+| redis.sentinel.resources.requests.cpu | string | `"20m"` |  |
+| redis.sentinel.resources.requests.memory | string | `"50Mi"` |  |
 | replicaCount | int | `2` |  |
 | resources.limits.cpu | string | `"200m"` | Limit Peak CPU (in millicores ex. 1000m) |
 | resources.limits.memory | string | `"256Mi"` | Limit Peak Memory (in gigabytes Gi or megabytes Mi ex. 2Gi) |
@@ -115,7 +137,7 @@ Kubernetes: `>= 1.13.0`
 | route.wildcardPolicy | string | `"None"` |  |
 | securityContext | object | `{}` | Privilege and access control settings |
 | service.port | int | `3000` | Service port |
-| service.portName | string | `"http"` | Service port name |
+| service.portName | string | `"3000-tc"` | Service port name |
 | service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.enabled | bool | `false` | Specifies whether a service account should be created |

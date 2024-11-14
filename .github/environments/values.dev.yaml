@@ -11,7 +11,7 @@ config:
       MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsmuiI3bzde2avKEZd8P/ivnUFL9JxwfykQ9eC6qULkkALW4Nj+m0rH+yTuWTWPwZsYyICtWXbQui6Yh+EP0+bTeDzeDaD1oSUgqC4c9EySs64sGPQLE3sHllwONo8AegNQSiPw+KHE2Rf3ky61KuQHOhrszHKq1qT71ct5iPK9oeZ4vkr6A0XfNNOzih6Jp+XrmNmU85+ssNJ7Oy9plwxHBC73Ff3Jw8UF2dRPPLOJT3oAtYJYD4uuQebPq3bKv2n8iQftLG80l1frM1iG/jddoKItSYBRYsi4Mc65gGgkfsTQGk+Up0SULpO/nIASHWLSYNZOTiqAqMgkWQ+Ga9vQIDAQAB
     KC_REALM: comsvcauth
     KC_SERVERURL: "https://dev.loginproxy.gov.bc.ca/auth"
-    SERVER_LOGLEVEL: verbose
+    SERVER_LOGLEVEL: info
 
 postgres:
   enabled: true

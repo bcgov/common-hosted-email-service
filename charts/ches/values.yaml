@@ -214,6 +214,11 @@ postgres:
   instances:
     - name: db # do not change this name after initial install, pvc (data) and stateful sets will be deleted
       replicas: 2
+      # prevent excessive container restarts
+      # containers:
+      #   - name: pgbackrest
+      #     livenessProbe:
+      #       timeoutSeconds: 3
       dataVolumeClaimSpec:
         accessModes:
           - "ReadWriteOnce"
@@ -242,7 +247,7 @@ postgres:
   users:
     - name: app
       databases:
-        - app
+        - ches
   # Custom SQL commands we want to run, that get added to a ConfigMap
   # that crunchyDB references duriing intialization
   # gives our app permissions on the schemas (also required to run our knex migrations)
@@ -250,8 +255,8 @@ postgres:
     name: bootstrap-sql
     key: bootstrap.sql
     sql: |
-      \c app;
-      ALTER DATABASE app OWNER TO app;
+      \c ches;
+      ALTER DATABASE ches OWNER TO app;
       ALTER SCHEMA public OWNER TO app;
       REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 

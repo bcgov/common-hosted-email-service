@@ -8,7 +8,7 @@
 {{- define "ches.connectsTo" -}}
 apiVersion: apps/v1
 kind: StatefulSet
-name: {{ printf "%s-%s" "postgres-master" }}
+name: {{ printf "%s-%s" "postgres" "master" }}
 {{- end }}
 ---
 apiVersion: apps.openshift.io/v1
@@ -133,7 +133,7 @@ spec:
                   key: password
                   name: ches-keycloak-secret
             - name: REDIS_HOST
-              value: {{.Release.Name}}-redis
+              value: {{ printf "%s-%s" .Release.Name "redis" }}
             - name: SERVER_LOGFILE
               value: "/var/log/app.log"
           envFrom:
@@ -151,7 +151,7 @@ spec:
               port: 2020
               scheme: HTTP
             initialDelaySeconds: 10
-            timeoutSeconds: 1
+            timeoutSeconds: 3
             failureThreshold: 3
           ports:
             - containerPort: 2020
@@ -166,7 +166,7 @@ spec:
               port: 2020
               scheme: HTTP
             initialDelaySeconds: 10
-            timeoutSeconds: 1
+            timeoutSeconds: 3
             failureThreshold: 3
           resources:
             requests:

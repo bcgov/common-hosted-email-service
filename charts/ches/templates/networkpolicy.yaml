@@ -2,13 +2,132 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-all-in-namespace
-  labels:
-    {{- include "ches.labels" . | nindent 4 }}
+  name: {{ printf "%s-%s" "allow-openshift-ingress-to-ches-app" .Release.Name }}
+  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ches.configname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
   ingress:
     - from:
-        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traffic-from-gateway-to-ches-master
+  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ches.configname" . }}
+      app.kubernetes.io/instance: master
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              environment: test
+              name: 264e6f
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              environment: prod
+              name: 264e6f
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ches-app-to-postgres-master
+  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: postgres-master
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 5432
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "ches.configname" . }}
+              app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pre-hook-to-postgres-master
+  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: postgres-master
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 5432
+      from:
+        - podSelector:
+            matchLabels:
+              openshift.io/deployer-pod.type: hook-pre
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ches-app-to-redis-master
+  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 26379
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "ches.configname" . }}
+              app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-metabase-b160aa-tools-to-postgres
+  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      postgres-operator.crunchydata.com/cluster: postgres-master
+      postgres-operator.crunchydata.com/role: replica
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 5432
+      from:
+        - podSelector:
+            matchLabels:
+              app: metabase
+              deploymentconfig: metabase
+          namespaceSelector:
+            matchLabels:
+              environment: tools
+              name: b160aa
   policyTypes:
     - Ingress

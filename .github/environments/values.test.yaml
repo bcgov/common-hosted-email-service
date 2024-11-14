@@ -11,7 +11,7 @@ config:
       MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1dLa3e2Q65cvzoKYdqSu/Qkoi5fbG9FF++u0TVm3461sS7uLo2aIviNXHrfzgu4RKnzoy51VXhAfeT58mGiAweJiRyILr0OtwbDEd/W9D4Y8FdWV37Ltmb4D1M0kCHPHo9wkl5aGZj0VFgExdFXenSDlNuglZpNuAVOwWTL7hX1Cc+5Z5hX8891fcxcdAF/GkDGcyIteHV04aeoCWEMak0gSpGsNUgEhn7FUHI6maqiaBdoyOWn0Jbw/JpqewcD9ZYFLzZTMuBssTXJt4ipTibeqbI/bAdCtxXLJgmpkyMSA/KQeHLmBPdq3ayctoDRpqVMHsnC31Hm7Fz8aDHKaDwIDAQAB
     KC_REALM: comsvcauth
     KC_SERVERURL: "https://test.loginproxy.gov.bc.ca/auth"
-    SERVER_LOGLEVEL: http
+    SERVER_LOGLEVEL: info
 
 postgres:
   enabled: true
@@ -128,3 +128,53 @@ postgres:
       options:
         - --type=time
         - --target="2024-10-28 14:15:11-04"
+
+redis:
+  architecture: replication
+  global:
+    storageClass: netapp-block-standard
+  enabled: true
+  auth:
+    enabled: false
+  image:
+    registry: artifacts.developer.gov.bc.ca/docker-remote
+  replica:
+    shareProcessNamespace: true
+    replicaCount: 3
+    persistentVolumeClaimRetentionPolicy:
+      enabled: true
+      whenDeleted: Delete
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 25Mi
+    resources:
+      limits:
+        cpu: 50m
+        memory: 150Mi
+      requests:
+        cpu: 20m
+        memory: 50Mi
+  sentinel:
+    enabled: true
+    quorum: 1
+    podSecurityContext: {}
+    containerSecurityContext: {}
+    image:
+      registry: artifacts.developer.gov.bc.ca/docker-remote
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 25Mi
+      storageClass: netapp-block-standard
+    persistentVolumeClaimRetentionPolicy:
+      enabled: true
+      whenScaled: Delete
+      whenDeleted: Delete
+    resources:
+      limits:
+        cpu: 50m
+        memory: 150Mi
+      requests:
+        cpu: 20m
+        memory: 50Mi
