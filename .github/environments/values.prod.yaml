@@ -28,7 +28,7 @@ postgres:
           - "ReadWriteOnce"
         resources:
           requests:
-            storage: 2Gi
+            storage: 5Gi
         storageClassName: "netapp-block-standard"
       resources:
         requests:
@@ -110,7 +110,7 @@ postgres:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 2Gi
+                storage: 10Gi
             storageClassName: "netapp-file-backup"
       - name: repo2
         schedules:

@@ -21,7 +21,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-traffic-from-gateway-to-ches-master
-  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
@@ -44,7 +43,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-ches-app-to-postgres-master
+  name: allow-ches-{{ .Release.Name }}-to-postgres-master
   labels: {{- include "ches.selectorLabels" . | nindent 4 }}
 spec:
   podSelector:
@@ -65,7 +64,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-pre-hook-to-postgres-master
+  name: allow-ches-{{ .Release.Name }}-pre-hook-to-postgres-master
   labels: {{- include "ches.selectorLabels" . | nindent 4 }}
 spec:
   podSelector:
@@ -85,13 +84,13 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-ches-app-to-redis-master
+  name: allow-ches-{{ .Release.Name }}-to-redis-master
   labels: {{- include "ches.selectorLabels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/name: redis
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/instance: master
   ingress:
     - ports:
         - protocol: TCP
@@ -110,7 +109,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-metabase-b160aa-tools-to-postgres
-  labels: {{- include "ches.selectorLabels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
