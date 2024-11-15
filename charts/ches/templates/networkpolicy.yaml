@@ -16,6 +16,7 @@ spec:
               network.openshift.io/policy-group: ingress
   policyTypes:
     - Ingress
+{{ if eq .Release.Name "master" }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -39,6 +40,7 @@ spec:
               name: 264e6f
   policyTypes:
     - Ingress
+{{ end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -104,6 +106,7 @@ spec:
               app.kubernetes.io/instance: {{ .Release.Name }}
   policyTypes:
     - Ingress
+{{ if eq .Release.Name "master" }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -129,3 +132,4 @@ spec:
               name: b160aa
   policyTypes:
     - Ingress
+{{ end }}
