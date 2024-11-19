@@ -59,7 +59,7 @@ runs:
         --values ./.github/environments/values.${{ inputs.environment }}.yaml
         --set image.repository=ghcr.io/$OWNER_LC
         --set image.tag=sha-$(git rev-parse --short HEAD)
-        --set route.host=${{ inputs.acronym }}-${{ inputs.namespace_environment }}-${{ inputs.job_name }}.apps.silver.devops.gov.bc.ca
+        --set route.host=${{ inputs.acronym }}-${{ inputs.namespace_environment }}-${{ inputs.job_name }}-temp.apps.silver.devops.gov.bc.ca
         --set postgres.name=postgres-${{ inputs.job_name }}
         --set postgres.enabled=${{ inputs.deploy_postgres }}
         --timeout 15m
