@@ -10,7 +10,8 @@ metadata:
   {{- end }}
 data: {{ toYaml .Values.config.configMap | nindent 2 }}
 {{- end }}
-{{ if eq .Release.Name "master" }}
+# TODO: use release-specific name to avoid conflicts (eg: `{{ .Release.name}}-fluent-bit-config`)
+{{ if eq .Release.Name "xyz" }}
 ---
 apiVersion: v1
 kind: ConfigMap
