@@ -3,7 +3,7 @@ name: Pull Request Closed
 env:
   ACRONYM: ches
   APP_NAME: common-hosted-email-service
-  NAMESPACE_PREFIX: 1dca6b
+  NAMESPACE_PREFIX: b160aa
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ concurrency:
 jobs:
   remove-pr-dev:
     name: Remove PR build from dev namespace
-    # if: "! github.event.pull_request.head.repo.fork"
+    if: "! github.event.pull_request.head.repo.fork"
     environment:
       name: pr
       url: https://${{ env.ACRONYM }}-dev-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca

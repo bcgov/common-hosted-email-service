@@ -12,7 +12,7 @@ const secret = `${__ENV.secret}`;
 const env = `${__ENV.env ? __ENV.env : 'dev'}`;
 const targetEmail = `${__ENV.target}`
 let emailUrl = 'api/v1/email';
-let oidcUrl = 'auth/realms/jbd6rnxw/protocol/openid-connect/token';
+let oidcUrl = 'auth/realms/comsvcauth/protocol/openid-connect/token';
 
 // Options for the test run. These can be overidden for a run. See https://k6.io/docs/using-k6/options
 export let options = {
@@ -45,14 +45,14 @@ export let options = {
 
 // URL strings
 if (env === 'dev' || env === 'test') {
-  emailUrl = `https://ches-${env}.apps.silver.devops.gov.bc.ca/${emailUrl}`;
-  oidcUrl = `https://${env}.oidc.gov.bc.ca/${oidcUrl}`
+  emailUrl = `https://ches-${env}-master.apps.silver.devops.gov.bc.ca/${emailUrl}`;
+  oidcUrl = `https://${env}.loginproxy.gov.bc.ca/${oidcUrl}`
 } else if (env === 'prod') {
-  emailUrl = `https://ches.nrs.gov.bc.ca/${emailUrl}`;
-  oidcUrl = `https://oidc.gov.bc.ca/${oidcUrl}`
+  emailUrl = `https://ches-${env}-master.apps.silver.devops.gov.bc.ca/${emailUrl}`;
+  oidcUrl = `https://loginproxy.gov.bc.ca/${oidcUrl}`
 } else if (env && env.match(/pr-\d+/g)) {
-  emailUrl = `https://ches-dev-${env}.nrs.gov.bc.ca/${emailUrl}`;
-  oidcUrl = `https://dev.oidc.gov.bc.ca/${oidcUrl}`
+  emailUrl = `https://ches-dev-${env}-master.apps.silver.devops.gov.bc.ca/${emailUrl}`;
+  oidcUrl = `https://dev.loginproxy.gov.bc.ca/${oidcUrl}`
 } else {
   fail('No valid environment supplied. Supply "dev", "test", "prod", or "pr##".');
 }

@@ -10,6 +10,9 @@ spec:
       app.kubernetes.io/name: {{ include "ches.configname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   ingress:
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.service.port}}
     - from:
         - namespaceSelector:
             matchLabels:
