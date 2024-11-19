@@ -1,0 +1,5 @@
+---
+features:
+  basicAuth: true
+  oidcAuth: true
+  defaultBucket: false

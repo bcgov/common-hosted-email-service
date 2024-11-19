@@ -25,6 +25,9 @@ inputs:
   openshift_token:
     description: Openshift Service Account Token
     required: true
+  deploy_postgres:
+    description: Should Postgres database be installed for this release
+    default: "true"
 
 runs:
   using: composite
@@ -40,58 +43,29 @@ runs:
         insecure_skip_tls_verify: true
         namespace: ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }}
 
-    - name: Deploy Patroni Secret
+    - name: set lower case owner name
+      shell: bash
+      run: |
+        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+      env:
+        OWNER: "${{ github.repository_owner }}"
+
+    - name: Helm Deploy
       shell: bash
       run: >-
-        oc get --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} secret patroni-${{ inputs.job_name }}-secret || oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/patroni.secret.yaml -p APP_DB_NAME=${{ inputs.acronym }} -p INSTANCE=${{ inputs.job_name }} | oc create --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
+        helm upgrade --install --atomic ${{ inputs.job_name }} ${{ inputs.app_name }}
+        --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }}
+        --repo https://$OWNER_LC.github.io/common-hosted-email-service
+        --values ./.github/environments/values.${{ inputs.environment }}.yaml
+        --set image.repository=ghcr.io/$OWNER_LC
+        --set image.tag=sha-$(git rev-parse --short HEAD)
+        --set route.host=${{ inputs.acronym }}-${{ inputs.namespace_environment }}-${{ inputs.job_name }}.apps.silver.devops.gov.bc.ca
+        --set postgres.name=postgres-${{ inputs.job_name }}
+        --set postgres.enabled=${{ inputs.deploy_postgres }}
+        --timeout 15m
+        --wait
 
-    - name: Deploy Patroni
+    - name: Wait on Deployment
       shell: bash
       run: |
-        if [[ "${{ inputs.job_name }}" == pr-* ]]; then
-          oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/patroni-ephemeral.dc.yaml -p APP_NAME=${{ inputs.acronym }} -p INSTANCE=${{ inputs.job_name }} -p NAMESPACE=${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} | oc apply --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-        else
-          oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/patroni.dc.yaml -p INSTANCE=${{ inputs.job_name }} -p NAMESPACE=${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} | oc apply --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-        fi
-
-    - name: Wait on Patroni
-      shell: bash
-      run: |
-        oc rollout --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} status statefulset/patroni-${{ inputs.job_name }} --watch=true
-
-    - name: Deploy Redis Secret
-      shell: bash
-      run: |
-        if [[ "${{ inputs.job_name }}" == pr-* ]]; then
-          oc get --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} secret redis-${{ inputs.job_name }}-secret || oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/redis.secret.yaml -p CLUSTER_MODE=no -p INSTANCE=${{ inputs.job_name }} | oc create --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-        else
-          oc get --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} secret redis-${{ inputs.job_name }}-secret || oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/redis.secret.yaml -p CLUSTER_MODE=yes -p INSTANCE=${{ inputs.job_name }} | oc create --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-        fi
-
-    - name: Deploy Redis
-      shell: bash
-      run: |
-        if [[ "${{ inputs.job_name }}" == pr-* ]]; then
-          oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/redis-ephemeral.dc.yaml -p APP_NAME=${{ inputs.acronym }} -p INSTANCE=${{ inputs.job_name }} | oc apply --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-        else
-          oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f openshift/redis-cluster.dc.yaml -p APP_NAME=${{ inputs.acronym }} -p INSTANCE=${{ inputs.job_name }} | oc apply --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-        fi
-
-    - name: Wait on Redis
-      shell: bash
-      run: |
-        if [[ "${{ inputs.job_name }}" == pr-* ]]; then
-          oc rollout --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} status dc/redis-${{ inputs.job_name }} --watch=true
-        else
-          oc rollout --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} status statefulset/redis-${{ inputs.job_name }} --watch=true
-        fi
-
-    - name: Deploy App
-      shell: bash
-      run: |
-        oc process --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f ./openshift/app.dc.yaml -p REPO_NAME=${{ inputs.app_name }} -p JOB_NAME=${{ inputs.job_name }} -p NAMESPACE=${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -p APP_NAME=${{ inputs.acronym }} -p IMAGE_TAG=sha-$(git rev-parse --short HEAD) -p HOST_ROUTE=${{ inputs.acronym }}-${{ inputs.namespace_environment }}-${{ inputs.job_name }}.apps.silver.devops.gov.bc.ca -o yaml | oc apply --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} -f -
-
-    - name: Wait on App
-      shell: bash
-      run: |
-        oc rollout --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} status dc/${{ inputs.acronym }}-app-${{ inputs.job_name }} --watch=true
+        oc rollout --namespace ${{ inputs.namespace_prefix }}-${{ inputs.namespace_environment }} status dc/${{ inputs.app_name }}-${{ inputs.job_name }} --watch=true
