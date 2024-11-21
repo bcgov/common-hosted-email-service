@@ -33,7 +33,7 @@ postgres:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 2Gi
+                storage: 5Gi
             storageClassName: "netapp-file-backup"
     manual:
       repoName: repo1
