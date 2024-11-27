@@ -20,20 +20,20 @@ postgres:
     global:
       # log-level-console: debug
       # --- pvc
-      repo1-retention-full: "2"
+      repo1-retention-full: "1"
       repo1-retention-diff: "3"
     repos:
       - name: repo1
         schedules:
-          full: "0 7 * * *" # full backup every day at 7am
-          differential: "0 */2 * * *" # differential every 2 hours
+          full: "0 0 1 * *" # full backup at midnight every month
+          differential: "0 1 * * *" # differential every day at 1am
         volume:
           volumeClaimSpec:
             accessModes:
               - "ReadWriteOnce"
             resources:
               requests:
-                storage: 5Gi
+                storage: 10Gi
             storageClassName: "netapp-file-backup"
     manual:
       repoName: repo1

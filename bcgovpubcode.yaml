@@ -1,7 +1,7 @@
 ---
 data_management_roles:
   data_custodian: Fraser Marshall
-  product_owner: Sharolyn Hurley
+  product_owner: Shabari Khaniyan Kunnumel
 product_external_dependencies:
   identity_authorization:
     - Custom-Keycloak
@@ -28,15 +28,16 @@ product_information:
 product_technology_information:
   backend_frameworks:
     - name: Node.js
-      version: 16
+      version: 20
     - name: Express
-      version: 4.17.2
+      version: 4.19.2
   backend_languages_version:
     - name: JavaScript
       version: ecmaVersion 9 / es2018
   ci_cd_tools:
-    - Jenkins
+    - Helm
     - OpenShift-Templates
+    - GitHub Actions
   data_storage_platforms:
     - Postgresql
     - Redis

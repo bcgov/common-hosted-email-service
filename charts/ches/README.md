@@ -1,6 +1,6 @@
 # common-hosted-email-service
 
-![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
+![Version: 1.0.4](https://img.shields.io/badge/Version-1.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
 
 A microservice for managing access control to S3 Objects
 
@@ -52,7 +52,7 @@ Kubernetes: `>= 1.13.0`
 | postgres.databaseInitSQL.sql | string | `"\\c ches;\nALTER DATABASE ches OWNER TO app;\nALTER SCHEMA public OWNER TO app;\nREVOKE CREATE ON SCHEMA public FROM PUBLIC;\n"` |  |
 | postgres.enabled | bool | `true` |  |
 | postgres.instances[0].dataVolumeClaimSpec.accessModes[0] | string | `"ReadWriteOnce"` |  |
-| postgres.instances[0].dataVolumeClaimSpec.resources.requests.storage | string | `"1Gi"` |  |
+| postgres.instances[0].dataVolumeClaimSpec.resources.requests.storage | string | `"2Gi"` |  |
 | postgres.instances[0].dataVolumeClaimSpec.storageClassName | string | `"netapp-block-standard"` |  |
 | postgres.instances[0].name | string | `"db"` |  |
 | postgres.instances[0].replicas | int | `2` |  |
@@ -99,7 +99,7 @@ Kubernetes: `>= 1.13.0`
 | redis.image.registry | string | `"artifacts.developer.gov.bc.ca/docker-remote"` |  |
 | redis.replica.persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | redis.replica.persistence.enabled | bool | `true` |  |
-| redis.replica.persistence.size | string | `"25Mi"` |  |
+| redis.replica.persistence.size | string | `"250Mi"` |  |
 | redis.replica.persistentVolumeClaimRetentionPolicy.enabled | bool | `true` |  |
 | redis.replica.persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Delete"` |  |
 | redis.replica.replicaCount | int | `2` |  |
@@ -113,7 +113,7 @@ Kubernetes: `>= 1.13.0`
 | redis.sentinel.image.registry | string | `"artifacts.developer.gov.bc.ca/docker-remote"` |  |
 | redis.sentinel.persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | redis.sentinel.persistence.enabled | bool | `true` |  |
-| redis.sentinel.persistence.size | string | `"25Mi"` |  |
+| redis.sentinel.persistence.size | string | `"250Mi"` |  |
 | redis.sentinel.persistence.storageClass | string | `"netapp-block-standard"` |  |
 | redis.sentinel.persistentVolumeClaimRetentionPolicy.enabled | bool | `true` |  |
 | redis.sentinel.persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Delete"` |  |
