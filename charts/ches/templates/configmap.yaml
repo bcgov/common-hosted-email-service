@@ -10,8 +10,9 @@ metadata:
   {{- end }}
 data: {{ toYaml .Values.config.configMap | nindent 2 }}
 {{- end }}
-# TODO: use release-specific name to avoid conflicts (eg: `{{ .Release.name}}-fluent-bit-config`)
-{{ if eq .Release.Name "xyz" }}
+
+{{- $fbConfigMap := (lookup "v1" "ConfigMap" .Release.Namespace "fluent-bit-config" ) }}
+{{- if not $fbConfigMap }}
 ---
 apiVersion: v1
 kind: ConfigMap
