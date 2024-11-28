@@ -1,6 +1,6 @@
 # common-hosted-email-service
 
-![Version: 1.0.4](https://img.shields.io/badge/Version-1.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
+![Version: 1.0.5](https://img.shields.io/badge/Version-1.0.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
 
 A microservice for managing access control to S3 Objects
 
@@ -22,7 +22,7 @@ Kubernetes: `>= 1.13.0`
 
 | Repository | Name | Version |
 |------------|------|---------|
-| file://../postgres | postgres(postgrescluster) | 2.0.1 |
+| file://../postgres | postgres(postgrescluster) | 2.0.2 |
 | https://charts.bitnami.com/bitnami | redis(redis) | 20.0.3 |
 
 ## Values
@@ -99,7 +99,7 @@ Kubernetes: `>= 1.13.0`
 | redis.image.registry | string | `"artifacts.developer.gov.bc.ca/docker-remote"` |  |
 | redis.replica.persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | redis.replica.persistence.enabled | bool | `true` |  |
-| redis.replica.persistence.size | string | `"250Mi"` |  |
+| redis.replica.persistence.size | string | `"25Mi"` |  |
 | redis.replica.persistentVolumeClaimRetentionPolicy.enabled | bool | `true` |  |
 | redis.replica.persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Delete"` |  |
 | redis.replica.replicaCount | int | `2` |  |
@@ -113,7 +113,7 @@ Kubernetes: `>= 1.13.0`
 | redis.sentinel.image.registry | string | `"artifacts.developer.gov.bc.ca/docker-remote"` |  |
 | redis.sentinel.persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | redis.sentinel.persistence.enabled | bool | `true` |  |
-| redis.sentinel.persistence.size | string | `"250Mi"` |  |
+| redis.sentinel.persistence.size | string | `"25Mi"` |  |
 | redis.sentinel.persistence.storageClass | string | `"netapp-block-standard"` |  |
 | redis.sentinel.persistentVolumeClaimRetentionPolicy.enabled | bool | `true` |  |
 | redis.sentinel.persistentVolumeClaimRetentionPolicy.whenDeleted | string | `"Delete"` |  |

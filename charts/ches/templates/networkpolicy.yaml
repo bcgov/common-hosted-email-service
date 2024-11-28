@@ -116,10 +116,7 @@ kind: NetworkPolicy
 metadata:
   name: metabase-b160aa-tools-to-postgres
 spec:
-  podSelector:
-    matchLabels:
-      postgres-operator.crunchydata.com/cluster: postgres-master
-      postgres-operator.crunchydata.com/role: replica
+  podSelector: {}
   ingress:
     - ports:
         - protocol: TCP
