@@ -23,7 +23,7 @@ postgres:
   # --- resource allocation ----
   instances:
     - name: db # do not change this name after initial install, pvc (data) and stateful sets will be deleted
-      replicas: 1
+      replicas: 3
       dataVolumeClaimSpec:
         accessModes:
           - "ReadWriteOnce"
@@ -51,9 +51,9 @@ postgres:
   # -------- backups ---------
   pgBackRestConfig:
     manual:
-      repoName: repo1
+      repoName: repo2
       options:
-        - --type=full
+        - --type=diff
     repoHost:
       resources:
         requests:
@@ -66,19 +66,19 @@ postgres:
       pgbackrest:
         resources:
           requests:
-            cpu: 5m
-            memory: 16Mi
+            cpu: 10m
+            memory: 32Mi
           limits:
-            cpu: 20m
-            memory: 64Mi
+            cpu: 40m
+            memory: 128Mi
       pgbackrestConfig:
         resources:
           requests:
-            cpu: 5m
-            memory: 32Mi
-          limits:
-            cpu: 20m
+            cpu: 10m
             memory: 64Mi
+          limits:
+            cpu: 40m
+            memory: 128Mi
     jobs:
       resources:
         requests:
@@ -95,11 +95,11 @@ postgres:
       # log-level-console: debug
       # --- pvc
       repo1-retention-full: "1"
-      repo1-retention-diff: "3"
+      repo1-retention-diff: "5"
       # --- s3
       repo2-path: /backups/common-hosted-email-service/postgres/test
-      repo2-retention-full: "2"
-      repo2-retention-diff: "3"
+      repo2-retention-full: "1"
+      repo2-retention-diff: "30"
       repo2-s3-uri-style: path
     repos:
       - name: repo1
@@ -117,7 +117,7 @@ postgres:
       - name: repo2
         schedules:
           full: "0 0 1 * *" # full backup at midnight every month
-          differential: "0 */2 * * *" # differential every 2 hours
+          differential: "0 1 * * *" # differential every day at 1am
         s3:
           bucket: csstops
           endpoint: https://nrs.objectstore.gov.bc.ca
