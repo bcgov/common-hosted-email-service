@@ -33,10 +33,10 @@ postgres:
         storageClassName: "netapp-block-standard"
       resources:
         requests:
-          cpu: 100m
+          cpu: 200m
           memory: 256Mi
         limits:
-          cpu: 200m
+          cpu: 400m
           memory: 512Mi
       sidecars:
         replicaCertCopy:
@@ -57,36 +57,36 @@ postgres:
     repoHost:
       resources:
         requests:
-          cpu: 20m
-          memory: 128Mi
-        limits:
           cpu: 50m
           memory: 256Mi
+        limits:
+          cpu: 100m
+          memory: 512Mi
     sidecars:
       pgbackrest:
         resources:
           requests:
-            cpu: 10m
-            memory: 32Mi
+            cpu: 30m
+            memory: 64Mi
           limits:
-            cpu: 40m
-            memory: 128Mi
+            cpu: 90m
+            memory: 256Mi
       pgbackrestConfig:
         resources:
           requests:
-            cpu: 10m
-            memory: 64Mi
-          limits:
-            cpu: 40m
+            cpu: 50m
             memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
     jobs:
       resources:
         requests:
-          cpu: 10m
-          memory: 64Mi
-        limits:
           cpu: 50m
           memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
     configuration:
       # secret for saving backups to S3
       - secret:
@@ -152,11 +152,11 @@ redis:
       size: 25Mi
     resources:
       limits:
-        cpu: 50m
-        memory: 150Mi
+        cpu: 100m
+        memory: 256Mi
       requests:
-        cpu: 20m
-        memory: 50Mi
+        cpu: 25m
+        memory: 64Mi
   sentinel:
     enabled: true
     quorum: 1
@@ -175,8 +175,8 @@ redis:
       whenDeleted: Delete
     resources:
       limits:
-        cpu: 50m
-        memory: 150Mi
+        cpu: 100m
+        memory: 256Mi
       requests:
-        cpu: 20m
-        memory: 50Mi
+        cpu: 25m
+        memory: 64Mi

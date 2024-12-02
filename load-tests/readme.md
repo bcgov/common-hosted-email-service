@@ -36,6 +36,6 @@ Custom environment variables are supplied to k6 with the `-e` arg.
 
 ### Example commands
 
-`k6 run -e secret=SC_SECRET_HERE -e target=keo62354@cuoly.com --vus=10 --iterations=100 script.js`
+`k6 run -e secret=<ches secret here> -e target=<disposible email address here> --vus=1 --iterations=1 script.js`
 
 `k6 run -e secret=SC_SECRET_HERE -e target=keo62354@cuoly.com -e sender=chesTest@extest.gov.bc.ca -e env=test --vus=100 --iterations=3000 script.js`

@@ -5,8 +5,9 @@ import { check, fail } from 'k6';
 // -------------------------------------------------------------------------------------------------
 // 1. Init
 // -------------------------------------------------------------------------------------------------
-const client = 'TEST_SERVICE_CLIENT';
-const senderEmail = `${__ENV.sender ? __ENV.sender : 'donotreplyCHES@extest.gov.bc.ca'}`;
+
+const client = '<CHES service client id here>';
+const senderEmail = `${__ENV.sender ? __ENV.sender : 'donotreplyCHES@gov.bc.ca'}`;
 // https://k6.io/docs/using-k6/environment-variables
 const secret = `${__ENV.secret}`;
 const env = `${__ENV.env ? __ENV.env : 'dev'}`;
@@ -45,10 +46,10 @@ export let options = {
 
 // URL strings
 if (env === 'dev' || env === 'test') {
-  emailUrl = `https://ches-${env}-master.apps.silver.devops.gov.bc.ca/${emailUrl}`;
+  emailUrl = `https://ches-${env}.api.gov.bc.ca/${emailUrl}`;
   oidcUrl = `https://${env}.loginproxy.gov.bc.ca/${oidcUrl}`
 } else if (env === 'prod') {
-  emailUrl = `https://ches-${env}-master.apps.silver.devops.gov.bc.ca/${emailUrl}`;
+  emailUrl = `https://ches.api.gov.bc.ca/${emailUrl}`;
   oidcUrl = `https://loginproxy.gov.bc.ca/${oidcUrl}`
 } else if (env && env.match(/pr-\d+/g)) {
   emailUrl = `https://ches-dev-${env}-master.apps.silver.devops.gov.bc.ca/${emailUrl}`;
