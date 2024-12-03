@@ -3,9 +3,9 @@ name: common-hosted-email-service
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 1.0.5
+version: 1.0.6
 kubeVersion: ">= 1.13.0"
-description: A microservice for managing access control to S3 Objects
+description: An API for sending emails with scheduling and mail merge features
 # A chart can be either an 'application' or a 'library' chart.
 # Application charts are a collection of templates that can be packaged into versioned archives
 # to be deployed.
