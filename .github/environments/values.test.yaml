@@ -104,8 +104,8 @@ postgres:
     repos:
       - name: repo1
         schedules:
-          full: "0 0 1 * *" # full backup at midnight every month
-          differential: "0 1 * * *" # differential every day at 1am
+          full: "0 14 15 * *" # full backup at 14:00 on day-of-month 15
+          differential: "30 */2 * * *" # differential at minute 30 past every 2nd hour
         volume:
           volumeClaimSpec:
             accessModes:
@@ -116,8 +116,8 @@ postgres:
             storageClassName: "netapp-file-backup"
       - name: repo2
         schedules:
-          full: "0 0 1 * *" # full backup at midnight every month
-          differential: "0 1 * * *" # differential every day at 1am
+          full: "0 2 1 * *" # full backup at 02:00 on day-of-month 1
+          differential: "0 */2 * * *" # differential every 2 hours
         s3:
           bucket: csstops
           endpoint: https://nrs.objectstore.gov.bc.ca
