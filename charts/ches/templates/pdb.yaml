@@ -1,0 +1,14 @@
+{{- if and .Values.pdb  .Values.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "ches.fullname" . }}
+  labels:
+    {{- include "ches.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "ches.selectorLabels" . | nindent 6 }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+{{- end }}
