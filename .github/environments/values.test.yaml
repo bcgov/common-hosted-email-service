@@ -1,7 +1,8 @@
 ---
 autoscaling:
   enabled: true
-  maxReplicas: 4
+pdb:
+  enabled: true
 
 config:
   enabled: true
@@ -35,18 +36,12 @@ postgres:
         requests:
           cpu: 200m
           memory: 256Mi
-        limits:
-          cpu: 400m
-          memory: 512Mi
       sidecars:
         replicaCertCopy:
           resources:
             requests:
               cpu: 1m
               memory: 32Mi
-            limits:
-              cpu: 50m
-              memory: 64Mi
 
   # -------- backups ---------
   pgBackRestConfig:
@@ -59,34 +54,22 @@ postgres:
         requests:
           cpu: 50m
           memory: 256Mi
-        limits:
-          cpu: 100m
-          memory: 512Mi
     sidecars:
       pgbackrest:
         resources:
           requests:
             cpu: 30m
             memory: 64Mi
-          limits:
-            cpu: 90m
-            memory: 256Mi
       pgbackrestConfig:
         resources:
           requests:
             cpu: 50m
             memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
     jobs:
       resources:
         requests:
           cpu: 50m
           memory: 128Mi
-        limits:
-          cpu: 100m
-          memory: 256Mi
     configuration:
       # secret for saving backups to S3
       - secret:
@@ -151,9 +134,6 @@ redis:
       accessMode: ReadWriteOnce
       size: 25Mi
     resources:
-      limits:
-        cpu: 100m
-        memory: 256Mi
       requests:
         cpu: 25m
         memory: 64Mi
@@ -174,9 +154,6 @@ redis:
       whenScaled: Delete
       whenDeleted: Delete
     resources:
-      limits:
-        cpu: 100m
-        memory: 256Mi
       requests:
         cpu: 25m
         memory: 64Mi

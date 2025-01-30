@@ -172,9 +172,6 @@ spec:
             requests:
               cpu: 10m
               memory: 16Mi
-            limits:
-              cpu: 50m
-              memory: 64Mi
           volumeMounts:
             - name: log-storage
               mountPath: /var/log
