@@ -1,7 +1,8 @@
 ---
 autoscaling:
   enabled: true
-  maxReplicas: 4
+pdb:
+  enabled: true
 
 config:
   enabled: true
@@ -32,20 +33,16 @@ postgres:
         storageClassName: "netapp-block-standard"
       resources:
         requests:
-          cpu: 200m
-          memory: 256Mi
-        limits:
-          cpu: 400m
+          cpu: 256m
           memory: 512Mi
-      sidecars:
+        limits:
+          cpu: 512m
+          memory: 1024Mi
         replicaCertCopy:
           resources:
             requests:
-              cpu: 1m
-              memory: 32Mi
-            limits:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 25m
+              memory: 50Mi
 
   # -------- backups ---------
   pgBackRestConfig:
@@ -56,34 +53,22 @@ postgres:
     repoHost:
       resources:
         requests:
-          cpu: 50m
-          memory: 256Mi
-        limits:
           cpu: 100m
-          memory: 512Mi
+          memory: 256Mi
     sidecars:
       pgbackrest:
         resources:
           requests:
-            cpu: 30m
-            memory: 64Mi
-          limits:
-            cpu: 90m
-            memory: 256Mi
+            cpu: 50m
+            memory: 100Mi
       pgbackrestConfig:
         resources:
           requests:
             cpu: 50m
             memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
     jobs:
       resources:
         requests:
-          cpu: 50m
-          memory: 128Mi
-        limits:
           cpu: 100m
           memory: 256Mi
     configuration:
@@ -137,9 +122,6 @@ postgres:
       requests:
         cpu: 1m
         memory: 16Mi
-      limits:
-        cpu: 35m
-        memory: 32Mi
 
 redis:
   architecture: replication
@@ -161,9 +143,6 @@ redis:
       accessMode: ReadWriteOnce
       size: 25Mi
     resources:
-      limits:
-        cpu: 100m
-        memory: 256Mi
       requests:
         cpu: 25m
         memory: 64Mi
@@ -184,9 +163,6 @@ redis:
       whenScaled: Delete
       whenDeleted: Delete
     resources:
-      limits:
-        cpu: 100m
-        memory: 256Mi
       requests:
         cpu: 25m
         memory: 64Mi

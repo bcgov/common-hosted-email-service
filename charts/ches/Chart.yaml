@@ -3,7 +3,7 @@ name: common-hosted-email-service
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 1.0.7
+version: 1.0.8
 kubeVersion: ">= 1.13.0"
 description: An API for sending emails with scheduling and mail merge features
 # A chart can be either an 'application' or a 'library' chart.
