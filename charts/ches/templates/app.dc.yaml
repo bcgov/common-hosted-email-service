@@ -86,21 +86,25 @@ spec:
             - containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
-            failureThreshold: 3
+            successThreshold: 1
+            failureThreshold: 5
             httpGet:
               path: {{ .Values.route.path }}
               port: {{ .Values.service.port }}
               scheme: HTTP
-            initialDelaySeconds: 10
-            timeoutSeconds: 1
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
           readinessProbe:
-            failureThreshold: 3
             httpGet:
               path: {{ .Values.route.path }}
               port: {{ .Values.service.port }}
               scheme: HTTP
-            initialDelaySeconds: 10
-            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 30
           resources: {{ toYaml .Values.resources | nindent 12 }}
           env:
             - name: NODE_ENV
