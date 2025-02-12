@@ -30,7 +30,6 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
-  {{- with .Values.autoscaling.behavior }}
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
@@ -51,5 +50,4 @@ spec:
         - type: Pods
           value: 2
           periodSeconds: 30
-  {{- end }}
 {{- end }}

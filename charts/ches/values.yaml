@@ -44,7 +44,7 @@ autoscaling:
   # -- Specifies whether the Horizontal Pod Autoscaler should be created
   enabled: false
   minReplicas: 3
-  maxReplicas: 8
+  maxReplicas: 16
   targetCPUUtilizationPercentage: 80
 # pod disruption budget.
 pdb:
@@ -92,16 +92,9 @@ resources:
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   # -- Limit Peak CPU (in millicores ex. 1000m)
-  #   cpu: 200m
-  #   # -- Limit Peak Memory (in gigabytes Gi or megabytes Mi ex. 2Gi)
-  #   memory: 256Mi
   requests:
-    # -- Requested CPU (in millicores ex. 500m)
-    cpu: 50m
-    # -- Requested Memory (in gigabytes Gi or megabytes Mi ex. 500Mi)
-    memory: 128Mi
+    cpu: 200m
+    memory: 500Mi
 
 config:
   # -- Set to true if you want to let Helm manage and overwrite your configmaps.
