@@ -425,6 +425,16 @@ entries:
   postgrescluster:
   - apiVersion: v2
     appVersion: 5.5.1
+    created: "2025-05-21T17:31:13.637416931Z"
+    description: A Helm chart for Kubernetes
+    digest: 4c33566cac5c1e9422f9e74385e7edecdd4d1d8447037b60276a356189800e83
+    name: postgrescluster
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/postgrescluster-2.0.4/postgrescluster-2.0.4.tgz
+    version: 2.0.4
+  - apiVersion: v2
+    appVersion: 5.5.1
     created: "2025-05-21T16:57:02.797967892Z"
     description: A Helm chart for Kubernetes
     digest: 4877a9e9d8d88f0778b846fb75715357d488fabcb4b4ee6918ccd9690aff5d47
@@ -453,4 +463,4 @@ entries:
     urls:
     - https://github.com/bcgov/common-hosted-email-service/releases/download/postgrescluster-2.0.1/postgrescluster-2.0.1.tgz
     version: 2.0.1
-generated: "2025-05-21T16:57:02.798011574Z"
+generated: "2025-05-21T17:31:13.637472284Z"
