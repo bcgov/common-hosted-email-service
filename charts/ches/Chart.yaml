@@ -26,7 +26,7 @@ sources:
   - https://github.com/bcgov/common-hosted-email-service
 dependencies:
   - name: postgrescluster
-    version: 2.0.2
+    version: 2.0.3
     repository: "file://../postgres"
     condition: postgres.enabled
     alias: postgres
