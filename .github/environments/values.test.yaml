@@ -34,10 +34,10 @@ postgres:
         storageClassName: "netapp-block-standard"
       resources:
         requests:
-          cpu: 256m
+          cpu: 128m
           memory: 512Mi
         limits:
-          cpu: 512m
+          cpu: 256m
           memory: 1024Mi
       sidecars:
         replicaCertCopy:
