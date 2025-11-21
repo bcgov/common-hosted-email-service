@@ -29,7 +29,7 @@ postgres:
           - "ReadWriteOnce"
         resources:
           requests:
-            storage: 20Gi
+            storage: 35Gi
         storageClassName: "netapp-block-standard"
       resources:
         requests:
@@ -156,7 +156,7 @@ redis:
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
-      size: 25Mi
+      size: 35Mi
       storageClass: netapp-block-standard
     persistentVolumeClaimRetentionPolicy:
       enabled: true
