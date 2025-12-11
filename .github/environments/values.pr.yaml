@@ -5,13 +5,9 @@ features:
   defaultBucket: false
 
 redis:
-  image:
-    registry: artifacts.developer.gov.bc.ca/docker-remote
   replica:
     persistence:
       enabled: false
   sentinel:
-    image:
-      registry: artifacts.developer.gov.bc.ca/docker-remote
     persistence:
       enabled: false
