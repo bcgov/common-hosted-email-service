@@ -7,11 +7,13 @@ features:
 redis:
   image:
     registry: docker.io
+    tag: latest
   replica:
     persistence:
       enabled: false
   sentinel:
     image:
       registry: docker.io
+      tag: latest
     persistence:
       enabled: false
