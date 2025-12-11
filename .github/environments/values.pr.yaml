@@ -3,3 +3,10 @@ features:
   basicAuth: true
   oidcAuth: true
   defaultBucket: false
+
+redis:
+  image:
+    registry: artifacts.developer.gov.bc.ca/docker-remote
+  sentinel:
+    image:
+      registry: artifacts.developer.gov.bc.ca/docker-remote
