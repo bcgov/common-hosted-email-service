@@ -5,9 +5,13 @@ features:
   defaultBucket: false
 
 redis:
+  image:
+    registry: docker.io
   replica:
     persistence:
       enabled: false
   sentinel:
+    image:
+      registry: docker.io
     persistence:
       enabled: false
