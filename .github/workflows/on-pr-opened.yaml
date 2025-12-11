@@ -90,18 +90,30 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Deploy to Dev
-        uses: ./.github/actions/deploy-to-environment
-        with:
-          app_name: ${{ env.APP_NAME }}
-          acronym: ${{ env.ACRONYM }}
-          environment: pr
-          deploy_postgres: false
-          job_name: pr-${{ github.event.number }}
-          namespace_prefix: ${{ env.NAMESPACE_PREFIX }}
-          namespace_environment: dev
-          openshift_server: ${{ secrets.OPENSHIFT_SERVER }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
+      - name: set lower case owner name
+        shell: bash
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: "${{ github.repository_owner }}"
+      - name: Build Helm dependencies
+        shell: bash
+        run: |
+          cd charts/ches
+          helm dependency build
+      - name: Deploy to Dev with local chart
+        shell: bash
+        run: |
+          helm upgrade --install --atomic pr-${{ github.event.number }} charts/ches \
+            --namespace ${{ env.NAMESPACE_PREFIX }}-dev \
+            --values ./.github/environments/values.pr.yaml \
+            --set image.repository=ghcr.io/$OWNER_LC \
+            --set image.tag=sha-$(git rev-parse --short HEAD) \
+            --set route.host=${{ env.ACRONYM }}-dev-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca \
+            --set postgres.name=postgres-pr-${{ github.event.number }} \
+            --set postgres.enabled=false \
+            --timeout 15m \
+            --wait
       - name: Release Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         if: success()
