@@ -16,13 +16,13 @@ annotations:
   licenses: Apache-2.0
   tanzuCategory: service
 apiVersion: v2
-appVersion: 8.2.1
+appVersion: 24.1.2
 dependencies:
 - name: common
-  repository: oci://registry-1.docker.io/bitnamicharts
+  repository: "file://../redis/charts/bitnami-common"
   tags:
   - bitnami-common
-  version: 2.x.x
+  version: 2.40.1
 description: Redis(R) is an open source, advanced key-value store. It is often referred
   to as a data structure server since keys can contain strings, hashes, lists, sets
   and sorted sets.
@@ -38,4 +38,4 @@ maintainers:
 name: redis
 sources:
 - https://github.com/bitnami/charts/tree/main/bitnami/redis
-version: 23.0.5
+version: 24.1.2

@@ -67,6 +67,7 @@ runs:
         --set route.host=${{ inputs.acronym }}-${{ inputs.namespace_environment }}-${{ inputs.job_name }}.apps.silver.devops.gov.bc.ca
         --set postgres.name=postgres-${{ inputs.job_name }}
         --set postgres.enabled=${{ inputs.deploy_postgres }}
+        --set global.security.allowInsecureImages=true
         --timeout 15m
         --wait
 
