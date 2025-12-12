@@ -3,7 +3,7 @@ name: common-hosted-email-service
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 1.1.2
+version: 1.1.9
 kubeVersion: ">= 1.13.0"
 description: An API for sending emails with scheduling and mail merge features
 # A chart can be either an 'application' or a 'library' chart.
@@ -26,13 +26,13 @@ sources:
   - https://github.com/bcgov/common-hosted-email-service
 dependencies:
   - name: postgrescluster
-    version: 2.0.5
+    version: 2.0.9
     repository: "file://../postgres"
     condition: postgres.enabled
     alias: postgres
   - name: redis
     condition: redis.enabled
-    version: 23.0.5
+    version: 24.0.7
     repository: "file://../redis"
     alias: redis
 maintainers:
