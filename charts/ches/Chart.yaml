@@ -33,7 +33,7 @@ dependencies:
   - name: redis
     condition: redis.enabled
     version: 20.0.3
-    repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+    repository: https://charts.bitnami.com/bitnami
     alias: redis
 maintainers:
   - name: NR Common Service Showcase Team

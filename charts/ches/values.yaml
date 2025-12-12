@@ -126,11 +126,19 @@ redis:
   enabled: true
   auth:
     enabled: false
+
   # image:
   #   registry: artifacts.developer.gov.bc.ca/docker-remote
+
   image:
+    registry: docker.io
     repository: bitnamilegacy/redis
     tag: "7.0.5-debian-11-r7"
+
+  # image:
+  #   registry: artifacts.developer.gov.bc.ca/docker-remote
+  #   repository: bitnamilegacy/redis
+  #   tag: 7.4.0-debian-12-r4 
 
   replica:
     shareProcessNamespace: true
@@ -151,11 +159,21 @@ redis:
     quorum: 1
     podSecurityContext: {}
     containerSecurityContext: {}
+
     # image:
     #   registry: artifacts.developer.gov.bc.ca/docker-remote
+
     image:
+      registry: docker.io
       repository: bitnamilegacy/redis-sentinel
       tag: "7.0.5-debian-11-r8"
+
+    # image:
+    #   registry: artifacts.developer.gov.bc.ca/docker-remote
+    #   repository: bitnamilegacy/redis-sentinel
+    #   tag: 7.4.0-debian-12-r4 
+
+
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
