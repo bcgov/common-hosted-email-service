@@ -3,6 +3,43 @@ entries:
   common-hosted-email-service:
   - apiVersion: v2
     appVersion: 0.8.0
+    created: "2025-12-12T21:10:49.333320136Z"
+    dependencies:
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgrescluster
+      repository: file://../postgres
+      version: 2.0.8
+    - alias: redis
+      condition: redis.enabled
+      name: redis
+      repository: file://../redis
+      version: 24.0.4
+    description: An API for sending emails with scheduling and mail merge features
+    digest: f8fcee47604cc37efe97b191963cb97c533339fdcd40098d21e92f5b28840124
+    home: https://bcgov.github.io/common-hosted-email-service
+    keywords:
+    - nodejs
+    - javascript
+    - docker
+    - microservice
+    - nodemailer
+    - email
+    - ches
+    kubeVersion: '>= 1.13.0'
+    maintainers:
+    - email: NR.CommonServiceShowcase@gov.bc.ca
+      name: NR Common Service Showcase Team
+      url: https://bcgov.github.io/common-service-showcase/team.html
+    name: common-hosted-email-service
+    sources:
+    - https://github.com/bcgov/common-hosted-email-service
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/common-hosted-email-service-1.1.6/common-hosted-email-service-1.1.6.tgz
+    version: 1.1.6
+  - apiVersion: v2
+    appVersion: 0.8.0
     created: "2025-12-12T20:39:36.156867139Z"
     dependencies:
     - alias: postgres
@@ -499,6 +536,16 @@ entries:
   postgrescluster:
   - apiVersion: v2
     appVersion: 5.5.1
+    created: "2025-12-12T21:10:49.537391429Z"
+    description: A Helm chart for Kubernetes
+    digest: b0aaeee3e44d62a34e3c5944f344a5f7cdbff0905d443186413ca35c0f1a7187
+    name: postgrescluster
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/postgrescluster-2.0.8/postgrescluster-2.0.8.tgz
+    version: 2.0.8
+  - apiVersion: v2
+    appVersion: 5.5.1
     created: "2025-05-21T17:50:13.457832551Z"
     description: A Helm chart for Kubernetes
     digest: f2b1cef09f4138b8523f57545418a2a58886405125a159a352642017865ff3ff
@@ -564,6 +611,48 @@ entries:
       tanzuCategory: service
     apiVersion: v2
     appVersion: 8.2.1
+    created: "2025-12-12T21:10:49.812116902Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: 2.31.4
+    description: Redis(R) is an open source, advanced key-value store. It is often
+      referred to as a data structure server since keys can contain strings, hashes,
+      lists, sets and sorted sets.
+    digest: 7df3fd1adf0fd97731a8b96b330df07cbfefd03da7940cccde8732e514323050
+    home: https://bitnami.com
+    icon: https://dyltqmyl993wv.cloudfront.net/assets/stacks/redis/img/redis-stack-220x234.png
+    keywords:
+    - redis
+    - keyvalue
+    - database
+    maintainers:
+    - name: Broadcom, Inc. All Rights Reserved.
+      url: https://github.com/bitnami/charts
+    name: redis
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/redis
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/redis-24.0.4/redis-24.0.4.tgz
+    version: 24.0.4
+  - annotations:
+      images: |
+        - name: kubectl
+          image: docker.io/bitnami/kubectl:1.33.4-debian-12-r0
+        - name: os-shell
+          image: docker.io/bitnami/os-shell:12-debian-12-r51
+        - name: redis
+          image: docker.io/bitnami/redis:8.2.1-debian-12-r0
+        - name: redis-exporter
+          image: docker.io/bitnami/redis-exporter:1.76.0-debian-12-r0
+        - name: redis-sentinel
+          image: docker.io/bitnami/redis-sentinel:8.2.1-debian-12-r0
+      licenses: Apache-2.0
+      tanzuCategory: service
+    apiVersion: v2
+    appVersion: 8.2.1
     created: "2025-12-12T20:33:40.800771888Z"
     dependencies:
     - name: common
@@ -590,4 +679,4 @@ entries:
     urls:
     - https://github.com/bcgov/common-hosted-email-service/releases/download/redis-23.0.5/redis-23.0.5.tgz
     version: 23.0.5
-generated: "2025-12-12T20:39:36.333629574Z"
+generated: "2025-12-12T21:10:49.812230735Z"
