@@ -126,8 +126,12 @@ redis:
   enabled: true
   auth:
     enabled: false
+  # image:
+  #   registry: artifacts.developer.gov.bc.ca/docker-remote
   image:
-    registry: artifacts.developer.gov.bc.ca/docker-remote
+    repository: bitnamilegacy/redis
+    tag: "7.0.5-debian-11-r7"
+
   replica:
     shareProcessNamespace: true
     replicaCount: 2
@@ -147,8 +151,11 @@ redis:
     quorum: 1
     podSecurityContext: {}
     containerSecurityContext: {}
+    # image:
+    #   registry: artifacts.developer.gov.bc.ca/docker-remote
     image:
-      registry: artifacts.developer.gov.bc.ca/docker-remote
+      repository: bitnamilegacy/redis-sentinel
+      tag: "7.0.5-debian-11-r8"
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
@@ -162,6 +169,17 @@ redis:
       requests:
         cpu: 20m
         memory: 50Mi
+
+  metrics:
+    image:
+      repository: bitnamilegacy/redis-exporter
+      tag: "1.45.0-debian-11-r1"
+
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/bitnami-shell
+      tag: "11-debian-11-r27"
+
 
 # crunchy-postgres subchart configuration overrides
 postgres:
