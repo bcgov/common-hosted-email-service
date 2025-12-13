@@ -3,6 +3,43 @@ entries:
   common-hosted-email-service:
   - apiVersion: v2
     appVersion: 0.8.0
+    created: "2025-12-13T00:03:04.443833981Z"
+    dependencies:
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgrescluster
+      repository: file://../postgres
+      version: 2.0.9
+    - alias: redis
+      condition: redis.enabled
+      name: redis
+      repository: file://../redis
+      version: 24.1.2
+    description: An API for sending emails with scheduling and mail merge features
+    digest: 5ed6d067228a3f2f357a8570604f2f9803e953d545ad1124f9ca81b7b6e59dce
+    home: https://bcgov.github.io/common-hosted-email-service
+    keywords:
+    - nodejs
+    - javascript
+    - docker
+    - microservice
+    - nodemailer
+    - email
+    - ches
+    kubeVersion: '>= 1.13.0'
+    maintainers:
+    - email: NR.CommonServiceShowcase@gov.bc.ca
+      name: NR Common Service Showcase Team
+      url: https://bcgov.github.io/common-service-showcase/team.html
+    name: common-hosted-email-service
+    sources:
+    - https://github.com/bcgov/common-hosted-email-service
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/common-hosted-email-service-1.2.4/common-hosted-email-service-1.2.4.tgz
+    version: 1.2.4
+  - apiVersion: v2
+    appVersion: 0.8.0
     created: "2025-12-12T21:53:19.125876551Z"
     dependencies:
     - alias: postgres
@@ -657,6 +694,48 @@ entries:
       licenses: Apache-2.0
       tanzuCategory: service
     apiVersion: v2
+    appVersion: 24.1.2
+    created: "2025-12-13T00:03:04.746619511Z"
+    dependencies:
+    - name: common
+      repository: file://../redis/charts/bitnami-common
+      tags:
+      - bitnami-common
+      version: 2.40.1
+    description: Redis(R) is an open source, advanced key-value store. It is often
+      referred to as a data structure server since keys can contain strings, hashes,
+      lists, sets and sorted sets.
+    digest: 954df19b92ec98b25ead801c3243165f1dd028f577d88b8012417ecea101734d
+    home: https://bitnami.com
+    icon: https://dyltqmyl993wv.cloudfront.net/assets/stacks/redis/img/redis-stack-220x234.png
+    keywords:
+    - redis
+    - keyvalue
+    - database
+    maintainers:
+    - name: Broadcom, Inc. All Rights Reserved.
+      url: https://github.com/bitnami/charts
+    name: redis
+    sources:
+    - https://github.com/bitnami/charts/tree/main/bitnami/redis
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/redis-24.1.2/redis-24.1.2.tgz
+    version: 24.1.2
+  - annotations:
+      images: |
+        - name: kubectl
+          image: docker.io/bitnami/kubectl:1.33.4-debian-12-r0
+        - name: os-shell
+          image: docker.io/bitnami/os-shell:12-debian-12-r51
+        - name: redis
+          image: docker.io/bitnami/redis:8.2.1-debian-12-r0
+        - name: redis-exporter
+          image: docker.io/bitnami/redis-exporter:1.76.0-debian-12-r0
+        - name: redis-sentinel
+          image: docker.io/bitnami/redis-sentinel:8.2.1-debian-12-r0
+      licenses: Apache-2.0
+      tanzuCategory: service
+    apiVersion: v2
     appVersion: 8.2.1
     created: "2025-12-12T23:22:17.932751086Z"
     dependencies:
@@ -810,4 +889,4 @@ entries:
     urls:
     - https://github.com/bcgov/common-hosted-email-service/releases/download/redis-23.0.5/redis-23.0.5.tgz
     version: 23.0.5
-generated: "2025-12-12T23:22:17.932799998Z"
+generated: "2025-12-13T00:03:04.746791382Z"
