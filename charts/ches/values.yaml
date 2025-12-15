@@ -154,7 +154,7 @@ redis:
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
-      size: 25Mi
+      size: 100Mi
     resources:
       requests:
         cpu: 20m
@@ -182,7 +182,7 @@ redis:
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
-      size: 25Mi
+      size: 100Mi
       storageClass: netapp-block-standard
     persistentVolumeClaimRetentionPolicy:
       enabled: true
