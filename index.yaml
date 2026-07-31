@@ -3,6 +3,43 @@ entries:
   common-hosted-email-service:
   - apiVersion: v2
     appVersion: 0.8.0
+    created: "2026-07-31T23:27:02.008884845Z"
+    dependencies:
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgrescluster
+      repository: file://../postgres
+      version: 2.0.9
+    - alias: redis
+      condition: redis.enabled
+      name: redis
+      repository: file://../redis
+      version: 24.1.2
+    description: An API for sending emails with scheduling and mail merge features
+    digest: 2f91f59c6d004865c170a779e0c1be51c4203f682f544d5d696c42369359a042
+    home: https://bcgov.github.io/common-hosted-email-service
+    keywords:
+    - nodejs
+    - javascript
+    - docker
+    - microservice
+    - nodemailer
+    - email
+    - ches
+    kubeVersion: '>= 1.13.0'
+    maintainers:
+    - email: NR.CommonServiceShowcase@gov.bc.ca
+      name: NR Common Service Showcase Team
+      url: https://bcgov.github.io/common-service-showcase/team.html
+    name: common-hosted-email-service
+    sources:
+    - https://github.com/bcgov/common-hosted-email-service
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/common-hosted-email-service-1.2.7/common-hosted-email-service-1.2.7.tgz
+    version: 1.2.7
+  - apiVersion: v2
+    appVersion: 0.8.0
     created: "2026-07-30T22:46:22.248013229Z"
     dependencies:
     - alias: postgres
@@ -963,4 +1000,4 @@ entries:
     urls:
     - https://github.com/bcgov/common-hosted-email-service/releases/download/redis-23.0.5/redis-23.0.5.tgz
     version: 23.0.5
-generated: "2026-07-30T22:46:22.24815974Z"
+generated: "2026-07-31T23:27:02.009039434Z"
