@@ -26,6 +26,6 @@ overrides specific to a single environment are defined in `.github/environments/
         - app
 ```
 
-When crunchyDB is installed a secret is created called `postgres-master-pguser-app` that contains postgres credentials that must be referenced in our [COMS deployment template](https://github.com/bcgov/common-hosted-email-service/blob/921154defa5ba0baa35ed55a4d3436c456017701/charts/coms/templates/deploymentconfig.yaml#L5)
+When crunchyDB is installed a secret is created called `postgres-master-pguser-app` that contains postgres credentials that must be referenced in our [COMS deployment template](https://github.com/bcgov/common-hosted-email-service/blob/2c4efa8a0e2e3259bdcc9d5a4aef08aa68db6ee5/charts/ches/templates/deployment.yaml#L5)
 
 - PR deployments of COMS deploy a dedicated instance of the COMS app in our DEV environment in OPenShift. To reduce server resources, instead of also deploying an extra instance of CrunchyDB, the GitHub action 'On PR Opened' creates a temporary database and user (both named, eg `pr-123`) in the `master` (main) DEV instance of Postgres, that will get dropped when the PR is merged.
