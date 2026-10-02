@@ -82,7 +82,6 @@ postgres:
       repo1-retention-diff: "2"
       # --- s3
       repo2-path: /backups/common-hosted-email-service/postgres/prod
-      repo1-path: /backups
       repo2-retention-full: "1"
       repo2-retention-diff: "30"
       repo2-s3-uri-style: path
