@@ -3,6 +3,43 @@ entries:
   common-hosted-email-service:
   - apiVersion: v2
     appVersion: 0.8.0
+    created: "2026-10-02T19:31:23.064642853Z"
+    dependencies:
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgrescluster
+      repository: file://../postgres
+      version: 2.1.0
+    - alias: redis
+      condition: redis.enabled
+      name: redis
+      repository: file://../redis
+      version: 24.1.2
+    description: An API for sending emails with scheduling and mail merge features
+    digest: 79ac16232125c21ef39136adc9ad266cf5c938a0360db6825c9b2c789e4cb86b
+    home: https://bcgov.github.io/common-hosted-email-service
+    keywords:
+    - nodejs
+    - javascript
+    - docker
+    - microservice
+    - nodemailer
+    - email
+    - ches
+    kubeVersion: '>= 1.13.0'
+    maintainers:
+    - email: NR.CommonServiceShowcase@gov.bc.ca
+      name: NR Common Service Showcase Team
+      url: https://bcgov.github.io/common-service-showcase/team.html
+    name: common-hosted-email-service
+    sources:
+    - https://github.com/bcgov/common-hosted-email-service
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/common-hosted-email-service-1.2.8/common-hosted-email-service-1.2.8.tgz
+    version: 1.2.8
+  - apiVersion: v2
+    appVersion: 0.8.0
     created: "2026-07-31T23:27:02.008884845Z"
     dependencies:
     - alias: postgres
@@ -721,6 +758,16 @@ entries:
   postgrescluster:
   - apiVersion: v2
     appVersion: 5.5.1
+    created: "2026-10-02T19:31:23.266012256Z"
+    description: A Helm chart for Kubernetes
+    digest: fbc10af6d23d4cddb3c603dc9237fd2a148d7bcbe57a894ccf970595d76b7c28
+    name: postgrescluster
+    type: application
+    urls:
+    - https://github.com/bcgov/common-hosted-email-service/releases/download/postgrescluster-2.1.0/postgrescluster-2.1.0.tgz
+    version: 2.1.0
+  - apiVersion: v2
+    appVersion: 5.5.1
     created: "2025-12-12T21:53:19.340641518Z"
     description: A Helm chart for Kubernetes
     digest: d80ce2fab6ea80a89cdf08fabb619afa9b1cc3b6ddc40d7a2383da3c7977aee6
@@ -1000,4 +1047,4 @@ entries:
     urls:
     - https://github.com/bcgov/common-hosted-email-service/releases/download/redis-23.0.5/redis-23.0.5.tgz
     version: 23.0.5
-generated: "2026-07-31T23:27:02.009039434Z"
+generated: "2026-10-02T19:31:23.266116747Z"
