@@ -15,7 +15,7 @@ const docs = {
     </head>
     <body>
       <redoc spec-url='/api/${version}/docs/api-spec.yaml'></redoc>
-      <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+      <script src="https://cdn.redoc.ly/redoc/v2.5.3/bundles/redoc.standalone.js"></script>
     </body>
   </html>`
 };
