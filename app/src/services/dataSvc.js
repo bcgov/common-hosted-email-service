@@ -9,8 +9,6 @@
  *
  * @exports DataService
  */
-const uuid = require('uuid');
-
 const log = require('../components/log')(module.filename);
 const { queueToStatus, statusState } = require('../components/state');
 const utils = require('../components/utils');
@@ -30,7 +28,7 @@ const { Message, Queue, Status, Trxn } = require('./models/');
  */
 const createMessage = async (transactionId, msg, trx) => {
   const messageObj = await Message.query(trx).insert({
-    messageId: uuid.v4(),
+    messageId: crypto.randomUUID(),
     transactionId: transactionId,
     tag: msg.tag,
     email: msg,
@@ -103,7 +101,7 @@ class DataService {
     let trx;
     try {
       trx = await Trxn.startTransaction();
-      const transactionId = uuid.v4();
+      const transactionId = crypto.randomUUID();
 
       await Trxn.query(trx).insert({
         transactionId: transactionId,

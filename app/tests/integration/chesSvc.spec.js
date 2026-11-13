@@ -18,7 +18,6 @@ const Bull = require('bull');
 const config = require('config');
 const Knex = require('knex');
 const { NotFoundError } = require('objection');
-const uuid = require('uuid');
 const Problem = require('api-problem');
 
 const { statusState, queueState } = require('../../src/components/state');
@@ -182,7 +181,7 @@ describe.skip('chesService', () => {
 
     it('should throw a 400 when client is null', async () => {
       try {
-        await chesService.cancelMessage(undefined, uuid.v4());
+        await chesService.cancelMessage(undefined, crypto.randomUUID());
       } catch (e) {
         expect(e).toBeTruthy();
         expect(e.status).toBe('400');
@@ -219,7 +218,7 @@ describe.skip('chesService', () => {
 
     it('should throw a 404 when message is not found', async () => {
       spy.mockResolvedValue(false);
-      const msgId = uuid.v4();
+      const msgId = crypto.randomUUID();
 
       try {
         await chesService.cancelMessage(CLIENT, msgId);
@@ -297,8 +296,8 @@ describe.skip('chesService', () => {
     });
 
     it('should return nothing with all nonexistent search parameters', async () => {
-      const msgId = uuid.v4();
-      const txId = uuid.v4();
+      const msgId = crypto.randomUUID();
+      const txId = crypto.randomUUID();
       const status = statusState.COMPLETED;
       const tag = 'tag';
 
@@ -435,8 +434,8 @@ describe.skip('chesService', () => {
     });
 
     it('should return an empty array with all nonexistent search parameters', async () => {
-      const msgId = uuid.v4();
-      const txId = uuid.v4();
+      const msgId = crypto.randomUUID();
+      const txId = crypto.randomUUID();
       const result = await fn(CLIENT, msgId, 'status', 'tag', txId);
 
       expect(Array.isArray(result)).toBeTruthy();
@@ -473,7 +472,7 @@ describe.skip('chesService', () => {
 
     it('should throw a 404 with invalid message id.', async () => {
       try {
-        await chesService.getStatus(CLIENT, uuid.v4());
+        await chesService.getStatus(CLIENT, crypto.randomUUID());
       } catch (e) {
         expect(e).toBeTruthy();
         expect(e.status).toBe('404');
