@@ -23,6 +23,9 @@ jobs:
     name: Build & Push
     if: "! github.event.pull_request.head.repo.fork"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -41,6 +44,10 @@ jobs:
       name: pr
       url: https://${{ env.ACRONYM }}-dev-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
     needs: build
     timeout-minutes: 12
     steps:

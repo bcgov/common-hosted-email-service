@@ -24,6 +24,10 @@ jobs:
       name: pr
       url: https://${{ env.ACRONYM }}-dev-pr-${{ github.event.number }}.apps.silver.devops.gov.bc.ca
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
     timeout-minutes: 12
     steps:
       - name: Checkout

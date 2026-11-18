@@ -15,6 +15,10 @@ jobs:
     outputs:
       HAS_CC_SECRETS: ${{ steps.check-secrets.outputs.HAS_CC_SECRETS }}
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
     strategy:
       fail-fast: true
       matrix:
