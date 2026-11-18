@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Build & Push
         uses: ./.github/actions/build-push-container
         with:
@@ -52,7 +52,7 @@ jobs:
     timeout-minutes: 12
     steps:
       - name: Install CLI tools from OpenShift Mirror
-        uses: redhat-actions/openshift-tools-installer@v1
+        uses: redhat-actions/openshift-tools-installer@v3
         with:
           oc: "4"
       - name: Login to OpenShift and select project
@@ -96,7 +96,7 @@ jobs:
           oc exec "${CRUNCHY_PG_PRIMARY_POD_NAME}" -- psql -c "ALTER DATABASE \"pr-${{ github.event.number }}\" OWNER TO \"pr-${{ github.event.number }}\""
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Deploy to Dev
         uses: ./.github/actions/deploy-to-environment
         with:
@@ -110,7 +110,7 @@ jobs:
           openshift_server: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
       - name: Release Comment on PR
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         if: success()
         with:
           header: release
