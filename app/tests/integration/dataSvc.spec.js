@@ -9,7 +9,6 @@
  */
 const Knex = require('knex');
 const { NotFoundError } = require('objection');
-const uuid = require('uuid');
 
 const { statusState, queueState } = require('../../src/components/state');
 
@@ -215,7 +214,7 @@ describe('dataService', () => {
     });
 
     it('should return false when a message does not exist', async () => {
-      const result = await dataService.messageExists(CLIENT, uuid.v4());
+      const result = await dataService.messageExists(CLIENT, crypto.randomUUID());
 
       expect(result).toBeFalsy();
     });
@@ -249,11 +248,11 @@ describe('dataService', () => {
   });
 
   it('should create a trxn for email array', async () => {
-    const compare = (a1, a2) =>
-      (a1 = new Set(a1)) &&
-      (a2 = new Set(a2)) &&
-      a1.size === a2.size &&
-      [...a1].every(v => a2.has(v));
+    const compare = (a1, a2) => {
+      const s1 = new Set(a1);
+      const s2 = new Set(a2);
+      return s1.size === s2.size && [...s1].every(v => s2.has(v));
+    };
 
     const result = await dataService.createTransaction(CLIENT, emails);
     expect(result).toBeTruthy();
@@ -314,14 +313,14 @@ describe('dataService', () => {
 
   it('should error out on status update with bad message id', async () => {
 
-    const messageId = uuid.v4();
+    const messageId = crypto.randomUUID();
     const status = 'there is no message';
 
     await expect(dataService.updateStatus(CLIENT, messageId, status)).rejects.toThrow();
   });
 
   it('should error out on find transaction with bad id', async () => {
-    const transactionId = uuid.v4();
+    const transactionId = crypto.randomUUID();
     await expect(dataService.readTransaction(CLIENT, transactionId)).rejects.toThrow();
   });
 
@@ -346,11 +345,11 @@ describe('dataService', () => {
 
   it('should only read data created by the client.', async () => {
     const email = emails[0];
-    const client1 = `client1-${uuid.v4()}`;
+    const client1 = `client1-${crypto.randomUUID()}`;
     const result1 = await dataService.createTransaction(client1, email);
     expect(result1).toBeTruthy();
 
-    const client2 = `client1-${uuid.v4()}`;
+    const client2 = `client1-${crypto.randomUUID()}`;
     const result2 = await dataService.createTransaction(client2, email);
     expect(result2).toBeTruthy();
 
@@ -392,13 +391,13 @@ describe('dataService', () => {
     expect(content2.email).toBeFalsy();
 
     const smtp1 = await dataService.updateMessageSendResult(client1, messageId1, {
-      smtpMsgId: uuid.v4(),
+      smtpMsgId: crypto.randomUUID(),
       response: 'response'
     });
     expect(smtp1.sendResult).toBeTruthy();
 
     const smpt2 = await dataService.updateMessageSendResult(client2, messageId2, {
-      smtpMsgId: uuid.v4(),
+      smtpMsgId: crypto.randomUUID(),
       response: 'response'
     });
     expect(smpt2.sendResult).toBeTruthy();
@@ -416,11 +415,11 @@ describe('dataService', () => {
     await expect(dataService.deleteMessageEmail(client2, messageId1)).rejects.toThrow();
 
     await expect(dataService.updateMessageSendResult(client1, messageId2, {
-      smtpMsgId: uuid.v4(),
+      smtpMsgId: crypto.randomUUID(),
       response: 'response'
     })).rejects.toThrow();
     await expect(dataService.updateMessageSendResult(client2, messageId1, {
-      smtpMsgId: uuid.v4(),
+      smtpMsgId: crypto.randomUUID(),
       response: 'response'
     })).rejects.toThrow();
 
@@ -429,7 +428,7 @@ describe('dataService', () => {
   });
 
   it('should error out on find message with bad id', async () => {
-    const messageId = uuid.v4();
+    const messageId = crypto.randomUUID();
     await expect(dataService.readMessage(CLIENT, messageId)).rejects.toThrow();
   });
 
@@ -490,7 +489,7 @@ describe('dataService', () => {
     expect(result.messages[0].email).toBeTruthy();
 
     const msg = await dataService.updateMessageSendResult(CLIENT, result.messages[0].messageId, {
-      smtpMsgId: uuid.v4(),
+      smtpMsgId: crypto.randomUUID(),
       response: 'some response'
     });
     expect(msg.sendResult).toBeTruthy();

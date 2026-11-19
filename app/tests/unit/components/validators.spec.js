@@ -1060,7 +1060,7 @@ describe('models.queryParams.msgId', () => {
 
   it('should return true for valid UUID strings', () => {
     expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
-    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
+    expect(fn('11111111-1111-1111-8111-111111111111')).toBeTruthy();
     expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
     expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
   });
@@ -1168,7 +1168,7 @@ describe('models.queryParams.txId', () => {
 
   it('should return true for valid UUID strings', () => {
     expect(fn('00000000-0000-0000-0000-000000000000')).toBeTruthy();
-    expect(fn('11111111-1111-1111-0111-111111111111')).toBeTruthy();
+    expect(fn('11111111-1111-1111-8111-111111111111')).toBeTruthy();
     expect(fn('ac2b944a-c148-4dfe-8103-d4cdc6b0a79a')).toBeTruthy();
     expect(fn('86a12b0d-6d7a-491c-a1fb-98db9543bf55')).toBeTruthy();
   });

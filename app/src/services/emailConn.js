@@ -112,9 +112,7 @@ class EmailConnection {
           pass: testAccount.pass
         }
       };
-      // eslint-disable-next-line require-atomic-updates
       etherealConnection = new EmailConnection();
-      // eslint-disable-next-line require-atomic-updates
       etherealConnection.configuration = etherealConfiguration;
     }
     return etherealConnection;
@@ -130,7 +128,7 @@ class EmailConnection {
     try {
       return nodemailer.getTestMessageUrl(info);
       // eslint-disable-next-line no-empty
-    } catch (err) {
+    } catch {
 
     }
   }

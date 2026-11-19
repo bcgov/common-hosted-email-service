@@ -28,6 +28,7 @@ const _createClient = () => {
     enableReadyCheck: false, // Bull forcibly assumes Redis is ready if it has connected to it
     maxRetriesPerRequest: null, // Set to null to force each redis command to wait forever until connection is alive again (old pre-ioredis v4 behavior)
     password: config.get('redis.password'),
+    protocol: 2,
     reconnectOnError: (err) => err.message.toUpperCase().includes('READONLY')
   };
   if (config.get('redis.clusterMode') === 'yes') {
